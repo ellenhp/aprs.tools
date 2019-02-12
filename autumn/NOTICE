@@ -1,0 +1,10 @@
+Source code in this directory is copied from or derived from the whimsy 
+project, available in its unmodified form at https://github.com/norswap/whimsy
+
+Copyright (c) 2016, Nicolas LAURENT
+All rights reserved.
+
+This code is reproduced here under the terms of the BSD 3-Clause License. A 
+copy of this license is available in this directory (see LICENSE). Big thank 
+you to Nicolas for writing a simple yet powerful scannerless parser combinator 
+for Kotlin!

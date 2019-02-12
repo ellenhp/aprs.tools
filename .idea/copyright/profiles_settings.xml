@@ -1,0 +1,8 @@
+<component name="CopyrightManager">
+  <settings>
+    <module2copyright>
+      <element module="APRSTools" copyright="APRSTools" />
+      <element module="APRSLib" copyright="APRSTools" />
+    </module2copyright>
+  </settings>
+</component>

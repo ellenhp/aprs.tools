@@ -1,0 +1,9 @@
+This software contains components from other open source projects, which have 
+their own copyrights and reproduced here under the terms of various licenses. 
+This file contains a list of these components.
+
+Autumn (Located at ./autumn) is reproduced under the terms of the BSD 3-Clause 
+License. For more information see ./autumn/NOTICE. For a copy of the BSD 
+3-Clause License see ./autumn/LICENSE.
+Copyright (c) 2016, Nicolas LAURENT
+All rights reserved.

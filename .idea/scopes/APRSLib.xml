@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="APRSLib" pattern="me.ellenhp.aprslib*..*" />
+</component>
