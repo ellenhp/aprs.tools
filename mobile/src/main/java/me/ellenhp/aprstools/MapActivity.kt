@@ -23,7 +23,6 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -36,7 +35,6 @@ import android.support.v4.app.ActivityCompat
 import android.support.v4.app.FragmentActivity
 import android.support.v7.widget.AppCompatButton
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -47,14 +45,19 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprstools.aprs.AprsIsListener
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
+import javax.inject.Inject
+import dagger.Lazy
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
+
+    @Inject lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
+    @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
 
     private val tnc: BluetoothDevice?
         get() {
             val address = getPreferences(Context.MODE_PRIVATE).getString(getString(R.string.TNC_BT_ADDRESS), null)
                     ?: return null
-            return bluetoothAdapter?.getRemoteDevice(address)
+            return bluetoothAdapter.get()?.getRemoteDevice(address)
         }
 
     private val mConnection = object : ServiceConnection {
@@ -68,16 +71,15 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         }
     }
 
-    private var mMap: GoogleMap? = null
-    private var mFusedLocationClient: FusedLocationProviderClient? = null
-    private var aprsIsService: AprsIsService? = null
-    private var bluetoothAdapter: BluetoothAdapter? = null
+    var map: GoogleMap? = null
+    var aprsIsService: AprsIsService? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_map)
 
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        getActivityComponent()?.inject(this)
+
+        setContentView(R.layout.activity_map)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -91,9 +93,6 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
 
     override fun onStart() {
         super.onStart()
-
-        val bluetoothManager = getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        bluetoothAdapter = bluetoothManager.adapter
 
         findViewById<AppCompatButton>(R.id.start_igate).setOnClickListener { startIGate() }
         findViewById<AppCompatButton>(R.id.start_tracking).setOnClickListener { startTracking() }
@@ -120,7 +119,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
-        mMap = googleMap
+        map = googleMap
         val settings = googleMap.uiSettings
 
         settings.isCompassEnabled = true
@@ -155,11 +154,10 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     private fun animateToLastLocation() {
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED)
-            mFusedLocationClient?.lastLocation?.addOnSuccessListener(this) { this.processLocation(it) }
+            fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(this) { this.processLocation(it) }
     }
 
     private fun updateAprsIsListener(location: Location? = null) {
-        aprsIsService?.callsign = getPreferences(Context.MODE_PRIVATE).getString(getString(R.string.callsign_pref), null)
         aprsIsService?.callsign = getCallsign()
         aprsIsService?.host = getString(R.string.aprs_server)
         aprsIsService?.port = resources.getInteger(R.integer.aprs_port)
@@ -173,13 +171,13 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         }
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
-            mMap?.isMyLocationEnabled = true
+            map?.isMyLocationEnabled = true
             animateToLastLocation()
         }
     }
 
     override fun onAprsPacketReceived(packet: AprsPacket) {
-        mMap ?: return
+        map ?: return
 
         val pos = packet.location() ?: return
         runOnUiThread {addMarkerToMap(MarkerOptions()
@@ -188,13 +186,24 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     }
 
     private fun addMarkerToMap(marker: MarkerOptions) {
-        mMap?.addMarker(marker)
+        map?.addMarker(marker)
     }
 
     private fun processLocation(location: Location?) {
         location ?: return
-        mMap?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 15f))
+        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 15f))
+    }
 
+    private var activityComponent: ActivityComponent? = null
+
+    private fun getActivityComponent(): ActivityComponent? {
+        if (activityComponent == null) {
+
+            activityComponent = (application as AprsToolsApplication).component.newActivityComponent(
+                    ActivityModule(this))
+        }
+
+        return activityComponent
     }
 
     companion object {

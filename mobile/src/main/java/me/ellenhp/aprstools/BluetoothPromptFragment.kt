@@ -21,6 +21,7 @@ package me.ellenhp.aprstools
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -32,9 +33,13 @@ import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.RadioButton
+import javax.inject.Inject
+import dagger.Lazy
 
 
 class BluetoothPromptFragment : DialogFragment() {
+
+    @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
 
     private var dialogView: View? = null
     private var tncPickerView: ListView? = null
@@ -46,9 +51,9 @@ class BluetoothPromptFragment : DialogFragment() {
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val inflater = activity?.layoutInflater
+        val inflater = activity!!.layoutInflater
 
-        dialogView = inflater?.inflate(R.layout.bluetooth_prompt_layout, null)
+        dialogView = inflater.inflate(R.layout.bluetooth_prompt_layout, null)
         val builder = AlertDialog.Builder(activity)
                 .setTitle(R.string.bluetooth_prompt_label)
                 .setCancelable(false)
@@ -61,8 +66,7 @@ class BluetoothPromptFragment : DialogFragment() {
 
         tncPickerView?.setOnItemClickListener { parent, view, position, id -> System.exit(0) }
 
-        val bluetoothManager = activity?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager?
-        bluetoothDeviceAdapter.items = bluetoothManager?.adapter?.bondedDevices?.toList()
+        bluetoothDeviceAdapter.items = bluetoothAdapter.get()?.bondedDevices?.toList()
 
         return builder.create()
     }
