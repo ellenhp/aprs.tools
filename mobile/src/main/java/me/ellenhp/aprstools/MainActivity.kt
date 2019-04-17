@@ -22,7 +22,6 @@ package me.ellenhp.aprstools
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.bluetooth.BluetoothAdapter
-import android.bluetooth.BluetoothDevice
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -49,26 +48,23 @@ import javax.inject.Inject
 import dagger.Lazy
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
+import me.ellenhp.aprstools.tnc.TncDevice
+import javax.inject.Provider
 
-class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
+class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
 
     @Inject lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
+    @Inject lateinit var userCreds: Provider<UserCreds?>
+    @Inject lateinit var tncDevice: Provider<TncDevice?>
 
     val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
 
-    private val tnc: BluetoothDevice?
-        get() {
-            val address = getPreferences(Context.MODE_PRIVATE).getString(getString(R.string.TNC_BT_ADDRESS), null)
-                    ?: return null
-            return bluetoothAdapter.get()?.getRemoteDevice(address)
-        }
-
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             aprsIsService = (service as AprsIsService.AprsIsServiceBinder).getService()
-            aprsIsService?.listener = this@MapActivity
+            aprsIsService?.listener = this@MainActivity
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
@@ -87,7 +83,7 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         (application as AprsToolsApplication).activityComponent = activityCompoment
         activityCompoment.inject(this)
 
-        setContentView(R.layout.activity_map)
+        setContentView(R.layout.activity_main)
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
@@ -105,23 +101,25 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         findViewById<AppCompatButton>(R.id.start_igate).setOnClickListener { startIGate() }
         findViewById<AppCompatButton>(R.id.start_tracking).setOnClickListener { startTracking() }
 
-        if (getCallsign() == null)
+        if (userCreds.get() == null)
             showCallsignDialog()
 
         requestLocation()
 
         updateAprsIsListener()
+
+        animateToLastLocation()
     }
 
 
     private fun startTracking() {
-        if (tnc == null) {
+        if (tncDevice.get() == null) {
             showBluetoothDialog()
         }
     }
 
     private fun startIGate() {
-        if (tnc == null) {
+        if (tncDevice.get() == null) {
             showBluetoothDialog()
         }
     }
@@ -138,11 +136,6 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         settings.isRotateGesturesEnabled = true
 
         animateToLastLocation()
-    }
-
-    private fun getCallsign(): String? {
-        val call = getPreferences(Context.MODE_PRIVATE).getString(getString(R.string.callsign_pref), null)
-        return call
     }
 
     private fun showCallsignDialog() {
@@ -164,9 +157,6 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     }
 
     private fun updateAprsIsListener(location: Location? = null) {
-        aprsIsService?.callsign = getCallsign()
-        aprsIsService?.host = getString(R.string.aprs_server)
-        aprsIsService?.port = resources.getInteger(R.integer.aprs_port)
         aprsIsService?.filter = LocationFilter(location ?: return, 50.0)
     }
 

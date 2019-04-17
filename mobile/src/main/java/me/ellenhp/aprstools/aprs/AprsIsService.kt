@@ -23,30 +23,20 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import me.ellenhp.aprstools.AprsIsServerAddress
+import me.ellenhp.aprstools.AprsToolsApplication
+import me.ellenhp.aprstools.UserCreds
+import javax.inject.Inject
+import javax.inject.Provider
 
 class AprsIsService : Service() {
 
+    @Inject lateinit var userCreds: Provider<UserCreds?>
+    @Inject lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
+
     val binder = AprsIsServiceBinder()
 
-    var host: String? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
-
-    var port: Int? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
-
     var filter: LocationFilter? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
-
-    var callsign: String? = null
         set(value) {
             field = value
             resetClient()
@@ -61,8 +51,9 @@ class AprsIsService : Service() {
 
     private var thread: AprsIsThread? = null
 
-    // TODO support multiple listeners
     override fun onBind(intent: Intent?): IBinder? {
+        (application as AprsToolsApplication).activityComponent?.inject(this)
+
         if (thread?.isAlive != true) {
             thread = AprsIsThread(listener)
             resetClient()
@@ -75,18 +66,18 @@ class AprsIsService : Service() {
         return binder
     }
 
+    fun resetClient() {
+        thread?.setClient(AprsIsClient(
+                aprsIsServerAddress.get().host,
+                aprsIsServerAddress.get().port,
+                userCreds.get()?.call ?: return,
+                filter))
+    }
+
     inner class AprsIsServiceBinder : Binder() {
         fun getService(): AprsIsService {
             return this@AprsIsService
         }
-    }
-
-    private fun resetClient() {
-        thread?.setClient(AprsIsClient(
-                host ?: return,
-                port ?: return,
-                callsign ?: return,
-                filter))
     }
 
 }

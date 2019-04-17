@@ -17,14 +17,17 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.tnc
+package me.ellenhp.aprstools
 
-import android.bluetooth.BluetoothDevice
-import java.io.IOException
-
-interface Tnc {
-    @Throws(IOException::class)
-    fun readFrame(): TncFrame?
+class PreferenceKeys {
+    companion object {
+        val CALLSIGN = "CALLSIGN"
+        val PASSCODE = "PASSCODE"
+        val TNC_BT_ADDRESS = "TNC_BT_ADDRESS"
+        val APRS_IS_HOST = "APRS_IS_HOST"
+        val APRS_IS_PORT = "APRS_IS_PORT"
+    }
 }
 
-data class TncDevice(val device: BluetoothDevice)
+data class UserCreds(val call: String, val passcode: String?)
+data class AprsIsServerAddress(val host: String, val port: Int)

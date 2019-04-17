@@ -19,18 +19,18 @@
 
 package me.ellenhp.aprstools
 
-import dagger.Component
 import dagger.Subcomponent
+import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
-import javax.inject.Singleton
 
 @ActivityScope
 @Subcomponent(modules = [ActivityModule::class])
 interface ActivityComponent {
 
-    fun inject(mainActivity: MapActivity)
+    fun inject(mainActivity: MainActivity)
     fun inject(dialogFragment: BluetoothPromptFragment)
     fun inject(dialogFragment: CallsignDialogFragment)
+    fun inject(aprsIsService: AprsIsService)
 
 }

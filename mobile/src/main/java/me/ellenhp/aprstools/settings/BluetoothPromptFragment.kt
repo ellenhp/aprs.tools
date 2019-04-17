@@ -35,6 +35,7 @@ import android.widget.RadioButton
 import javax.inject.Inject
 import dagger.Lazy
 import me.ellenhp.aprstools.AprsToolsApplication
+import me.ellenhp.aprstools.PreferenceKeys
 import me.ellenhp.aprstools.R
 
 
@@ -76,7 +77,7 @@ class BluetoothPromptFragment : DialogFragment() {
 
     private fun onButtonClick(dialog: DialogInterface, which: Int) {
         if (which == Dialog.BUTTON_POSITIVE) {
-            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(getString(R.string.TNC_BT_ADDRESS), selectedItem?.address)?.apply()
+            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(PreferenceKeys.TNC_BT_ADDRESS, selectedItem?.address)?.apply()
         }
         dismiss()
     }
