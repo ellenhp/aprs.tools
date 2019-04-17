@@ -21,6 +21,8 @@ package me.ellenhp.aprstools
 
 import dagger.Component
 import dagger.Subcomponent
+import me.ellenhp.aprstools.settings.BluetoothPromptFragment
+import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import javax.inject.Singleton
 
 @ActivityScope
@@ -28,5 +30,7 @@ import javax.inject.Singleton
 interface ActivityComponent {
 
     fun inject(mainActivity: MapActivity)
+    fun inject(dialogFragment: BluetoothPromptFragment)
+    fun inject(dialogFragment: CallsignDialogFragment)
 
 }

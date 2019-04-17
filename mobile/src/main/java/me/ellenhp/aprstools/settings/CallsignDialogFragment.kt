@@ -17,7 +17,7 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
 import android.app.Activity
 import android.app.AlertDialog
@@ -27,6 +27,7 @@ import android.os.Bundle
 import android.support.v4.app.DialogFragment
 import android.view.View
 import android.widget.EditText
+import me.ellenhp.aprstools.R
 
 class CallsignDialogFragment : DialogFragment() {
 

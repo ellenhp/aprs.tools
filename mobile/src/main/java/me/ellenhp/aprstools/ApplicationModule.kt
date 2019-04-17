@@ -35,10 +35,4 @@ class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) 
         return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
     }
 
-    @Provides
-    fun providesBluetoothAdapter(): BluetoothAdapter? {
-        val bluetoothManager = aprsToolsApplication.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
-        return bluetoothManager.adapter
-
-    }
 }

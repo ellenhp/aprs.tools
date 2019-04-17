@@ -47,11 +47,16 @@ import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
 import javax.inject.Inject
 import dagger.Lazy
+import me.ellenhp.aprstools.settings.BluetoothPromptFragment
+import me.ellenhp.aprstools.settings.CallsignDialogFragment
 
 class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
 
     @Inject lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
+
+    val bluetoothDialog = BluetoothPromptFragment()
+    val callsignDialog = CallsignDialogFragment()
 
     private val tnc: BluetoothDevice?
         get() {
@@ -77,7 +82,10 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        getActivityComponent()?.inject(this)
+        val activityCompoment = (application as AprsToolsApplication).component
+                .newActivityComponent(ActivityModule(this))
+        (application as AprsToolsApplication).activityComponent = activityCompoment
+        activityCompoment.inject(this)
 
         setContentView(R.layout.activity_map)
 
@@ -138,13 +146,11 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
     }
 
     private fun showCallsignDialog() {
-        val dialogFragment = CallsignDialogFragment()
-        dialogFragment.show(supportFragmentManager, "CallsignDialogFragment")
+        callsignDialog.show(supportFragmentManager, "CallsignDialogFragment")
     }
 
     private fun showBluetoothDialog() {
-        val dialogFragment = BluetoothPromptFragment()
-        dialogFragment.show(supportFragmentManager, "BluetoothPromptFragment")
+        bluetoothDialog.show(supportFragmentManager, "BluetoothPromptFragment")
     }
 
     private fun requestLocation() {
@@ -180,30 +186,14 @@ class MapActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         map ?: return
 
         val pos = packet.location() ?: return
-        runOnUiThread {addMarkerToMap(MarkerOptions()
+        runOnUiThread {map?.addMarker(MarkerOptions()
                 .position(LatLng(pos.latitude, pos.longitude))
                 .title(packet.source.toString()))}
-    }
-
-    private fun addMarkerToMap(marker: MarkerOptions) {
-        map?.addMarker(marker)
     }
 
     private fun processLocation(location: Location?) {
         location ?: return
         map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 15f))
-    }
-
-    private var activityComponent: ActivityComponent? = null
-
-    private fun getActivityComponent(): ActivityComponent? {
-        if (activityComponent == null) {
-
-            activityComponent = (application as AprsToolsApplication).component.newActivityComponent(
-                    ActivityModule(this))
-        }
-
-        return activityComponent
     }
 
     companion object {

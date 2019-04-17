@@ -142,3 +142,6 @@ fabric.properties
 
 # Don't check in API keys!
 google_maps_api.xml
+
+# Swap file?
+.swp

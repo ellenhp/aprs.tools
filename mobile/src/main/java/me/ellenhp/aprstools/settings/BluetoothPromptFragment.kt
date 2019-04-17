@@ -17,13 +17,12 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
 import android.app.AlertDialog
 import android.app.Dialog
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
@@ -35,6 +34,8 @@ import android.widget.ListView
 import android.widget.RadioButton
 import javax.inject.Inject
 import dagger.Lazy
+import me.ellenhp.aprstools.AprsToolsApplication
+import me.ellenhp.aprstools.R
 
 
 class BluetoothPromptFragment : DialogFragment() {
@@ -51,6 +52,8 @@ class BluetoothPromptFragment : DialogFragment() {
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        (activity?.application as AprsToolsApplication).activityComponent?.inject(this)
+
         val inflater = activity!!.layoutInflater
 
         dialogView = inflater.inflate(R.layout.bluetooth_prompt_layout, null)

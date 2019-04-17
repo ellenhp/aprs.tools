@@ -25,6 +25,8 @@ class AprsToolsApplication: Application() {
     lateinit var component: ApplicationComponent
         private set
 
+    var activityComponent: ActivityComponent? = null
+
     override fun onCreate() {
         super.onCreate()
         INSTANCE = this

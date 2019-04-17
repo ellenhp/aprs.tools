@@ -19,6 +19,9 @@
 
 package me.ellenhp.aprstools
 
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothManager
+import android.content.Context
 import com.google.android.gms.maps.GoogleMap
 import dagger.Module
 import dagger.Provides
@@ -27,8 +30,16 @@ import dagger.Provides
 class ActivityModule(private val activity: MapActivity) {
 
     @Provides
+    @ActivityScope
     fun provideMap(): GoogleMap? {
         return activity.map
     }
 
+    @Provides
+    @ActivityScope
+    fun providesBluetoothAdapter(): BluetoothAdapter {
+        val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
+        return bluetoothManager.adapter
+
+    }
 }
