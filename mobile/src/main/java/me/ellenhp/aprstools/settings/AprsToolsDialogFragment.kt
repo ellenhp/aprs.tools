@@ -17,34 +17,40 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
+import android.content.DialogInterface
 import android.support.v4.app.DialogFragment
 import android.support.v4.app.FragmentManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-abstract class AprsToolsDialogFragment() : DialogFragment() {
+open class AprsToolsDialogFragment : DialogFragment() {
 
     enum class DialogResult {
+        CANCELLED,
         DISMISSED
     }
 
-    var continuation: Continuation<DialogResult>? = null
+    private var continuation: Continuation<DialogResult>? = null
 
-    @Synchronized
-    suspend fun showBlocking(manager: FragmentManager?, tag: String?) {
-        suspendCoroutine(fun(it: Continuation<DialogResult>) {
+    suspend fun showBlocking(manager: FragmentManager?, tag: String?, runOnUiThread: (Runnable) -> Unit): DialogResult {
+        runOnUiThread(Runnable { show(manager, tag) })
+        return suspendCoroutine(fun(it: Continuation<DialogResult>) {
             continuation = it
-            show(manager, tag)
         })
     }
 
-    @Synchronized
-    override fun dismiss() {
+    override fun onDismiss(dialog: DialogInterface?) {
+        super.onDismiss(dialog)
         continuation?.resume(DialogResult.DISMISSED)
-        super.dismiss()
+        continuation = null
+    }
 
+    override fun onCancel(dialog: DialogInterface?) {
+        super.onCancel(dialog)
+        continuation?.resume(DialogResult.CANCELLED)
+        continuation = null
     }
 }

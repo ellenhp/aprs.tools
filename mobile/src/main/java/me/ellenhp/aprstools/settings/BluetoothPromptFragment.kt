@@ -39,7 +39,7 @@ import me.ellenhp.aprstools.PreferenceKeys
 import me.ellenhp.aprstools.R
 
 
-class BluetoothPromptFragment : DialogFragment() {
+class BluetoothPromptFragment : AprsToolsDialogFragment() {
 
     @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
 

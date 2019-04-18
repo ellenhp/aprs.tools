@@ -42,6 +42,7 @@
 
         <uses-library android:name="org.apache.http.legacy" android:required="false" />
         <service android:name=".aprs.AprsIsService" />
+        <service android:name=".tracker.TrackerService" />
     </application>
 
 </manifest>

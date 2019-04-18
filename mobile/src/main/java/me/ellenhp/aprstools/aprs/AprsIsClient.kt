@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools.aprs
 
+import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import java.io.*
@@ -27,6 +28,7 @@ import java.net.Socket
 class AprsIsClient(private val host: String,
                    private val port: Int,
                    private val callsign: String,
+                   private val passcode: String?,
                    private val filter: LocationFilter?) {
 
     private val parser = AprsParser()
@@ -46,6 +48,15 @@ class AprsIsClient(private val host: String,
         return parser.parse(rawPacket)
     }
 
+    @Synchronized
+    @Throws(IOException::class)
+    fun writePacket(packet: AprsPacket) {
+        if (!isInitialized)
+            init()
+        writer?.write(packet.toString() + "\r\n")
+        writer?.flush()
+    }
+
     fun disconnect() {
         socket?.close()
     }
@@ -55,7 +66,7 @@ class AprsIsClient(private val host: String,
         reader = BufferedReader(InputStreamReader(socket?.getInputStream()))
         writer = BufferedWriter(OutputStreamWriter(socket?.getOutputStream()))
 
-        writer?.write(String.format("user %s pass -1\r\n", callsign))
+        writer?.write(String.format("user %s pass %s\r\n", callsign, passcode ?: "-1"))
         writer?.write("filter default\r\n")
         if (filter != null)
             writer?.write(filter.filterCommand)

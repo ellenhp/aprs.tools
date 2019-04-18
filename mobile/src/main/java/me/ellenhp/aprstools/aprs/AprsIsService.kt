@@ -23,6 +23,7 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprstools.AprsIsServerAddress
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.UserCreds
@@ -34,7 +35,7 @@ class AprsIsService : Service() {
     @Inject lateinit var userCreds: Provider<UserCreds?>
     @Inject lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
 
-    val binder = AprsIsServiceBinder()
+    private val binder = AprsIsServiceBinder()
 
     var filter: LocationFilter? = null
         set(value) {
@@ -66,11 +67,16 @@ class AprsIsService : Service() {
         return binder
     }
 
+    fun sendPacket(packet: AprsPacket) {
+        thread?.enqueuePacket(packet)
+    }
+
     fun resetClient() {
         thread?.setClient(AprsIsClient(
                 aprsIsServerAddress.get().host,
                 aprsIsServerAddress.get().port,
                 userCreds.get()?.call ?: return,
+                userCreds.get()?.passcode,
                 filter))
     }
 

@@ -46,12 +46,18 @@ import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
 import javax.inject.Inject
 import dagger.Lazy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
+import me.ellenhp.aprstools.settings.PasscodeDialogFragment
 import me.ellenhp.aprstools.tnc.TncDevice
+import me.ellenhp.aprstools.tracker.TrackerService
 import javax.inject.Provider
 
-class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
+class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, CoroutineScope by MainScope() {
 
     @Inject lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
@@ -60,6 +66,7 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
 
     val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
+    val passcodeDialog = PasscodeDialogFragment()
 
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -101,8 +108,9 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         findViewById<AppCompatButton>(R.id.start_igate).setOnClickListener { startIGate() }
         findViewById<AppCompatButton>(R.id.start_tracking).setOnClickListener { startTracking() }
 
-        if (userCreds.get() == null)
-            showCallsignDialog()
+        launch {
+            maybeShowCallsignDialog()
+        }
 
         requestLocation()
 
@@ -113,14 +121,21 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
 
 
     private fun startTracking() {
-        if (tncDevice.get() == null) {
-            showBluetoothDialog()
+        launch {
+            maybeShowCallsignDialog()
+            maybeShowPasscodeDialog()
+            runOnUiThread {
+                // Start our AprsIsService.
+                val intent = Intent(this@MainActivity, TrackerService::class.java)
+                startService(intent)
+            }
         }
     }
 
     private fun startIGate() {
-        if (tncDevice.get() == null) {
-            showBluetoothDialog()
+        launch {
+            maybeShowCallsignDialog()
+            maybeShowBluetoothDialog()
         }
     }
 
@@ -138,12 +153,24 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener {
         animateToLastLocation()
     }
 
-    private fun showCallsignDialog() {
-        callsignDialog.show(supportFragmentManager, "CallsignDialogFragment")
+    private suspend fun maybeShowCallsignDialog() {
+        if (userCreds.get() == null) {
+            callsignDialog.showBlocking(supportFragmentManager, "CallsignDialogFragment", this::runOnUiThread)
+
+        }
     }
 
-    private fun showBluetoothDialog() {
-        bluetoothDialog.show(supportFragmentManager, "BluetoothPromptFragment")
+    private suspend fun maybeShowBluetoothDialog() {
+        if (tncDevice.get() == null) {
+            bluetoothDialog.showBlocking(supportFragmentManager, "BluetoothPromptFragment", this::runOnUiThread)
+        }
+    }
+
+    private suspend fun maybeShowPasscodeDialog() {
+        if (userCreds.get()?.passcode == null) {
+            passcodeDialog.showBlocking(supportFragmentManager, "PasscodePromptFragment", this::runOnUiThread)
+            aprsIsService?.resetClient()
+        }
     }
 
     private fun requestLocation() {

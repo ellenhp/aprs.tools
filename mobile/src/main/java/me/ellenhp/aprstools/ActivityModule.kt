@@ -25,6 +25,7 @@ import android.content.Context
 import com.google.android.gms.maps.GoogleMap
 import dagger.Module
 import dagger.Provides
+import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.tnc.TncDevice
 
 @Module
@@ -63,5 +64,10 @@ class ActivityModule(private val activity: MainActivity) {
         val host = prefs.getString(PreferenceKeys.APRS_IS_HOST, activity.getString(R.string.default_aprs_server))
         val port = prefs.getInt(PreferenceKeys.APRS_IS_PORT, activity.resources.getInteger(R.integer.default_aprs_port))
         return AprsIsServerAddress(host!!, port);
+    }
+
+    @Provides
+    fun providesAprsIsService(): AprsIsService? {
+        return activity.aprsIsService
     }
 }

@@ -13,12 +13,7 @@
     <string name="done_text">Done</string>
     <string name="bluetooth_prompt_label">Pick your TNC</string>
     <string name="unknown_tnc">Unknown Bluetooth Device</string>
-
-    <!-- Preferences -->
-    <string name="callsign_pref" translatable="false">CALLSIGN</string>
-    <string name="passcode_pref" translatable="false">PASSCODE</string>
-    <string name="tnc_bt_address_pref" translatable="false">TNC_BT_ADDRESS</string>
-    <string name="aprs_is_host_pref" translatable="false">APRS_IS_HOST</string>
-    <string name="aprs_is_port_pref" translatable="false">APRS_IS_PORT</string>
+    <string name="passcode_prompt">You need an APRS-IS passcode to use this feature. Please enter it below.</string>
+    <string name="passcode_prompt_title">Set APRS-IS Passcode</string>
 
 </resources>

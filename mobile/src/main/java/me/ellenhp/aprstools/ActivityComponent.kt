@@ -23,6 +23,7 @@ import dagger.Subcomponent
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
+import me.ellenhp.aprstools.tracker.TrackerService
 
 @ActivityScope
 @Subcomponent(modules = [ActivityModule::class])
@@ -32,5 +33,6 @@ interface ActivityComponent {
     fun inject(dialogFragment: BluetoothPromptFragment)
     fun inject(dialogFragment: CallsignDialogFragment)
     fun inject(aprsIsService: AprsIsService)
+    fun inject(trackerService: TrackerService)
 
 }

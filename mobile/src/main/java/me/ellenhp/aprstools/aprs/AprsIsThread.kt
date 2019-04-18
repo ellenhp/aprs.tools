@@ -22,6 +22,8 @@ package me.ellenhp.aprstools.aprs
 import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
 import java.io.IOException
+import java.util.*
+import java.util.concurrent.ArrayBlockingQueue
 
 class AprsIsThread(var listener: AprsIsListener?): Thread() {
 
@@ -31,20 +33,37 @@ class AprsIsThread(var listener: AprsIsListener?): Thread() {
     private var client: AprsIsClient? = null
     private var shouldExit = false
 
+    private val queue: Queue<AprsPacket> = ArrayDeque()
+
     fun setClient(newClient: AprsIsClient) {
         client?.disconnect()
         client = newClient
     }
 
+    @Synchronized
+    fun enqueuePacket(aprsPacket: AprsPacket) {
+        queue.offer(aprsPacket)
+    }
+
     override fun run() {
         while (!shouldExit) {
-            val packet = readPacket()
-            if (packet == null) {
-                backoff()
-                continue
-            }
-            listener?.onAprsPacketReceived(packet)
+            doRead()
+            doWrite()
         }
+    }
+
+    private fun doRead() {
+        val packet = readPacket()
+        if (packet == null) {
+            backoff()
+            return
+        }
+        listener?.onAprsPacketReceived(packet)
+    }
+
+    @Synchronized
+    private fun doWrite() {
+        client?.writePacket(queue.poll() ?: return)
     }
 
     private fun readPacket(): AprsPacket? {
