@@ -23,13 +23,18 @@ import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.app.Service
 import android.content.Intent
-import android.os.Binder
 import android.os.IBinder
 import android.os.Looper
 import android.support.v4.app.ActivityCompat
 import android.support.v4.content.PermissionChecker.PERMISSION_GRANTED
-import com.google.android.gms.location.*
-import me.ellenhp.aprslib.packet.*
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import me.ellenhp.aprslib.packet.AprsInformationField
+import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.AprsPath
+import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.UserCreds
 import me.ellenhp.aprstools.aprs.AprsIsService
@@ -38,9 +43,12 @@ import javax.inject.Provider
 
 class TrackerService : Service() {
 
-    @Inject lateinit var aprsIsService: Provider<AprsIsService>
-    @Inject lateinit var fusedLocationProviderClient: FusedLocationProviderClient
-    @Inject lateinit var userCreds: Provider<UserCreds?>
+    @Inject
+    lateinit var aprsIsService: Provider<AprsIsService>
+    @Inject
+    lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    @Inject
+    lateinit var userCreds: Provider<UserCreds?>
 
     override fun onBind(intent: Intent?): IBinder? {
         return null

@@ -1,4 +1,5 @@
 package norswap.autumn.parsers
+
 import norswap.autumn.EarlyTermination
 import norswap.autumn.Grammar
 import norswap.autumn.Parser
@@ -11,8 +12,7 @@ import norswap.autumn.Parser
  *
  * Matches all the parsers in a sequence.
  */
-inline fun Grammar.seq (crossinline p: Parser): Boolean
-{
+inline fun Grammar.seq(crossinline p: Parser): Boolean {
     return transact(p)
 }
 
@@ -21,8 +21,7 @@ inline fun Grammar.seq (crossinline p: Parser): Boolean
 /**
  * Matches [p] if it suceeds, otherwise succeeds without consuming any input.
  */
-inline fun Grammar.opt (crossinline p: Parser): Boolean
-{
+inline fun Grammar.opt(crossinline p: Parser): Boolean {
     p()
     return true
 }
@@ -32,9 +31,8 @@ inline fun Grammar.opt (crossinline p: Parser): Boolean
 /**
  * Matches 0 or more (sequential) repetition of [p].
  */
-inline fun Grammar.repeat0 (crossinline p: Parser): Boolean
-{
-    while (p()) ;
+inline fun Grammar.repeat0(crossinline p: Parser): Boolean {
+    while (p());
     return true
 }
 
@@ -43,10 +41,9 @@ inline fun Grammar.repeat0 (crossinline p: Parser): Boolean
 /**
  * Matches 1 or more (sequential) repetition of [p].
  */
-inline fun Grammar.repeat1 (crossinline p: Parser): Boolean
-{
+inline fun Grammar.repeat1(crossinline p: Parser): Boolean {
     if (!p()) return false
-    while (p()) ;
+    while (p());
     return true
 }
 
@@ -55,8 +52,7 @@ inline fun Grammar.repeat1 (crossinline p: Parser): Boolean
 /**
  * Matches exactly [n] (sequential) repetitions of [p].
  */
-inline fun Grammar.repeat (n: Int, crossinline p: Parser): Boolean
-{
+inline fun Grammar.repeat(n: Int, crossinline p: Parser): Boolean {
     return transact b@{
         for (i in 1..n)
             if (!p()) return@b false
@@ -69,8 +65,7 @@ inline fun Grammar.repeat (n: Int, crossinline p: Parser): Boolean
 /**
  * Matches 0 or more repetitions of [around], separated from one another by input matching [inside].
  */
-inline fun Grammar.around0 (crossinline around: Parser, crossinline inside: Parser): Boolean
-{
+inline fun Grammar.around0(crossinline around: Parser, crossinline inside: Parser): Boolean {
     var r = around()
     while (r)
         r = seq { inside() && around() }
@@ -82,8 +77,7 @@ inline fun Grammar.around0 (crossinline around: Parser, crossinline inside: Pars
 /**
  * Matches 1 or more repetitions of [around], separated from one another by input matching [inside].
  */
-inline fun Grammar.around1 (crossinline around: Parser, crossinline inside: Parser): Boolean
-{
+inline fun Grammar.around1(crossinline around: Parser, crossinline inside: Parser): Boolean {
     var r = around()
     if (!r) return false
     while (r)
@@ -97,8 +91,7 @@ inline fun Grammar.around1 (crossinline around: Parser, crossinline inside: Pars
  * Matches 0 or more repetitions of [around], separated from one another by input matching [inside],
  * optionally followed by input matching [inside].
  */
-inline fun Grammar.list_term0 (crossinline around: Parser, crossinline inside: Parser): Boolean
-{
+inline fun Grammar.list_term0(crossinline around: Parser, crossinline inside: Parser): Boolean {
     var r = around()
     while (r)
         r = seq { inside() && around() }
@@ -112,8 +105,7 @@ inline fun Grammar.list_term0 (crossinline around: Parser, crossinline inside: P
  * Matches 1 or more repetitions of [around], separated from one another by input matching [inside],
  * optionally followed by input matching [inside].
  */
-inline fun Grammar.list_term1 (crossinline around: Parser, crossinline inside: Parser): Boolean
-{
+inline fun Grammar.list_term1(crossinline around: Parser, crossinline inside: Parser): Boolean {
     var r = around()
     if (!r) return false
     while (r)
@@ -131,9 +123,8 @@ inline fun Grammar.list_term1 (crossinline around: Parser, crossinline inside: P
  * In case of ambiguity, [terminator] is matched in preference to [repeat]
  * (this is what makes this different from `seq { repeat0(repeat) && terminator() }`).
  */
-inline fun Grammar.until0 (crossinline repeat: Parser, crossinline terminator: Parser): Boolean
-{
-    return transact b@ {
+inline fun Grammar.until0(crossinline repeat: Parser, crossinline terminator: Parser): Boolean {
+    return transact b@{
         while (true) {
             val r1 = terminator()
             if (r1) return@b true
@@ -153,9 +144,8 @@ inline fun Grammar.until0 (crossinline repeat: Parser, crossinline terminator: P
  * In case of ambiguity, [terminator] is matched in preference to [repeat]
  * (this is what makes this different from `seq { repeat1(repeat) && terminator() }`).
  */
-inline fun Grammar.until1 (crossinline repeat: Parser, crossinline terminator: Parser): Boolean
-{
-    return transact b@ {
+inline fun Grammar.until1(crossinline repeat: Parser, crossinline terminator: Parser): Boolean {
+    return transact b@{
         val pos0 = pos
         var some = false
         while (true) {

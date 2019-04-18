@@ -1,12 +1,12 @@
 package norswap.utils
-import norswap.utils.thread_local.*
+
+import norswap.utils.thread_local.thread_local
 
 /**
  * Thread-local context for readable [Object.toString] implementation with consistent
  * indentation.
  */
-object StringContext
-{
+object StringContext {
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -26,8 +26,7 @@ object StringContext
     /**
      * Runs [f] with indentation increased by [amount] (default: 4).
      */
-    inline fun indented (amount: Int = 4, f: () -> String): String
-    {
+    inline fun indented(amount: Int = 4, f: () -> String): String {
         indentation += amount
         val str = f()
         indentation -= amount

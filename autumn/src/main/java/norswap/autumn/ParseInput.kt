@@ -1,5 +1,8 @@
 package norswap.autumn
-import norswap.autumn.conf.*
+
+import norswap.autumn.conf.COLUMN_START
+import norswap.autumn.conf.LINE_START
+import norswap.autumn.conf.TAB_SIZE
 import norswap.utils.expandTabsToBuilder
 import norswap.utils.plusAssign
 import norswap.utils.read_file
@@ -15,43 +18,42 @@ import java.nio.file.Path
  * It also offers string representations of line/columns, offset indices and offset ranges,
  * display line/column information.
  */
-class ParseInput (
+class ParseInput(
 
-    str: CharSequence,
+        str: CharSequence,
 
-    /**
-     * Identifies the input in text output. Defaults to the empty string.
-     */
-    val name: String = "",
+        /**
+         * Identifies the input in text output. Defaults to the empty string.
+         */
+        val name: String = "",
 
-    /**
-     * Timestamp for the file in milliseconds, usually the time of last modification.
-     * Some system use this to select which input to prefer.
-     * Defaults to the current time.
-     */
-    val timestamp: Long = System.currentTimeMillis(),
+        /**
+         * Timestamp for the file in milliseconds, usually the time of last modification.
+         * Some system use this to select which input to prefer.
+         * Defaults to the current time.
+         */
+        val timestamp: Long = System.currentTimeMillis(),
 
-    /**
-     * The size of tab for tab expansion.
-     *
-     * If 0, specifies that tab should not be expanded.
-     * Otherwise, all tab characters will be replaced by space characters so that the tab brings
-     * the line position to the next multiple of `tab_size`.
-     */
-    val tab_size: Int = TAB_SIZE,
+        /**
+         * The size of tab for tab expansion.
+         *
+         * If 0, specifies that tab should not be expanded.
+         * Otherwise, all tab characters will be replaced by space characters so that the tab brings
+         * the line position to the next multiple of `tab_size`.
+         */
+        val tab_size: Int = TAB_SIZE,
 
-    /**
-     * Index of the first line (only impacts string representations).
-     * Usually 1, which is the default.
-     */
-    val line_start: Int = LINE_START,
+        /**
+         * Index of the first line (only impacts string representations).
+         * Usually 1, which is the default.
+         */
+        val line_start: Int = LINE_START,
 
-    /**
-     * Index of the first character in a line (only impacts string representations).
-     * Usually 0 (e.g. Emacs) or 1 (e.g. IntelliJ IDEA). The default is 1.
-     */
-    val column_start: Int = COLUMN_START)
-{
+        /**
+         * Index of the first character in a line (only impacts string representations).
+         * Usually 0 (e.g. Emacs) or 1 (e.g. IntelliJ IDEA). The default is 1.
+         */
+        val column_start: Int = COLUMN_START) {
     // ---------------------------------------------------------------------------------------------
 
     companion object {
@@ -64,13 +66,13 @@ class ParseInput (
                  tab_size: Int = TAB_SIZE,
                  line_start: Int = LINE_START,
                  column_start: Int = COLUMN_START)
-    : this (
-        read_file(path.toString()),
-        path.toString(),
-        path.toFile().lastModified(),
-        tab_size,
-        line_start,
-        column_start)
+            : this(
+            read_file(path.toString()),
+            path.toString(),
+            path.toFile().lastModified(),
+            tab_size,
+            line_start,
+            column_start)
 
     // ---------------------------------------------------------------------------------------------
 
@@ -78,11 +80,12 @@ class ParseInput (
      * A null-terminated string with tabs expanded to spaces.
      */
     val text: String
-        init {
-            val b = str.expandTabsToBuilder(TAB_SIZE)
-            b += '\u0000'
-            text = b.toString()
-        }
+
+    init {
+        val b = str.expandTabsToBuilder(TAB_SIZE)
+        b += '\u0000'
+        text = b.toString()
+    }
 
     // ---------------------------------------------------------------------------------------------
 
@@ -109,8 +112,7 @@ class ParseInput (
     /**
      * Returns the line index of the given file offset.
      */
-    fun line_from (offset: Int): Int
-    {
+    fun line_from(offset: Int): Int {
         assert(offset >= 0 && offset < text.length)
         val line = line_position.binarySearch(offset)
 
@@ -125,13 +127,12 @@ class ParseInput (
      * Returns the column index of the given file offset,
      * using the line as a hint to speedup the computation.
      */
-    fun column_from (offset: Int, line: Int): Int
-    {
+    fun column_from(offset: Int, line: Int): Int {
         assert(offset >= 0 && offset < text.length)
         assert(line < line_position.size)
         assert(line_position[line] <= offset)
         assert(line == line_position.size - 1 && offset < text.length
-            || offset < line_position[line + 1])
+                || offset < line_position[line + 1])
 
         return offset - line_position[line]
     }
@@ -141,8 +142,7 @@ class ParseInput (
     /**
      * Returns the column index of the given file offset.
      */
-    fun column_from (offset: Int): Int
-    {
+    fun column_from(offset: Int): Int {
         assert(offset >= 0 && offset < text.length)
         val line = line_from(offset)
         return offset - line_position[line]
@@ -153,11 +153,10 @@ class ParseInput (
     /**
      * Return a (line, column) pair from the given file offset.
      */
-    fun line_column_from (offset: Int): Pair<Int, Int>
-    {
+    fun line_column_from(offset: Int): Pair<Int, Int> {
         assert(offset >= 0 && offset < text.length)
 
-        val line   = line_from(offset)
+        val line = line_from(offset)
         val column = column_from(offset, line)
 
         return Pair(line, column)
@@ -168,16 +167,14 @@ class ParseInput (
     /**
      * Returns the file offset of the start of the given line.
      */
-    fun offset_from (line: Int): Int
-        = line_position[line]
+    fun offset_from(line: Int): Int = line_position[line]
 
     // ---------------------------------------------------------------------------------------------
 
     /**
      * Returns a string representation of the given line/column pair.
      */
-    fun string (line: Int, column: Int): String
-    {
+    fun string(line: Int, column: Int): String {
         return "line ${line + line_start} column ${column + column_start}"
     }
 
@@ -186,9 +183,8 @@ class ParseInput (
     /**
      * Returns a string representation (with line/column info) of the given file offset.
      */
-    fun string (offset: Int): String
-    {
-        val line   = line_from(offset)
+    fun string(offset: Int): String {
+        val line = line_from(offset)
         val column = column_from(offset, line)
 
         return string(line, column)
@@ -199,12 +195,11 @@ class ParseInput (
     /**
      * Returns a string representation (with line/column info) of the given offset range.
      */
-    fun range_string (start: Int, end: Int): String
-    {
+    fun range_string(start: Int, end: Int): String {
         val l1 = line_from(start)
         val l2 = line_from(end)
         val c1 = column_from(start, l1)
-        val c2 = column_from(end,   l2)
+        val c2 = column_from(end, l2)
 
         if (l1 != l2)
             return "${string(l1, c1)} to ${string(l2, c2)}"

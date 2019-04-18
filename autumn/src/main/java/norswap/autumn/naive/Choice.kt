@@ -1,9 +1,10 @@
 package norswap.autumn.naive
+
 import norswap.autumn.Grammar
 import norswap.autumn.parsers.*
-import norswap.autumn.parsers.Longest     as Longest0
-import norswap.autumn.parsers.LongestPure as LongestPure0
 import norswap.utils.cast
+import norswap.autumn.parsers.Longest as Longest0
+import norswap.autumn.parsers.LongestPure as LongestPure0
 
 // -------------------------------------------------------------------------------------------------
 /*
@@ -16,8 +17,7 @@ This file contains parsers that perform a choice between their sub-parsers.
 /**
  * Matches the same things as the first parser in the list that matches, or fails if none succeeds.
  */
-class Choice (vararg val ps: Parser): Parser()
-{
+class Choice(vararg val ps: Parser) : Parser() {
     override fun invoke() = grammar.choice { ps.any(Parser::invoke) }
 }
 
@@ -28,9 +28,11 @@ class Choice (vararg val ps: Parser): Parser()
  *
  * Side effects are retained only for the parser that is selected.
  */
-class Longest (g: Grammar, vararg val ps: Parser): Parser()
-{
-    init { grammar = g }
+class Longest(g: Grammar, vararg val ps: Parser) : Parser() {
+    init {
+        grammar = g
+    }
+
     val longest = Longest0(g, ps.cast())
     override fun invoke() = longest()
 }
@@ -42,9 +44,11 @@ class Longest (g: Grammar, vararg val ps: Parser): Parser()
  *
  * Side effects are retained only for the parser that is selected.
  */
-class LongestPure (g: Grammar, vararg val ps: Parser): Parser()
-{
-    init { grammar = g }
+class LongestPure(g: Grammar, vararg val ps: Parser) : Parser() {
+    init {
+        grammar = g
+    }
+
     val longest_pure = LongestPure0(g, ps.cast())
     override fun invoke() = longest_pure()
 }

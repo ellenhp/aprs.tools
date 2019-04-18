@@ -21,7 +21,7 @@ package me.ellenhp.aprstools
 
 import android.app.Application
 
-class AprsToolsApplication: Application() {
+class AprsToolsApplication : Application() {
     lateinit var component: ApplicationComponent
         private set
 

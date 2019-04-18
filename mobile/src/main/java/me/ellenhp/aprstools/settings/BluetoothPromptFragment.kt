@@ -26,22 +26,22 @@ import android.bluetooth.BluetoothDevice
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.RadioButton
-import javax.inject.Inject
 import dagger.Lazy
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.PreferenceKeys
 import me.ellenhp.aprstools.R
+import javax.inject.Inject
 
 
 class BluetoothPromptFragment : AprsToolsDialogFragment() {
 
-    @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
+    @Inject
+    lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
 
     private var dialogView: View? = null
     private var tncPickerView: ListView? = null
@@ -82,6 +82,7 @@ class BluetoothPromptFragment : AprsToolsDialogFragment() {
         dismiss()
     }
 }
+
 class BluetoothDeviceAdapter(private val context: Context) : BaseAdapter() {
 
     var items: List<BluetoothDevice>? = listOf()
@@ -108,8 +109,7 @@ class BluetoothDeviceAdapter(private val context: Context) : BaseAdapter() {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val radioButton = convertView as? RadioButton? ?: RadioButton(context)
         radioButton.text = items?.get(position)?.name ?: context.getString(R.string.unknown_tnc)
-        radioButton.setOnClickListener {
-            view ->
+        radioButton.setOnClickListener { view ->
             if (selectedView != null) {
                 selectedView?.isChecked = false
             }

@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_height="match_parent"
     android:layout_width="match_parent"
+    android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".MainActivity">
+
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"/>
+        android:layout_weight="1" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,32 +20,34 @@
 
         <android.support.v7.widget.AppCompatButton
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="@dimen/bottom_bar_button_height"
             android:layout_marginStart="@dimen/bottom_bar_button_margin"
+            android:layout_marginTop="@dimen/bottom_bar_button_margin"
             android:layout_marginEnd="@dimen/bottom_bar_middle_button_margin"
             android:layout_marginBottom="@dimen/bottom_bar_button_margin"
-            android:layout_marginTop="@dimen/bottom_bar_button_margin"
+            android:layout_weight="1"
             android:text="@string/settings" />
+
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/start_tracking"
             android:layout_width="0dp"
-            android:layout_weight="1.2"
             android:layout_height="@dimen/bottom_bar_button_height"
             android:layout_marginStart="@dimen/bottom_bar_middle_button_margin"
+            android:layout_marginTop="@dimen/bottom_bar_button_margin"
             android:layout_marginEnd="@dimen/bottom_bar_middle_button_margin"
             android:layout_marginBottom="@dimen/bottom_bar_button_margin"
-            android:layout_marginTop="@dimen/bottom_bar_button_margin"
+            android:layout_weight="1.2"
             android:text="@string/track_position" />
+
         <android.support.v7.widget.AppCompatButton
             android:id="@+id/start_igate"
             android:layout_width="0dp"
-            android:layout_weight="1"
             android:layout_height="@dimen/bottom_bar_button_height"
             android:layout_marginStart="@dimen/bottom_bar_middle_button_margin"
+            android:layout_marginTop="@dimen/bottom_bar_button_margin"
             android:layout_marginEnd="@dimen/bottom_bar_button_margin"
             android:layout_marginBottom="@dimen/bottom_bar_button_margin"
-            android:layout_marginTop="@dimen/bottom_bar_button_margin"
+            android:layout_weight="1"
             android:text="@string/start_igate" />
 
     </LinearLayout>

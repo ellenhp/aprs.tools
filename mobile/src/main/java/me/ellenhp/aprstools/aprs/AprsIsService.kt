@@ -32,8 +32,10 @@ import javax.inject.Provider
 
 class AprsIsService : Service() {
 
-    @Inject lateinit var userCreds: Provider<UserCreds?>
-    @Inject lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
+    @Inject
+    lateinit var userCreds: Provider<UserCreds?>
+    @Inject
+    lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
 
     private val binder = AprsIsServiceBinder()
 
@@ -59,8 +61,7 @@ class AprsIsService : Service() {
             thread = AprsIsThread(listener)
             resetClient()
             thread?.start()
-        }
-        else {
+        } else {
             thread?.listener = listener
             resetClient()
         }

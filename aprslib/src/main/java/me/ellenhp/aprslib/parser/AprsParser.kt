@@ -34,8 +34,7 @@ class AprsParser {
     }
 }
 
-private class AprsGrammar : Grammar()
-{
+private class AprsGrammar : Grammar() {
     override fun root() = packet()
 
     private fun packet() = build(
@@ -70,10 +69,12 @@ private class AprsGrammar : Grammar()
     private fun aprsData() = build(
             syntax = { repeat0 { choice { posit() || timestamp() } } },
             effect = {
-                val aprsDataPoints : Array<Any?> = it
-                fun deref(idx: Int) : Any? { return aprsDataPoints(idx) }
+                val aprsDataPoints: Array<Any?> = it
+                fun deref(idx: Int): Any? {
+                    return aprsDataPoints(idx)
+                }
                 if (aprsDataPoints.isNotEmpty())
-                    AprsData(IntRange(0, aprsDataPoints.size - 1).map { i -> deref(i) as AprsDatum } )
+                    AprsData(IntRange(0, aprsDataPoints.size - 1).map { i -> deref(i) as AprsDatum })
                 else
                     AprsData(emptyList())
             }
@@ -81,14 +82,14 @@ private class AprsGrammar : Grammar()
 
     private fun posit() = build(
             syntax = {
-                    // Latitude
-                    latitude() &&
-                    // Symbol table
-                    build_str { char_any() } &&
-                    // Latitude
-                    longitude() &&
-                    // Symbol id
-                    build_str { char_any() }
+                // Latitude
+                latitude() &&
+                        // Symbol table
+                        build_str { char_any() } &&
+                        // Latitude
+                        longitude() &&
+                        // Symbol id
+                        build_str { char_any() }
             },
             effect = {
                 val lat: AprsAngle = it(0)
@@ -106,12 +107,12 @@ private class AprsGrammar : Grammar()
             syntax = {
                 seq {
                     build_str { repeat(2) { digitOrSpace() } } &&
-                    build_str { repeat(2) { digitOrSpace() } } &&
-                    ".".str &&
-                    build_str { repeat(2) { digitOrSpace() } } &&
-                    build_str {
-                        char_set("NS")
-                    }
+                            build_str { repeat(2) { digitOrSpace() } } &&
+                            ".".str &&
+                            build_str { repeat(2) { digitOrSpace() } } &&
+                            build_str {
+                                char_set("NS")
+                            }
                 }
             },
             effect = {
@@ -125,12 +126,12 @@ private class AprsGrammar : Grammar()
             syntax = {
                 seq {
                     build_str { repeat(3) { digitOrSpace() } } &&
-                    build_str { repeat(2) { digitOrSpace() } } &&
-                    ".".str &&
-                    build_str { repeat(2) { digitOrSpace() } } &&
-                    build_str {
-                        char_set("EW")
-                    }
+                            build_str { repeat(2) { digitOrSpace() } } &&
+                            ".".str &&
+                            build_str { repeat(2) { digitOrSpace() } } &&
+                            build_str {
+                                char_set("EW")
+                            }
                 }
             },
             effect = {
@@ -246,8 +247,10 @@ private class AprsGrammar : Grammar()
     private fun path() = build(
             syntax = { opt { repeat1 { pathSegment() } } },
             effect = {
-                val pathSegments : Array<Any?> = it
-                fun deref(idx: Int) : Any? { return pathSegments(idx) }
+                val pathSegments: Array<Any?> = it
+                fun deref(idx: Int): Any? {
+                    return pathSegments(idx)
+                }
                 AprsPath(IntRange(0, pathSegments.size - 1).map { i -> deref(i) as PathSegment })
             }
     )
@@ -257,7 +260,7 @@ private class AprsGrammar : Grammar()
             effect = { PathSegment(it(0), it(1)) }
     )
 
-    private fun address() = build (
+    private fun address() = build(
             syntax = { seq { addressWithoutSsid() && maybe { ssidSuffix() } } },
             effect = { Ax25Address(it(0), it(1)) }
     )
@@ -281,12 +284,12 @@ private class AprsGrammar : Grammar()
 private data class AprsAngle(val degrees: String, val wholeMinutes: String, val hundredthsMinutes: String, val sign: Int) {
     val angle: Double = sign * (
             degrees.toDouble() +
-            wholeMinutes.replace(' ', '5').toDouble() / 60 +
-            hundredthsMinutes.replace(' ', '5').toDouble() / 6000)
+                    wholeMinutes.replace(' ', '5').toDouble() / 60 +
+                    hundredthsMinutes.replace(' ', '5').toDouble() / 6000)
     val ambiguity: AprsPositAmbiguity
 
     init {
-        val numSpaces = (degrees + wholeMinutes + hundredthsMinutes).filter {it == ' '} .count()
+        val numSpaces = (degrees + wholeMinutes + hundredthsMinutes).filter { it == ' ' }.count()
         ambiguity = AprsPositAmbiguity.fromOmmittedSpaces(numSpaces)!!
     }
 

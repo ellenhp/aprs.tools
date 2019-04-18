@@ -20,7 +20,7 @@ typealias UndoSideEffect = (Grammar) -> Unit
 /**
  * Groups a [SideEffect] that has been applied to the parse state, and the corresponding [UndoSideEffect].
  */
-class AppliedSideEffect (val side_effect: SideEffect, val undo: UndoSideEffect)
+class AppliedSideEffect(val side_effect: SideEffect, val undo: UndoSideEffect)
 
 // -------------------------------------------------------------------------------------------------
 
@@ -30,7 +30,6 @@ class AppliedSideEffect (val side_effect: SideEffect, val undo: UndoSideEffect)
  * Use it to help inference when returning an [UndoSideEffect] from a [SideEffect].
  * (Inference will usually fail if the returned function does not end with a Unit-valued expression.)
  */
-fun undo (undo: UndoSideEffect): UndoSideEffect
-    = undo
+fun undo(undo: UndoSideEffect): UndoSideEffect = undo
 
 // -------------------------------------------------------------------------------------------------

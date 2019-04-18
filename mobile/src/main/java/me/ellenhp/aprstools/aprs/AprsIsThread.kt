@@ -23,9 +23,8 @@ import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
 import java.io.IOException
 import java.util.*
-import java.util.concurrent.ArrayBlockingQueue
 
-class AprsIsThread(var listener: AprsIsListener?): Thread() {
+class AprsIsThread(var listener: AprsIsListener?) : Thread() {
 
     private val TAG = this::class.java.simpleName
     private val BACKOFF_PERIOD_MILLIS = 2_000L

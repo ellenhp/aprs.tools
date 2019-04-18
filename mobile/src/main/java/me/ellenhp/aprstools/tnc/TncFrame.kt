@@ -23,7 +23,7 @@ interface TncFrame {
     val data: List<Int>
 
     fun dataAsString(): String {
-        val byteArray = ByteArray(data.size) { pos -> data[pos].toByte()}
+        val byteArray = ByteArray(data.size) { pos -> data[pos].toByte() }
         return String(byteArray, Charsets.ISO_8859_1)
     }
 }

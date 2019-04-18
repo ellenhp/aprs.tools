@@ -11,8 +11,7 @@ package norswap.utils.poly
  * If [inheriting] is true and there is no bindings for a given class, the value bound to a
  * superclass can be returned instead.
  */
-open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
-{
+open class Specialized<T : Any, V : Any>(val inheriting: Boolean = true) {
     // ---------------------------------------------------------------------------------------------
 
     /**
@@ -32,7 +31,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      *
      * The class is provided by the reified type parameter.
      */
-    inline fun <reified Case: T> bind (value: V) {
+    inline fun <reified Case : T> bind(value: V) {
         bind(Case::class.java, value)
     }
 
@@ -42,7 +41,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      * Inserts the `(klass, value)` pair into the map
      * (erasing the previous binding for the class, if any).
      */
-    open fun bind (klass: Class<out T>, value: V) {
+    open fun bind(klass: Class<out T>, value: V) {
         specializations[klass] = value
     }
 
@@ -51,7 +50,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
     /**
      * Like [bind], but only if the type parameter isn't bound already.
      */
-    inline fun <reified Case: T> bind_once (value: V) {
+    inline fun <reified Case : T> bind_once(value: V) {
         bind_once(Case::class.java, value)
     }
 
@@ -61,7 +60,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      * Like [bind], but only if [klass] isn't bound already.
      */
     @Suppress("NOTHING_TO_INLINE")
-    inline fun bind_once (klass: Class<out T>, value: V) {
+    inline fun bind_once(klass: Class<out T>, value: V) {
         if (for_class_raw(klass) == null)
             bind(klass, value)
     }
@@ -71,7 +70,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
     /**
      * Removes the (klass, value) pair for the given class.
      */
-    open fun remove (klass: Class<out T>) {
+    open fun remove(klass: Class<out T>) {
         specializations.remove(klass)
     }
 
@@ -81,8 +80,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      * Returns the value associated with the given class, or null if there is no associated value
      * (does not attempt to return the default value, or to throw an exception).
      */
-    open fun for_class_raw (klass: Class<out T>): V?
-    {
+    open fun for_class_raw(klass: Class<out T>): V? {
         if (!inheriting) return specializations[klass]
 
         var value: V? = null
@@ -101,10 +99,9 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      * or the default value if defined,
      * or throws an exception.
      */
-    open fun for_class (klass: Class<out T>): V
-        = for_class_raw(klass)
-        ?: default
-        ?: throw IllegalAccessException("No specialization for class $klass.")
+    open fun for_class(klass: Class<out T>): V = for_class_raw(klass)
+            ?: default
+            ?: throw IllegalAccessException("No specialization for class $klass.")
 
     // ---------------------------------------------------------------------------------------------
 
@@ -113,8 +110,7 @@ open class Specialized <T: Any, V: Any> (val inheriting: Boolean = true)
      * or the default value if defined,
      * or throws an exception.
      */
-    open fun for_instance (item: T): V
-        = for_class(item::class.java)
+    open fun for_instance(item: T): V = for_class(item::class.java)
 
     // ---------------------------------------------------------------------------------------------
 }

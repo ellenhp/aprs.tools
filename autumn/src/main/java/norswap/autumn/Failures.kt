@@ -16,8 +16,7 @@ typealias Failure = (() -> String)
  * Represents an exception intended to be caught by [Grammar.catch], carrying the [Failure]
  * to be recorded.
  */
-class AutumnLogicException (val failure: Failure): Exception()
-{
+class AutumnLogicException(val failure: Failure) : Exception() {
     override val message: String
         get() = failure()
 }
@@ -31,85 +30,73 @@ This makes it easy to consult them in one place.
  */
 // -------------------------------------------------------------------------------------------------
 
-object UnexpectedChar: Failure
-{
+object UnexpectedChar : Failure {
     override fun invoke() = "unexpected character"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-class NoString (val str: String): Failure
-{
+class NoString(val str: String) : Failure {
     override fun invoke() = "could not match string \"$str\""
 }
 
 // -------------------------------------------------------------------------------------------------
 
-class Expected (val what: String): Failure
-{
+class Expected(val what: String) : Failure {
     override fun invoke() = "expected $what"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object ExpectedIdentifier: Failure
-{
+object ExpectedIdentifier : Failure {
     override fun invoke() = "expected an identifier"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object PartialMatch: Failure
-{
+object PartialMatch : Failure {
     override fun invoke() = "partial match"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object BadMatch: Failure
-{
+object BadMatch : Failure {
     override fun invoke() = "parser matched, but shouldn't have"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object EarlyTermination: Failure
-{
+object EarlyTermination : Failure {
     override fun invoke() = "early termination: could not match any item before the terminator"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-class UnspecifiedFailureAt (val pos: String): Failure
-{
+class UnspecifiedFailureAt(val pos: String) : Failure {
     override fun invoke() = "unspecified failure at $pos"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object UnspecifiedFailure: Failure
-{
+object UnspecifiedFailure : Failure {
     override fun invoke() = "unspecified failure"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-object UnexpectedToken: Failure
-{
+object UnexpectedToken : Failure {
     override fun invoke() = "unexpected token"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-class CaughtException (val e: Throwable): Failure
-{
+class CaughtException(val e: Throwable) : Failure {
     override fun invoke() = "$e"
 }
 
 // -------------------------------------------------------------------------------------------------
 
-class UncaughtException (val e: Throwable): Failure
-{
+class UncaughtException(val e: Throwable) : Failure {
     override fun invoke() = "uncaught: $e"
 }
 

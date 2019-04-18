@@ -19,7 +19,6 @@
 
 package me.ellenhp.aprstools
 
-import java.lang.annotation.RetentionPolicy
 import javax.inject.Scope
 
 @Scope

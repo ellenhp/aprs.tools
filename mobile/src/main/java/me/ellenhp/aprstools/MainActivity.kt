@@ -40,29 +40,32 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprstools.aprs.AprsIsListener
-import me.ellenhp.aprstools.aprs.AprsIsService
-import me.ellenhp.aprstools.aprs.LocationFilter
-import javax.inject.Inject
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprstools.aprs.AprsIsListener
+import me.ellenhp.aprstools.aprs.AprsIsService
+import me.ellenhp.aprstools.aprs.LocationFilter
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.PasscodeDialogFragment
 import me.ellenhp.aprstools.tnc.TncDevice
 import me.ellenhp.aprstools.tracker.TrackerService
+import javax.inject.Inject
 import javax.inject.Provider
 
 class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, CoroutineScope by MainScope() {
 
-    @Inject lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
-    @Inject lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
-    @Inject lateinit var userCreds: Provider<UserCreds?>
-    @Inject lateinit var tncDevice: Provider<TncDevice?>
+    @Inject
+    lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
+    @Inject
+    lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
+    @Inject
+    lateinit var userCreds: Provider<UserCreds?>
+    @Inject
+    lateinit var tncDevice: Provider<TncDevice?>
 
     val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
@@ -203,9 +206,11 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         map ?: return
 
         val pos = packet.location() ?: return
-        runOnUiThread {map?.addMarker(MarkerOptions()
-                .position(LatLng(pos.latitude, pos.longitude))
-                .title(packet.source.toString()))}
+        runOnUiThread {
+            map?.addMarker(MarkerOptions()
+                    .position(LatLng(pos.latitude, pos.longitude))
+                    .title(packet.source.toString()))
+        }
     }
 
     private fun processLocation(location: Location?) {

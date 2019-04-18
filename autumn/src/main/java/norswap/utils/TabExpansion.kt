@@ -9,15 +9,13 @@ package norswap.utils
  * If [tabSize] is 0, no tab expansion is performed.
  */
 // Courtesy of http://stackoverflow.com/a/34933524/298664
-fun CharSequence.expandTabsToBuilder (tabSize: Int): StringBuilder
-{
+fun CharSequence.expandTabsToBuilder(tabSize: Int): StringBuilder {
     val b = StringBuilder()
 
     if (tabSize == 0) {
         b += this
         return b
-    }
-    else if (tabSize < 0)
+    } else if (tabSize < 0)
         throw IllegalArgumentException("negative tab size")
 
     var col = 0
@@ -34,7 +32,8 @@ fun CharSequence.expandTabsToBuilder (tabSize: Int): StringBuilder
         else -> {
             b += c
             ++col
-        }   }
+        }
+    }
 
     return b
 }
@@ -47,8 +46,7 @@ fun CharSequence.expandTabsToBuilder (tabSize: Int): StringBuilder
  *
  * If [tabSize] is 0, no tab expansion is performed.
  */
-fun String.expandTabs (tabSize: Int): String
-{
+fun String.expandTabs(tabSize: Int): String {
     return expandTabsToBuilder(tabSize).toString()
 }
 

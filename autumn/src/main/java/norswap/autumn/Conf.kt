@@ -1,4 +1,5 @@
 @file:Suppress("PackageDirectoryMismatch")
+
 package norswap.autumn.conf
 
 // -------------------------------------------------------------------------------------------------

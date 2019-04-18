@@ -19,7 +19,6 @@
 
 package me.ellenhp.aprstools.aprs
 
-import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import java.io.*
@@ -41,7 +40,7 @@ class AprsIsClient(private val host: String,
 
     @Synchronized
     @Throws(IOException::class)
-    fun readPacket() : AprsPacket? {
+    fun readPacket(): AprsPacket? {
         if (!isInitialized)
             init()
         val rawPacket = reader?.readLine()?.trim() ?: return null

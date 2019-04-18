@@ -8,8 +8,7 @@ package norswap.utils
  *
  * You can visit the tree using the [visit_pre] and [visit_post] methods.
  */
-interface Visitable<Self: Visitable<Self>>
-{
+interface Visitable<Self : Visitable<Self>> {
     fun children(): Sequence<Self>
 }
 
