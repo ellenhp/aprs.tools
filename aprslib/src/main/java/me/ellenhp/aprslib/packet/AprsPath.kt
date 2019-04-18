@@ -27,6 +27,13 @@ data class AprsPath(val pathSegments: List<PathSegment>) : Parcelable {
     override fun toString(): String {
         return pathSegments.joinToString("")
     }
+    companion object {
+        /** Convenience method for getting the path required for transmission of packets directly
+         *  from the client to APRS-IS. Should always return "TCPIP*" */
+        fun directToAprsIs(): AprsPath {
+            return AprsPath(listOf(PathSegment(Ax25Address("TCPIP", null), true)))
+        }
+    }
 }
 
 @Parcelize
