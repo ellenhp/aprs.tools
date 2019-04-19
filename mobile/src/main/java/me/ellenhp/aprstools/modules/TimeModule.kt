@@ -17,19 +17,18 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.modules
 
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
+import java.time.Instant
 
 @Module
-class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) {
+class TimeModule {
 
     @Provides
-    fun provideLocationProviderClient(): FusedLocationProviderClient {
-        return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
+    fun provideInstant() : Instant {
+        return Instant.now()
     }
 
 }

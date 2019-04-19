@@ -20,6 +20,8 @@
 package me.ellenhp.aprstools
 
 import dagger.Component
+import me.ellenhp.aprstools.modules.ActivityModule
+import me.ellenhp.aprstools.modules.ApplicationModule
 import javax.inject.Singleton
 
 @Component(modules = [ApplicationModule::class])

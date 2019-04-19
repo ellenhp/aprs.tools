@@ -48,6 +48,7 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprstools.aprs.AprsIsListener
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
+import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.PasscodeDialogFragment

@@ -17,23 +17,20 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.modules
 
-import dagger.Subcomponent
-import me.ellenhp.aprstools.aprs.AprsIsService
-import me.ellenhp.aprstools.modules.ActivityModule
-import me.ellenhp.aprstools.settings.BluetoothPromptFragment
-import me.ellenhp.aprstools.settings.CallsignDialogFragment
-import me.ellenhp.aprstools.tracker.TrackerService
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import dagger.Module
+import dagger.Provides
+import me.ellenhp.aprstools.AprsToolsApplication
 
-@ActivityScope
-@Subcomponent(modules = [ActivityModule::class])
-interface ActivityComponent {
+@Module
+class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) {
 
-    fun inject(mainActivity: MainActivity)
-    fun inject(dialogFragment: BluetoothPromptFragment)
-    fun inject(dialogFragment: CallsignDialogFragment)
-    fun inject(aprsIsService: AprsIsService)
-    fun inject(trackerService: TrackerService)
+    @Provides
+    fun provideLocationProviderClient(): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
+    }
 
 }

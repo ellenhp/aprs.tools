@@ -17,7 +17,7 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.modules
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
@@ -25,6 +25,7 @@ import android.content.Context
 import com.google.android.gms.maps.GoogleMap
 import dagger.Module
 import dagger.Provides
+import me.ellenhp.aprstools.*
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.tnc.TncDevice
 

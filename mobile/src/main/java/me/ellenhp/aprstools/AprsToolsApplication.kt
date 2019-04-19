@@ -20,6 +20,7 @@
 package me.ellenhp.aprstools
 
 import android.app.Application
+import me.ellenhp.aprstools.modules.ApplicationModule
 
 class AprsToolsApplication : Application() {
     lateinit var component: ApplicationComponent

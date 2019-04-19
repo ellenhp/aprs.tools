@@ -17,23 +17,27 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.modules.testing
 
-import dagger.Subcomponent
-import me.ellenhp.aprstools.aprs.AprsIsService
-import me.ellenhp.aprstools.modules.ActivityModule
-import me.ellenhp.aprstools.settings.BluetoothPromptFragment
-import me.ellenhp.aprstools.settings.CallsignDialogFragment
-import me.ellenhp.aprstools.tracker.TrackerService
+import dagger.Module
+import dagger.Provides
+import java.time.Instant
 
-@ActivityScope
-@Subcomponent(modules = [ActivityModule::class])
-interface ActivityComponent {
+@Module
+class FakeTimeModule {
+    val fakeTimeController = FakeTimeController()
 
-    fun inject(mainActivity: MainActivity)
-    fun inject(dialogFragment: BluetoothPromptFragment)
-    fun inject(dialogFragment: CallsignDialogFragment)
-    fun inject(aprsIsService: AprsIsService)
-    fun inject(trackerService: TrackerService)
+    @Provides
+    fun provideInstant(): Instant {
+        return fakeTimeController.nextTime
+    }
 
+    @Provides
+    fun provideFakeTimeController(): FakeTimeController {
+        return fakeTimeController
+    }
+}
+
+class FakeTimeController {
+    var nextTime = Instant.now()
 }
