@@ -27,6 +27,7 @@ import dagger.Module
 import dagger.Provides
 import me.ellenhp.aprstools.*
 import me.ellenhp.aprstools.aprs.AprsIsService
+import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.tnc.TncDevice
 
 @Module
@@ -70,5 +71,10 @@ class ActivityModule(private val activity: MainActivity) {
     @Provides
     fun providesAprsIsService(): AprsIsService? {
         return activity.aprsIsService
+    }
+
+    @Provides
+    fun providesHistory(): PacketTrackHistory {
+        return activity.packetHistory
     }
 }

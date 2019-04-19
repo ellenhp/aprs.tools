@@ -40,6 +40,8 @@ import kotlin.collections.HashMap
 
 class PacketTrackHistory() : Parcelable {
 
+    var listener: HistoryUpdateListener? = null
+
     private val history: HashMap<Ax25Address, PacketTrack> = HashMap()
 
     constructor(parcel: Parcel) : this() {
@@ -54,11 +56,17 @@ class PacketTrackHistory() : Parcelable {
     @Synchronized
     fun add(packet: AprsPacket, timestamp: Instant) {
         getOrCreateTrack(packet.source).addPacket(TimestampedPacket(packet, timestamp))
+        listener?.historyUpate(packet.source)
     }
 
     @Synchronized
     fun getTrack(station: Ax25Address): ImmutableList<TimestampedPacket>? {
         return history.get(station)?.toImmutableList()
+    }
+
+    @Synchronized
+    fun getStations(): ImmutableList<Ax25Address> {
+        return ImmutableList.copyOf(history.keys)
     }
 
     private fun getOrCreateTrack(sourceStation: Ax25Address): PacketTrack {

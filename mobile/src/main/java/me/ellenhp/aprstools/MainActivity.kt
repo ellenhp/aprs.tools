@@ -27,6 +27,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager.PERMISSION_GRANTED
+import android.graphics.Paint
 import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
@@ -38,26 +39,30 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.aprs.AprsIsListener
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
+import me.ellenhp.aprstools.history.HistoryUpdateListener
+import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.PasscodeDialogFragment
 import me.ellenhp.aprstools.tnc.TncDevice
 import me.ellenhp.aprstools.tracker.TrackerService
+import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
+import kotlin.collections.HashMap
 
-class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, CoroutineScope by MainScope() {
+class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, CoroutineScope by MainScope(), HistoryUpdateListener {
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
@@ -72,19 +77,24 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
     val callsignDialog = CallsignDialogFragment()
     val passcodeDialog = PasscodeDialogFragment()
 
+    lateinit var packetHistory: PacketTrackHistory
+    val packetHistoryBundleKey = "PacketTrackHistory"
+
+    var map: GoogleMap? = null
+    var aprsIsService: AprsIsService? = null
+
+    lateinit var markers: HashMap<Ax25Address, Marker>
+    lateinit var polylines: HashMap<Ax25Address, Polyline>
+
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
             aprsIsService = (service as AprsIsService.AprsIsServiceBinder).getService()
-            aprsIsService?.listener = this@MainActivity
         }
 
         override fun onServiceDisconnected(className: ComponentName) {
             aprsIsService = null
         }
     }
-
-    var map: GoogleMap? = null
-    var aprsIsService: AprsIsService? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,20 +104,28 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         (application as AprsToolsApplication).activityComponent = activityCompoment
         activityCompoment.inject(this)
 
+        // Overwrite previous values in case the activity was destroyed.
+        markers = HashMap()
+        polylines = HashMap()
+
         setContentView(R.layout.activity_main)
+
+        val packetHistoryBundle = savedInstanceState?.getBundle(packetHistoryBundleKey)
+        packetHistory = packetHistoryBundle?.getParcelable(packetHistoryBundleKey) ?: PacketTrackHistory()
+        packetHistory.listener = this
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment?
         mapFragment?.getMapAsync(this)
-
-        // Start our AprsIsService.
-        val intent = Intent(this, AprsIsService::class.java)
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
     }
 
     override fun onStart() {
         super.onStart()
+
+        // Start our AprsIsService.
+        val intent = Intent(this, AprsIsService::class.java)
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
 
         findViewById<AppCompatButton>(R.id.start_igate).setOnClickListener { startIGate() }
         findViewById<AppCompatButton>(R.id.start_tracking).setOnClickListener { startTracking() }
@@ -118,11 +136,21 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
 
         requestLocation()
 
-        updateAprsIsListener()
-
         animateToLastLocation()
     }
 
+    override fun onStop() {
+        super.onStop()
+        unbindService(mConnection)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle?) {
+        super.onSaveInstanceState(outState)
+        // Workaround for a weird bug!
+        val packetHistoryBundle = Bundle()
+        packetHistoryBundle.putParcelable(packetHistoryBundleKey, packetHistory)
+        outState?.putBundle(packetHistoryBundleKey, packetHistoryBundle)
+    }
 
     private fun startTracking() {
         launch {
@@ -155,6 +183,10 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         settings.isRotateGesturesEnabled = true
 
         animateToLastLocation()
+
+        for (station in packetHistory.getStations()) {
+            historyUpate(station)
+        }
     }
 
     private suspend fun maybeShowCallsignDialog() {
@@ -187,7 +219,7 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
             fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(this) { this.processLocation(it) }
     }
 
-    private fun updateAprsIsListener(location: Location? = null) {
+    private fun updateAprsIsListener(location: Location?) {
         aprsIsService?.filter = LocationFilter(location ?: return, 50.0)
     }
 
@@ -207,15 +239,39 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         map ?: return
 
         val pos = packet.location() ?: return
-        runOnUiThread {
-            map?.addMarker(MarkerOptions()
-                    .position(LatLng(pos.latitude, pos.longitude))
-                    .title(packet.source.toString()))
+    }
+
+    override fun historyUpate(station: Ax25Address) {
+        val track = packetHistory.getTrack(station) ?: return
+        if (track.count() == 1) {
+            val packet = track[0].packet
+            val pos = track[0].packet.location() ?: return
+            runOnUiThread {
+                markers[station]?.remove()
+                polylines[station]?.remove()
+                markers[station] = map?.addMarker(MarkerOptions()
+                        .position(LatLng(pos.latitude, pos.longitude))
+                        .title(packet.source.toString())) ?: return@runOnUiThread
+            }
+        }
+        else {
+            val polylineOptions = PolylineOptions()
+            track.stream().map { it.packet.location() }
+                    .filter(Objects::nonNull)
+                    .map { LatLng(it!!.latitude, it.longitude) }
+                    .forEach { polylineOptions.add(it) }
+            polylineOptions.endCap(CustomCap(BitmapDescriptorFactory.defaultMarker()))
+            runOnUiThread {
+                markers[station]?.remove()
+                polylines[station]?.remove()
+                polylines[station] = map?.addPolyline(polylineOptions) ?: return@runOnUiThread
+            }
         }
     }
 
     private fun processLocation(location: Location?) {
         location ?: return
+        updateAprsIsListener(location)
         map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 15f))
     }
 

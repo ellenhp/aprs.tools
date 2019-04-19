@@ -27,6 +27,9 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprstools.AprsIsServerAddress
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.UserCreds
+import me.ellenhp.aprstools.history.HistoryUpdateListener
+import me.ellenhp.aprstools.history.PacketTrackHistory
+import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -36,6 +39,10 @@ class AprsIsService : Service() {
     lateinit var userCreds: Provider<UserCreds?>
     @Inject
     lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
+    @Inject
+    lateinit var packetTrackHistory: PacketTrackHistory
+    @Inject
+    lateinit var instantProvider: Provider<Instant>
 
     private val binder = AprsIsServiceBinder()
 
@@ -45,24 +52,16 @@ class AprsIsService : Service() {
             resetClient()
         }
 
-    var listener: AprsIsListener? = null
-        set(value) {
-            field = value
-            if (value != null)
-                thread?.listener = value
-        }
-
     private var thread: AprsIsThread? = null
 
     override fun onBind(intent: Intent?): IBinder? {
         (application as AprsToolsApplication).activityComponent?.inject(this)
 
-        if (thread?.isAlive != true) {
-            thread = AprsIsThread(listener)
+        if (thread == null || thread?.isAlive == true) {
+            thread = AprsIsThread(packetTrackHistory, instantProvider)
             resetClient()
             thread?.start()
         } else {
-            thread?.listener = listener
             resetClient()
         }
         return binder
