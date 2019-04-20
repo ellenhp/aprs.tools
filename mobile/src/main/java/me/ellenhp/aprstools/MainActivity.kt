@@ -27,7 +27,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager.PERMISSION_GRANTED
-import android.graphics.Paint
 import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
@@ -44,13 +43,12 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.aprs.AprsIsListener
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
 import me.ellenhp.aprstools.history.HistoryUpdateListener
 import me.ellenhp.aprstools.history.PacketTrackHistory
+import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
@@ -62,7 +60,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.collections.HashMap
 
-class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, CoroutineScope by MainScope(), HistoryUpdateListener {
+class MainActivity : FragmentActivity(), OnMapReadyCallback, CoroutineScope by MainScope(), HistoryUpdateListener {
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
@@ -72,19 +70,18 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
     lateinit var userCreds: Provider<UserCreds?>
     @Inject
     lateinit var tncDevice: Provider<TncDevice?>
+    @Inject
+    lateinit var plotter: PacketPlotter
 
     val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
     val passcodeDialog = PasscodeDialogFragment()
 
     lateinit var packetHistory: PacketTrackHistory
-    val packetHistoryBundleKey = "PacketTrackHistory"
+    private val packetHistoryBundleKey = "PacketTrackHistory"
 
     var map: GoogleMap? = null
     var aprsIsService: AprsIsService? = null
-
-    lateinit var markers: HashMap<Ax25Address, Marker>
-    lateinit var polylines: HashMap<Ax25Address, Polyline>
 
     private val mConnection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName, service: IBinder) {
@@ -103,10 +100,6 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
                 .newActivityComponent(ActivityModule(this))
         (application as AprsToolsApplication).activityComponent = activityCompoment
         activityCompoment.inject(this)
-
-        // Overwrite previous values in case the activity was destroyed.
-        markers = HashMap()
-        polylines = HashMap()
 
         setContentView(R.layout.activity_main)
 
@@ -135,8 +128,6 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         }
 
         requestLocation()
-
-        animateToLastLocation()
     }
 
     override fun onStop() {
@@ -187,6 +178,10 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         for (station in packetHistory.getStations()) {
             historyUpate(station)
         }
+
+        runOnUiThread {
+            plotter.plot(packetHistory)
+        }
     }
 
     private suspend fun maybeShowCallsignDialog() {
@@ -235,37 +230,9 @@ class MainActivity : FragmentActivity(), OnMapReadyCallback, AprsIsListener, Cor
         }
     }
 
-    override fun onAprsPacketReceived(packet: AprsPacket) {
-        map ?: return
-
-        val pos = packet.location() ?: return
-    }
-
     override fun historyUpate(station: Ax25Address) {
-        val track = packetHistory.getTrack(station) ?: return
-        if (track.count() == 1) {
-            val packet = track[0].packet
-            val pos = track[0].packet.location() ?: return
-            runOnUiThread {
-                markers[station]?.remove()
-                polylines[station]?.remove()
-                markers[station] = map?.addMarker(MarkerOptions()
-                        .position(LatLng(pos.latitude, pos.longitude))
-                        .title(packet.source.toString())) ?: return@runOnUiThread
-            }
-        }
-        else {
-            val polylineOptions = PolylineOptions()
-            track.stream().map { it.packet.location() }
-                    .filter(Objects::nonNull)
-                    .map { LatLng(it!!.latitude, it.longitude) }
-                    .forEach { polylineOptions.add(it) }
-            polylineOptions.endCap(CustomCap(BitmapDescriptorFactory.defaultMarker()))
-            runOnUiThread {
-                markers[station]?.remove()
-                polylines[station]?.remove()
-                polylines[station] = map?.addPolyline(polylineOptions) ?: return@runOnUiThread
-            }
+        runOnUiThread {
+            plotter.plot(packetHistory)
         }
     }
 

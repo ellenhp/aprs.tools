@@ -20,7 +20,6 @@
 package me.ellenhp.aprstools.history
 
 import android.os.Parcel
-import android.support.test.runner.AndroidJUnit4
 import com.google.common.collect.ImmutableList
 import com.google.common.truth.Truth.assertThat
 import me.ellenhp.aprslib.packet.AprsInformationField
@@ -29,10 +28,11 @@ import me.ellenhp.aprslib.packet.AprsPath
 import me.ellenhp.aprslib.packet.Ax25Address
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 import java.time.Duration
 import java.time.Instant
 
-@RunWith(AndroidJUnit4::class)
+@RunWith(RobolectricTestRunner::class)
 class PacketTrackHistoryTest {
 
     val packetTrackHistory = PacketTrackHistory()
@@ -87,6 +87,35 @@ class PacketTrackHistoryTest {
                         TimestampedPacket(examplePacket1, startTime),
                         TimestampedPacket(examplePacket2, startTime.plus(Duration.ofMinutes(1)))))
         assertThat(packetTrackHistory.getTrack(oddballStation)).isEqualTo(
+                ImmutableList.of(
+                        TimestampedPacket(oddballPacket, startTime)))
+    }
+
+    @Test
+    fun testGetTrack_afterParcelize() {
+        val oddballStation = Ax25Address("KI7UKU", "HiMom")
+        val oddballPacket = AprsPacket(
+                oddballStation,
+                Ax25Address("APRS", null),
+                AprsPath(listOf()),
+                AprsInformationField.locationUpdate(123.45678, 56.78))
+
+        packetTrackHistory.add(examplePacket2, startTime.plus(Duration.ofMinutes(1)))
+        packetTrackHistory.add(examplePacket1, startTime)
+        packetTrackHistory.add(oddballPacket, startTime)
+
+        val parcel = Parcel.obtain()
+        parcel.writeParcelable(packetTrackHistory, 0)
+        parcel.setDataPosition(0)
+        val unparceledPacketTrackHistory = parcel.readParcelable<PacketTrackHistory>(PacketTrackHistory::class.java.classLoader)
+
+        assertThat(unparceledPacketTrackHistory).isNotNull()
+
+        assertThat(unparceledPacketTrackHistory!!.getTrack(exampleStation)).isEqualTo(
+                ImmutableList.of(
+                        TimestampedPacket(examplePacket1, startTime),
+                        TimestampedPacket(examplePacket2, startTime.plus(Duration.ofMinutes(1)))))
+        assertThat(unparceledPacketTrackHistory.getTrack(oddballStation)).isEqualTo(
                 ImmutableList.of(
                         TimestampedPacket(oddballPacket, startTime)))
     }

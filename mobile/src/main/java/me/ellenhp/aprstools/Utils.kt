@@ -19,8 +19,11 @@
 
 package me.ellenhp.aprstools
 
+import com.google.android.gms.maps.model.LatLng
 import java.util.stream.Collector
 import com.google.common.collect.ImmutableList
+import java.lang.Math.toRadians
+import kotlin.math.*
 
 fun Any?.discard() = Unit
 
@@ -31,8 +34,19 @@ class Utils {
             val accumulator = {builder:ImmutableList.Builder<T>, item: T -> builder.add(item).discard()}
             val combiner = {builder1: ImmutableList.Builder<T>, builder2: ImmutableList.Builder<T> -> builder1.addAll(builder2.build())}
             val finisher = {builder: ImmutableList.Builder<T> -> builder.build()}
-            val collectorCharacteristics: Array<Collector.Characteristics>
             return Collector.of(supplier, accumulator, combiner, finisher, arrayOf(Collector.Characteristics.UNORDERED))
+        }
+
+        fun distanceMeters(pos1: LatLng, pos2: LatLng): Double {
+            // Mean radius of the earth
+            val radiusMeters = 6_371_008.8
+            val distMeters = 2 * radiusMeters *
+                asin(sqrt(
+                    sin((toRadians(pos2.latitude) - toRadians(pos1.latitude)) / 2).pow(2.0) +
+                    cos(toRadians(pos1.latitude)) * cos(toRadians(pos2.latitude)) *
+                        sin((toRadians(pos2.longitude) - toRadians(pos1.longitude)) / 2).pow(2.0)
+                ))
+            return distMeters
         }
     }
 }
