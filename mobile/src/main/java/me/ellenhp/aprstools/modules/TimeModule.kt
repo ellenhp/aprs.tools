@@ -17,20 +17,18 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools;
+package me.ellenhp.aprstools.modules
 
-import org.junit.Test;
+import dagger.Module
+import dagger.Provides
+import java.time.Instant
 
-import static org.junit.Assert.assertEquals;
+@Module
+class TimeModule {
 
-/**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
- */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
+    @Provides
+    fun provideInstant() : Instant {
+        return Instant.now()
     }
+
 }

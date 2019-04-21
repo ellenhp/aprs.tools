@@ -27,6 +27,16 @@ data class AprsInformationField(val dataType: Char, val aprsData: AprsData, val 
     override fun toString(): String {
         return "%c%s%s%s".format(dataType, aprsData, aprsDataExtension ?: "", comment)
     }
+
+    companion object {
+        /** Convenience method for constructing a location update */
+        fun locationUpdate(latitude: Double, longitude: Double): AprsInformationField {
+            val latLng = AprsLatLng(latitude, longitude, AprsPositAmbiguity.NEAREST_19_METERS)
+            val symbol = AprsSymbol('/', '$') // Phone symbol.
+            val posit = AprsPosition(latLng, symbol)
+            return AprsInformationField('=', AprsData(listOf(posit)), null, "Sent with APRSTools")
+        }
+    }
 }
 
 @Parcelize

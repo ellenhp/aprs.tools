@@ -19,9 +19,12 @@
 
 package me.ellenhp.aprstools.tnc
 
+import android.bluetooth.BluetoothDevice
 import java.io.IOException
 
 interface Tnc {
     @Throws(IOException::class)
     fun readFrame(): TncFrame?
 }
+
+data class TncDevice(val device: BluetoothDevice)

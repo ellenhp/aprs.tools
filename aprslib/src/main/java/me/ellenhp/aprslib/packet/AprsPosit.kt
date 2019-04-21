@@ -48,8 +48,8 @@ data class AprsSymbol(val symbolTable: Char, val symbol: Char) : Parcelable
 data class AprsPosition(val position: AprsLatLng, val symbol: AprsSymbol) : AprsDatum {
 
     override fun toString(): String {
-        val lat = formatAngle("%02d%02d.%d%s", position.latitude, "S", "N")
-        val lng = formatAngle("%03d%02d.%d%s", position.longitude, "W", "E")
+        val lat = formatAngle("%02d%02d.%02d%s", position.latitude, "S", "N")
+        val lng = formatAngle("%03d%02d.%02d%s", position.longitude, "W", "E")
         return "%s%c%s%c".format(lat, symbol.symbolTable, lng, symbol.symbol)
     }
 

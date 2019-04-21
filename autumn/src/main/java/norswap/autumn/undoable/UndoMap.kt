@@ -1,21 +1,20 @@
 package norswap.autumn.undoable
+
 import norswap.autumn.Grammar
 import norswap.autumn.SideEffect
 import norswap.autumn.undo
-import java.util.HashMap
+import java.util.*
 
 /**
  * A map whose mutations cause [SideEffect]s to be applied to [grammar].
  */
-class UndoMap<K, V> (val grammar: Grammar, val map: HashMap<K, V> = HashMap()): Map<K, V> by map
-{
+class UndoMap<K, V>(val grammar: Grammar, val map: HashMap<K, V> = HashMap()) : Map<K, V> by map {
     // ---------------------------------------------------------------------------------------------
 
     /**
      * Associates [value] to [key], returning the old value, if any, and null otherwise.
      */
-    fun put (key: K, value: V): V?
-    {
+    fun put(key: K, value: V): V? {
         val old = map[key]
         grammar.apply {
             map.put(key, value)
@@ -30,8 +29,7 @@ class UndoMap<K, V> (val grammar: Grammar, val map: HashMap<K, V> = HashMap()): 
      * Remove the key and its associated value, if any, from the map.
      * Returns the old value, if any, and null otherwise.
      */
-    fun remove (key: K): V?
-    {
+    fun remove(key: K): V? {
         val old = map[key]
         grammar.apply {
             map.remove(key)

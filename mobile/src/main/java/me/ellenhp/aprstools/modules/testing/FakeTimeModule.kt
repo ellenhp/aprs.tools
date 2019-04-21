@@ -17,10 +17,27 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.aprs
+package me.ellenhp.aprstools.modules.testing
 
-import me.ellenhp.aprslib.packet.AprsPacket
+import dagger.Module
+import dagger.Provides
+import java.time.Instant
 
-interface AprsIsListener {
-    fun onAprsPacketReceived(packet: AprsPacket)
+@Module
+class FakeTimeModule {
+    val fakeTimeController = FakeTimeController()
+
+    @Provides
+    fun provideInstant(): Instant {
+        return fakeTimeController.nextTime
+    }
+
+    @Provides
+    fun provideFakeTimeController(): FakeTimeController {
+        return fakeTimeController
+    }
+}
+
+class FakeTimeController {
+    var nextTime = Instant.now()
 }

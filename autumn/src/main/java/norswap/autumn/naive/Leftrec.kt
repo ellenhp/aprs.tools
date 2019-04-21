@@ -1,4 +1,5 @@
 package norswap.autumn.naive
+
 import norswap.autumn.Grammar
 import norswap.autumn.parsers.leftrec
 import norswap.utils.cast
@@ -24,9 +25,11 @@ import norswap.utils.cast
  * 4. This process (3) repeats itself until either [p] fails, or the result's input position
  * stops growing.
  */
-class Leftrec (g: Grammar, val p: Grammar.(self: Parser) -> Boolean): Parser()
-{
-    init { grammar = g }
+class Leftrec(g: Grammar, val p: Grammar.(self: Parser) -> Boolean) : Parser() {
+    init {
+        grammar = g
+    }
+
     val leftrec = g.leftrec(p.cast()) // okay because all parsers will be of the naive variety
     override fun invoke() = leftrec()
 }

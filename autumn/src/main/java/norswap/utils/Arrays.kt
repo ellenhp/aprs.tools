@@ -1,5 +1,9 @@
 package norswap.utils
+
 import java.util.Arrays
+import kotlin.collections.ArrayList
+import kotlin.collections.List
+import kotlin.collections.mapTo
 
 // -------------------------------------------------------------------------------------------------
 
@@ -18,8 +22,7 @@ inline val <T> Array<T>.str: String
  * immediately, but the map-style [Array] constructor is not convenient. It also helps construct
  * array of nulls for non-reifiable types.
  */
-fun <T> arrayOfSize (size: Int): Array<T>
-{
+fun <T> arrayOfSize(size: Int): Array<T> {
     @Suppress("UNCHECKED_CAST")
     return arrayOfNulls<Any>(size) as Array<T>
 }
@@ -29,8 +32,7 @@ fun <T> arrayOfSize (size: Int): Array<T>
 /**
  * Inexplicably missing standard library function.
  */
-fun <T> Sequence<T>.toArray(): Array<T>
-{
+fun <T> Sequence<T>.toArray(): Array<T> {
     @Suppress("UNCHECKED_CAST")
     return toCollection(ArrayList<T>()).toArray() as Array<T>
 }
@@ -40,8 +42,7 @@ fun <T> Sequence<T>.toArray(): Array<T>
 /**
  * Maps a sequence to an array.
  */
-inline fun <T, Out> Sequence<T>.mapToArray (f: (T) -> Out): Array<Out>
-{
+inline fun <T, Out> Sequence<T>.mapToArray(f: (T) -> Out): Array<Out> {
     @Suppress("UNCHECKED_CAST")
     return mapTo(ArrayList<Out>(), f).toArray() as Array<Out>
 }
@@ -51,8 +52,7 @@ inline fun <T, Out> Sequence<T>.mapToArray (f: (T) -> Out): Array<Out>
 /**
  * Maps a list to an array.
  */
-inline fun <T, Out> List<T>.mapToArray(f: (T) -> Out): Array<Out>
-{
+inline fun <T, Out> List<T>.mapToArray(f: (T) -> Out): Array<Out> {
     @Suppress("UNCHECKED_CAST")
     return mapTo(ArrayList<Out>(), f).toArray() as Array<Out>
 }

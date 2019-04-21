@@ -1,2 +1,1 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="aprstools.ellenhp.me.autumn" />
+<manifest package="aprstools.ellenhp.me.autumn" />

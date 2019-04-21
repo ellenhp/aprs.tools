@@ -24,7 +24,7 @@ import kotlinx.android.parcel.Parcelize
 
 @Parcelize
 data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) : Parcelable {
-    fun isWeather() : Boolean {
+    fun isWeather(): Boolean {
         val standaloneWx = informationField.dataType in listOf('!', '#', '$', '*', '_')
 
         val symbol = informationField.aprsData.findDatumOfType<AprsPosition>()?.symbol

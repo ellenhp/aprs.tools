@@ -1,8 +1,18 @@
 package norswap.autumn
+
 import norswap.autumn.parsers.*
 import norswap.autumn.undoable.UndoList
 import norswap.utils.arrayOfSize
 import java.util.ArrayList
+import kotlin.Any
+import kotlin.Array
+import kotlin.Boolean
+import kotlin.CharSequence
+import kotlin.Int
+import kotlin.NoSuchElementException
+import kotlin.String
+import kotlin.Suppress
+import kotlin.Throwable
 
 /**
  * # Usage
@@ -66,8 +76,7 @@ import java.util.ArrayList
  * consider it. We handle tokenization during the parse, and the scheme is much less rigid than the
  * usual lexing - parsing separation.
  */
-abstract class Grammar
-{
+abstract class Grammar {
     // =============================================================================================
     // Data Accessible From Parsers
 
@@ -94,7 +103,7 @@ abstract class Grammar
      * Usually, you should use stack-manipulation parser combinators instead of manipulating this
      * directly.
      */
-    val stack  = UndoList<Any?>(this)
+    val stack = UndoList<Any?>(this)
 
     /**
      * This datastructure underpins Autumn's built-in support for side effects / parse state. Your
@@ -145,10 +154,8 @@ abstract class Grammar
      * If [pos] is superior to the candidate position, record it as the candidate failure position
      * and [failure] as its associated failure.
      */
-    fun fail (pos: Int, failure: () -> String): Boolean
-    {
-        if (pos > fail_pos)
-        {
+    fun fail(pos: Int, failure: () -> String): Boolean {
+        if (pos > fail_pos) {
             fail_pos = pos
             this.failure = failure
         }
@@ -161,8 +168,7 @@ abstract class Grammar
      * Record [pos] as the candidate failure position and [failure] as its associated
      * failure.
      */
-    fun fail_force (pos: Int, failure: () -> String): Boolean
-    {
+    fun fail_force(pos: Int, failure: () -> String): Boolean {
         fail_pos = pos
         this.failure = failure
         return false
@@ -184,13 +190,11 @@ abstract class Grammar
      *
      * The default implementation matches 0 or more [space_char].
      */
-    open fun whitespace(): Boolean
-        = repeat0 { space_char() }
+    open fun whitespace(): Boolean = repeat0 { space_char() }
 
     // ---------------------------------------------------------------------------------------------
 
-    fun parse_whitespace(): Boolean
-        = ignore_errors { opt { whitespace() } }
+    fun parse_whitespace(): Boolean = ignore_errors { opt { whitespace() } }
 
     // =============================================================================================
     // Starting a Parse
@@ -199,17 +203,17 @@ abstract class Grammar
      * Starts a parse, using the supplied parser as root. [allow_prefix] controls whether
      * the whole input must match, or if a prefix match is sufficient.
      */
-    fun parse (input: ParseInput, allow_prefix: Boolean, parser: Parser): Boolean
-    {
+    fun parse(input: ParseInput, allow_prefix: Boolean, parser: Parser): Boolean {
         this.input = input
         this.text = input.text
 
         var result =
-            try { parser() }
-            catch (e: Throwable) {
-                fail_force(pos, UncaughtException(e))
-                false
-            }
+                try {
+                    parser()
+                } catch (e: Throwable) {
+                    fail_force(pos, UncaughtException(e))
+                    false
+                }
 
         val partial_match = result && pos != input.size
 
@@ -226,8 +230,7 @@ abstract class Grammar
         if (result) {
             fail_pos = -1
             failure = null
-        }
-        else {
+        } else {
             // in case the failure wasn't set (bad!)
             if (failure == null)
                 if (fail_pos >= 0)
@@ -251,8 +254,7 @@ abstract class Grammar
     /**
      * Starts a parse. The parse must match the whole input text or a failure is returned.
      */
-    fun parse (input: ParseInput): Boolean
-    {
+    fun parse(input: ParseInput): Boolean {
         return parse(input, false) { root() }
     }
 
@@ -261,9 +263,8 @@ abstract class Grammar
     /**
      * Starts a parse. The parse must match the whole input string or a failure is returned.
      */
-    fun parse (str: CharSequence): Boolean
-    {
-        return parse(ParseInput(str), false)  { root() }
+    fun parse(str: CharSequence): Boolean {
+        return parse(ParseInput(str), false) { root() }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -271,9 +272,8 @@ abstract class Grammar
     /**
      * Starts a parse. The parse may match only a prefix of the input text.
      */
-    fun parse_prefix (input: ParseInput): Boolean
-    {
-        return parse(input, true)  { root() }
+    fun parse_prefix(input: ParseInput): Boolean {
+        return parse(input, true) { root() }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -281,9 +281,8 @@ abstract class Grammar
     /**
      * Starts a parse. The parse may match only a prefix of the input string.
      */
-    fun parse_prefix (str: CharSequence): Boolean
-    {
-        return parse(ParseInput(str), true)  { root() }
+    fun parse_prefix(str: CharSequence): Boolean {
+        return parse(ParseInput(str), true) { root() }
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -293,8 +292,7 @@ abstract class Grammar
      * complete). Subclasses may override this to add custom reset logic, but must always call
      * `super.reset()`.
      */
-    open fun reset()
-    {
+    open fun reset() {
         undo(0, 0)
         text = ""
         input = ParseInput.DUMMY
@@ -310,8 +308,7 @@ abstract class Grammar
      * Undo all side effects that were applied after the log was at [ptr0].
      * Also restores the input position to [pos0].
      */
-    fun undo (pos0: Int, ptr0: Int)
-    {
+    fun undo(pos0: Int, ptr0: Int) {
         pos = pos0
 
         while (log.size > ptr0) {
@@ -325,8 +322,7 @@ abstract class Grammar
     /**
      * Return a list of side effects between the current state and the state at [ptr0].
      */
-    fun diff (ptr0: Int): List<SideEffect>
-    {
+    fun diff(ptr0: Int): List<SideEffect> {
         if (ptr0 == log.size) return emptyList()
         return log.subList(ptr0, log.size).map { it.side_effect }
     }
@@ -337,8 +333,7 @@ abstract class Grammar
      * Merge the side effects in [side_effects] into the current state.
      * Also sets the input position to [pos1].
      */
-    fun merge (pos1: Int, side_effects: List<SideEffect>)
-    {
+    fun merge(pos1: Int, side_effects: List<SideEffect>) {
         pos = pos1
 
         if (side_effects.isEmpty())
@@ -352,19 +347,17 @@ abstract class Grammar
     /**
      * Apply [side_effect] to the current state.
      */
-    fun apply (side_effect: SideEffect)
-    {
+    fun apply(side_effect: SideEffect) {
         log.add(AppliedSideEffect(side_effect, side_effect(this)))
     }
 
     // =============================================================================================
     // Stack Handling Primitives
 
-    private fun frame_check_backlog (backlog: Int)
-    {
+    private fun frame_check_backlog(backlog: Int) {
         if (stack.size < backlog)
             throw NoSuchElementException(
-                "Build stack exhausted, but a backlog of $backlog was specified.")
+                    "Build stack exhausted, but a backlog of $backlog was specified.")
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -372,8 +365,7 @@ abstract class Grammar
     /**
      *
      */
-    fun frame_start (backlog: Int = 0): Int
-    {
+    fun frame_start(backlog: Int = 0): Int {
         frame_check_backlog(backlog)
         return stack.size - backlog
     }
@@ -384,8 +376,7 @@ abstract class Grammar
      *
      */
     @Suppress("UNCHECKED_CAST")
-    fun frame_end (frame: Int): Array<Any?>
-    {
+    fun frame_end(frame: Int): Array<Any?> {
         val len = stack.size - frame
         val out = arrayOfSize<Any?>(len)
         for (i in 1..len) out[len - i] = stack.pop()
@@ -397,8 +388,7 @@ abstract class Grammar
     /**
      *
      */
-    fun frame (backlog: Int): Array<Any?>
-    {
+    fun frame(backlog: Int): Array<Any?> {
         frame_check_backlog(backlog)
         val out = arrayOfSize<Any?>(backlog)
         for (i in 1..backlog) out[backlog - i] = stack.pop()
@@ -412,8 +402,7 @@ abstract class Grammar
      * Returns the [i]th element of the array, casted to type [T].
      */
     @Suppress("UNCHECKED_CAST")
-    operator fun <T> Array<Any?>.invoke (i: Int): T
-    {
+    operator fun <T> Array<Any?>.invoke(i: Int): T {
         return this[i] as T
     }
 
@@ -424,8 +413,7 @@ abstract class Grammar
      * and casting the result to type `List<T>`.
      */
     @Suppress("UNCHECKED_CAST")
-    fun <T> Array<Any?>.list(start: Int = 0, end: Int = size - 1): List<T>
-    {
+    fun <T> Array<Any?>.list(start: Int = 0, end: Int = size - 1): List<T> {
         return this.slice(start..end) as List<T>
     }
 
@@ -458,8 +446,7 @@ abstract class Grammar
     /**
      * Sugar for `word(this)`. ([word])
      */
-    operator fun String.unaryPlus(): Boolean
-        = word(this)
+    operator fun String.unaryPlus(): Boolean = word(this)
 
     // ---------------------------------------------------------------------------------------------
 }

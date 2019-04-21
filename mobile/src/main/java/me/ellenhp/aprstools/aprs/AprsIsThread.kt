@@ -21,9 +21,13 @@ package me.ellenhp.aprstools.aprs
 
 import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprstools.history.PacketTrackHistory
 import java.io.IOException
+import java.time.Instant
+import java.util.*
+import javax.inject.Provider
 
-class AprsIsThread(var listener: AprsIsListener?): Thread() {
+class AprsIsThread(val packetTrackHistory: PacketTrackHistory, val instantProvider: Provider<Instant>) : Thread() {
 
     private val TAG = this::class.java.simpleName
     private val BACKOFF_PERIOD_MILLIS = 2_000L
@@ -31,20 +35,37 @@ class AprsIsThread(var listener: AprsIsListener?): Thread() {
     private var client: AprsIsClient? = null
     private var shouldExit = false
 
+    private val queue: Queue<AprsPacket> = ArrayDeque()
+
     fun setClient(newClient: AprsIsClient) {
         client?.disconnect()
         client = newClient
     }
 
+    @Synchronized
+    fun enqueuePacket(aprsPacket: AprsPacket) {
+        queue.offer(aprsPacket)
+    }
+
     override fun run() {
         while (!shouldExit) {
-            val packet = readPacket()
-            if (packet == null) {
-                backoff()
-                continue
-            }
-            listener?.onAprsPacketReceived(packet)
+            doRead()
+            doWrite()
         }
+    }
+
+    private fun doRead() {
+        val packet = readPacket()
+        if (packet == null) {
+            backoff()
+            return
+        }
+        packetTrackHistory.add(packet, instantProvider.get())
+    }
+
+    @Synchronized
+    private fun doWrite() {
+        client?.writePacket(queue.poll() ?: return)
     }
 
     private fun readPacket(): AprsPacket? {

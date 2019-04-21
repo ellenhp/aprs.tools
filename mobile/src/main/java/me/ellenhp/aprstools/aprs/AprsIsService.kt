@@ -23,22 +23,28 @@ import android.app.Service
 import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
+import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprstools.AprsIsServerAddress
+import me.ellenhp.aprstools.AprsToolsApplication
+import me.ellenhp.aprstools.UserCreds
+import me.ellenhp.aprstools.history.HistoryUpdateListener
+import me.ellenhp.aprstools.history.PacketTrackHistory
+import java.time.Instant
+import javax.inject.Inject
+import javax.inject.Provider
 
 class AprsIsService : Service() {
 
-    val binder = AprsIsServiceBinder()
+    @Inject
+    lateinit var userCreds: Provider<UserCreds?>
+    @Inject
+    lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
+    @Inject
+    lateinit var packetTrackHistory: PacketTrackHistory
+    @Inject
+    lateinit var instantProvider: Provider<Instant>
 
-    var host: String? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
-
-    var port: Int? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
+    private val binder = AprsIsServiceBinder()
 
     var filter: LocationFilter? = null
         set(value) {
@@ -46,47 +52,38 @@ class AprsIsService : Service() {
             resetClient()
         }
 
-    var callsign: String? = null
-        set(value) {
-            field = value
-            resetClient()
-        }
-
-    var listener: AprsIsListener? = null
-        set(value) {
-            field = value
-            if (value != null)
-                thread?.listener = value
-        }
-
     private var thread: AprsIsThread? = null
 
-    // TODO support multiple listeners
     override fun onBind(intent: Intent?): IBinder? {
-        if (thread?.isAlive != true) {
-            thread = AprsIsThread(listener)
+        (application as AprsToolsApplication).activityComponent?.inject(this)
+
+        if (thread == null || thread?.isAlive == true) {
+            thread = AprsIsThread(packetTrackHistory, instantProvider)
             resetClient()
             thread?.start()
-        }
-        else {
-            thread?.listener = listener
+        } else {
             resetClient()
         }
         return binder
+    }
+
+    fun sendPacket(packet: AprsPacket) {
+        thread?.enqueuePacket(packet)
+    }
+
+    fun resetClient() {
+        thread?.setClient(AprsIsClient(
+                aprsIsServerAddress.get().host,
+                aprsIsServerAddress.get().port,
+                userCreds.get()?.call ?: return,
+                userCreds.get()?.passcode,
+                filter))
     }
 
     inner class AprsIsServiceBinder : Binder() {
         fun getService(): AprsIsService {
             return this@AprsIsService
         }
-    }
-
-    private fun resetClient() {
-        thread?.setClient(AprsIsClient(
-                host ?: return,
-                port ?: return,
-                callsign ?: return,
-                filter))
     }
 
 }

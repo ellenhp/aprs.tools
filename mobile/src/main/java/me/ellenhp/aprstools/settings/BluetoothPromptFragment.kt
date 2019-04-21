@@ -17,24 +17,31 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
-import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.DialogInterface
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.RadioButton
+import dagger.Lazy
+import me.ellenhp.aprstools.AprsToolsApplication
+import me.ellenhp.aprstools.PreferenceKeys
+import me.ellenhp.aprstools.R
+import javax.inject.Inject
 
 
-class BluetoothPromptFragment : DialogFragment() {
+class BluetoothPromptFragment : AprsToolsDialogFragment() {
+
+    @Inject
+    lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
 
     private var dialogView: View? = null
     private var tncPickerView: ListView? = null
@@ -46,9 +53,11 @@ class BluetoothPromptFragment : DialogFragment() {
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val inflater = activity?.layoutInflater
+        (activity?.application as AprsToolsApplication).activityComponent?.inject(this)
 
-        dialogView = inflater?.inflate(R.layout.bluetooth_prompt_layout, null)
+        val inflater = activity!!.layoutInflater
+
+        dialogView = inflater.inflate(R.layout.bluetooth_prompt_layout, null)
         val builder = AlertDialog.Builder(activity)
                 .setTitle(R.string.bluetooth_prompt_label)
                 .setCancelable(false)
@@ -61,19 +70,19 @@ class BluetoothPromptFragment : DialogFragment() {
 
         tncPickerView?.setOnItemClickListener { parent, view, position, id -> System.exit(0) }
 
-        val bluetoothManager = activity?.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager?
-        bluetoothDeviceAdapter.items = bluetoothManager?.adapter?.bondedDevices?.toList()
+        bluetoothDeviceAdapter.items = bluetoothAdapter.get()?.bondedDevices?.toList()
 
         return builder.create()
     }
 
     private fun onButtonClick(dialog: DialogInterface, which: Int) {
         if (which == Dialog.BUTTON_POSITIVE) {
-            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(getString(R.string.TNC_BT_ADDRESS), selectedItem?.address)?.apply()
+            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(PreferenceKeys.TNC_BT_ADDRESS, selectedItem?.address)?.apply()
         }
         dismiss()
     }
 }
+
 class BluetoothDeviceAdapter(private val context: Context) : BaseAdapter() {
 
     var items: List<BluetoothDevice>? = listOf()
@@ -100,8 +109,7 @@ class BluetoothDeviceAdapter(private val context: Context) : BaseAdapter() {
     override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
         val radioButton = convertView as? RadioButton? ?: RadioButton(context)
         radioButton.text = items?.get(position)?.name ?: context.getString(R.string.unknown_tnc)
-        radioButton.setOnClickListener {
-            view ->
+        radioButton.setOnClickListener { view ->
             if (selectedView != null) {
                 selectedView?.isChecked = false
             }

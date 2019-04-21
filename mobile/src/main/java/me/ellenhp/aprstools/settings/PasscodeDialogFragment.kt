@@ -17,27 +17,28 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
 import android.os.Bundle
-import android.support.v4.app.DialogFragment
 import android.view.View
 import android.widget.EditText
+import me.ellenhp.aprstools.PreferenceKeys
+import me.ellenhp.aprstools.R
 
-class CallsignDialogFragment : DialogFragment() {
+class PasscodeDialogFragment : AprsToolsDialogFragment() {
 
     private var dialogView: View? = null
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val inflater = activity?.layoutInflater
 
-        dialogView = inflater?.inflate(R.layout.callsign_prompt_layout, null)
+        dialogView = inflater?.inflate(R.layout.passcode_prompt_layout, null)
         val builder = AlertDialog.Builder(activity)
-                .setTitle(R.string.callsign_prompt_title)
+                .setTitle(R.string.passcode_prompt_title)
                 .setCancelable(false)
                 .setView(dialogView)
                 .setPositiveButton(getString(R.string.done_text), this::onButtonClick)
@@ -48,9 +49,9 @@ class CallsignDialogFragment : DialogFragment() {
         if (which != Dialog.BUTTON_POSITIVE) {
             return
         }
-        val callsignEditText = dialogView?.findViewById<EditText>(R.id.callsign_edit_text)
-        val callsign = callsignEditText?.text.toString()
+        val passcodeEditText = dialogView?.findViewById<EditText>(R.id.passcode_edit_text)
+        val passcode = passcodeEditText?.text.toString()
         val preferences = activity?.getPreferences(Activity.MODE_PRIVATE)
-        preferences?.edit()?.putString(getString(R.string.callsign_pref), callsign)?.apply()
+        preferences?.edit()?.putString(PreferenceKeys.PASSCODE, passcode)?.apply()
     }
 }
