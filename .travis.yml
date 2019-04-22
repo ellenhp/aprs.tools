@@ -10,5 +10,6 @@ android:
     - android-28
     - extra-android-m2repository
 
+script: echo '<?xml version="1.0" encoding="utf-8"?><resources><string name="google_maps_key"></string></resources>' > mobile/src/main/res/values/placeholder_maps_key.xml
 script: ./gradlew build
 script: ./gradlew test
