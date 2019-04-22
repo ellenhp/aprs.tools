@@ -1,8 +1,8 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 
-def google_maps_key = hasProperty('google_maps_key') ? google_maps_key : ''
 
 buildscript {
+    ext.google_maps_key = hasProperty("google_maps_key") ? google_maps_key : ""
     ext.kotlin_version = '1.3.20'
 
     repositories {
