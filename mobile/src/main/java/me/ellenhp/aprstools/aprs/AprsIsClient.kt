@@ -19,16 +19,21 @@
 
 package me.ellenhp.aprstools.aprs
 
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import java.io.*
 import java.net.Socket
+import javax.inject.Inject
 
-class AprsIsClient(private val host: String,
-                   private val port: Int,
-                   private val callsign: String,
-                   private val passcode: String?,
-                   private val filter: LocationFilter?) {
+@AutoFactory(allowSubclasses = true)
+open class AprsIsClient constructor(@Provided private val socketFactory: SocketFactory,
+                               private val host: String,
+                               private val port: Int,
+                               private val callsign: String,
+                               private val passcode: String?,
+                               private val filter: LocationFilter?) {
 
     private val parser = AprsParser()
 
@@ -40,7 +45,7 @@ class AprsIsClient(private val host: String,
 
     @Synchronized
     @Throws(IOException::class)
-    fun readPacket(): AprsPacket? {
+    open fun readPacket(): AprsPacket? {
         if (!isInitialized)
             init()
         val rawPacket = reader?.readLine()?.trim() ?: return null
@@ -49,24 +54,24 @@ class AprsIsClient(private val host: String,
 
     @Synchronized
     @Throws(IOException::class)
-    fun writePacket(packet: AprsPacket) {
+    open fun writePacket(packet: AprsPacket) {
         if (!isInitialized)
             init()
         writer?.write(packet.toString() + "\r\n")
         writer?.flush()
     }
 
-    fun disconnect() {
+    open fun disconnect() {
         socket?.close()
     }
 
     private fun init() {
-        socket = Socket(host, port)
+        socket = socketFactory.makeSocket(host, port)
         reader = BufferedReader(InputStreamReader(socket?.getInputStream()))
         writer = BufferedWriter(OutputStreamWriter(socket?.getOutputStream()))
 
         writer?.write(String.format("user %s pass %s\r\n", callsign, passcode ?: "-1"))
-        writer?.write("filter default\r\n")
+        writer?.write("#filter default\r\n")
         if (filter != null)
             writer?.write(filter.filterCommand)
         writer?.flush()

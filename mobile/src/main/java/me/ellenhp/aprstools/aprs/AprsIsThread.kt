@@ -21,16 +21,20 @@ package me.ellenhp.aprstools.aprs
 
 import android.util.Log
 import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprstools.Sleeper
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import java.io.IOException
 import java.time.Instant
 import java.util.*
+import javax.inject.Inject
 import javax.inject.Provider
 
-class AprsIsThread(val packetTrackHistory: PacketTrackHistory, val instantProvider: Provider<Instant>) : Thread() {
+class AprsIsThread @Inject constructor(private val packetTrackHistory: PacketTrackHistory,
+                                       private val instantProvider: Provider<Instant>,
+                                       private val sleeper: Sleeper) : Thread() {
 
     private val TAG = this::class.java.simpleName
-    private val BACKOFF_PERIOD_MILLIS = 2_000L
+    private val BACKOFF_PERIOD_MILLIS = 500L
 
     private var client: AprsIsClient? = null
     private var shouldExit = false
@@ -80,7 +84,7 @@ class AprsIsThread(val packetTrackHistory: PacketTrackHistory, val instantProvid
 
     private fun backoff() {
         try {
-            Thread.sleep(BACKOFF_PERIOD_MILLIS);
+            sleeper.sleep(BACKOFF_PERIOD_MILLIS);
         } catch (e: InterruptedException) {
             shouldExit = true
         }

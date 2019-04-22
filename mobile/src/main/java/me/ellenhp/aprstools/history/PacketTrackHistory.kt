@@ -38,7 +38,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.collections.HashMap
 
-class PacketTrackHistory() : Parcelable {
+open class PacketTrackHistory() : Parcelable {
 
     var listener: HistoryUpdateListener? = null
 

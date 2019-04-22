@@ -215,7 +215,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
     }
 
     private fun updateAprsIsListener(location: Location?) {
-        aprsIsService?.filter = LocationFilter(location ?: return, 50.0)
+        location ?: return
+        val latLng = LatLng(location.latitude, location.longitude)
+        aprsIsService?.filter = LocationFilter(latLng, 50.0)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {

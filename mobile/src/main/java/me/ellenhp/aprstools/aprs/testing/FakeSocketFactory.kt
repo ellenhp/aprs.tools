@@ -17,21 +17,13 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.aprs
+package me.ellenhp.aprstools.aprs.testing
 
-import com.google.android.gms.maps.model.LatLng
-import java.io.Serializable
-import java.util.*
+import me.ellenhp.aprstools.aprs.SocketFactory
+import java.net.Socket
 
-class LocationFilter(location: LatLng, private val radiusKilometers: Double) : Serializable {
-
-    private val latitude = location.latitude
-    private val longitude = location.longitude
-
-    internal val filterCommand: String
-        get() {
-            val filterTemplate = "#filter r/%f/%f/%f\r\n"
-            return String.format(Locale.US, filterTemplate, latitude, longitude, radiusKilometers)
-        }
-
+class FakeSocketFactory(private val socket: Socket): SocketFactory() {
+    override fun makeSocket(host: String, port: Int): Socket {
+        return socket
+    }
 }

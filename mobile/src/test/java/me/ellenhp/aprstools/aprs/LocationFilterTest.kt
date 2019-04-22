@@ -20,18 +20,14 @@
 package me.ellenhp.aprstools.aprs
 
 import com.google.android.gms.maps.model.LatLng
-import java.io.Serializable
-import java.util.*
+import com.google.common.truth.Truth.assertThat
+import org.junit.Test
 
-class LocationFilter(location: LatLng, private val radiusKilometers: Double) : Serializable {
+class LocationFilterTest {
 
-    private val latitude = location.latitude
-    private val longitude = location.longitude
-
-    internal val filterCommand: String
-        get() {
-            val filterTemplate = "#filter r/%f/%f/%f\r\n"
-            return String.format(Locale.US, filterTemplate, latitude, longitude, radiusKilometers)
-        }
-
+    @Test
+    fun testFilterCommand() {
+        val filter = LocationFilter(LatLng(12.345, 67.8912), 30.0)
+        assertThat(filter.filterCommand).isEqualTo("#filter r/12.345000/67.891200/30.000000\r\n")
+    }
 }
