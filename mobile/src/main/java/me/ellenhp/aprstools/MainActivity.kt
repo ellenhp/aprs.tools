@@ -30,9 +30,9 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.location.Location
 import android.os.Bundle
 import android.os.IBinder
-import android.support.v4.app.ActivityCompat
-import android.support.v4.app.FragmentActivity
-import android.support.v7.widget.AppCompatButton
+import androidx.core.app.ActivityCompat
+import androidx.fragment.app.FragmentActivity
+import androidx.appcompat.widget.AppCompatButton
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -60,7 +60,7 @@ import javax.inject.Inject
 import javax.inject.Provider
 import kotlin.collections.HashMap
 
-class MainActivity : FragmentActivity(), OnMapReadyCallback, CoroutineScope by MainScope(), HistoryUpdateListener {
+class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallback, CoroutineScope by MainScope(), HistoryUpdateListener {
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
