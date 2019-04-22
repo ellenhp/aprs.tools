@@ -20,13 +20,13 @@
 package me.ellenhp.aprstools.settings
 
 import android.content.DialogInterface
-import android.support.v4.app.DialogFragment
-import android.support.v4.app.FragmentManager
+import androidx.fragment.app.DialogFragment
+import androidx.fragment.app.FragmentManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
-open class AprsToolsDialogFragment : DialogFragment() {
+open class AprsToolsDialogFragment : androidx.fragment.app.DialogFragment() {
 
     enum class DialogResult {
         CANCELLED,
@@ -35,7 +35,7 @@ open class AprsToolsDialogFragment : DialogFragment() {
 
     private var continuation: Continuation<DialogResult>? = null
 
-    suspend fun showBlocking(manager: FragmentManager?, tag: String?, runOnUiThread: (Runnable) -> Unit): DialogResult {
+    suspend fun showBlocking(manager: androidx.fragment.app.FragmentManager?, tag: String?, runOnUiThread: (Runnable) -> Unit): DialogResult {
         runOnUiThread(Runnable { show(manager, tag) })
         return suspendCoroutine(fun(it: Continuation<DialogResult>) {
             continuation = it

@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <android.support.v7.widget.AppCompatButton
+        <androidx.appcompat.widget.AppCompatButton
             android:layout_width="0dp"
             android:layout_height="@dimen/bottom_bar_button_height"
             android:layout_marginStart="@dimen/bottom_bar_button_margin"
@@ -28,7 +28,7 @@
             android:layout_weight="1"
             android:text="@string/settings" />
 
-        <android.support.v7.widget.AppCompatButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/start_tracking"
             android:layout_width="0dp"
             android:layout_height="@dimen/bottom_bar_button_height"
@@ -39,7 +39,7 @@
             android:layout_weight="1.2"
             android:text="@string/track_position" />
 
-        <android.support.v7.widget.AppCompatButton
+        <androidx.appcompat.widget.AppCompatButton
             android:id="@+id/start_igate"
             android:layout_width="0dp"
             android:layout_height="@dimen/bottom_bar_button_height"

@@ -25,8 +25,8 @@ import android.app.Service
 import android.content.Intent
 import android.os.IBinder
 import android.os.Looper
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.PermissionChecker.PERMISSION_GRANTED
+import androidx.core.app.ActivityCompat
+import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
