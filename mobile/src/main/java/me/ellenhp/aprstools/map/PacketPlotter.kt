@@ -21,6 +21,8 @@ package me.ellenhp.aprstools.map
 
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.*
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import com.google.common.collect.ImmutableList
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.Utils
@@ -31,7 +33,10 @@ import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
 
-class PacketPlotter @Inject constructor(val map: Provider<GoogleMap>, val instant: Provider<Instant>) {
+@AutoFactory(allowSubclasses = true)
+class PacketPlotter constructor(@Provided val map: Provider<GoogleMap>,
+                                @Provided val instant: Provider<Instant>,
+                                val pruneDuration: Duration) {
 
     val markers = HashMap<Ax25Address, Marker>()
     val polylines = HashMap<Ax25Address, Polyline>()
@@ -49,7 +54,7 @@ class PacketPlotter @Inject constructor(val map: Provider<GoogleMap>, val instan
 
     private fun updateCreateOrPrunePolyline(station: Ax25Address, track: ImmutableList<TimestampedPacket>, cutoffTime: Instant) {
         val currentPolyline = polylines[station]
-        val points = trackToPointsAfter(track, cutoffTime)
+        val points = trackToPointsAfterForPolyline(track, cutoffTime)
         if (currentPolyline == null) {
             // Create a new polyline if there are enough points.
             points?.let { polylines[station] = createPolyline(it) }
@@ -73,10 +78,10 @@ class PacketPlotter @Inject constructor(val map: Provider<GoogleMap>, val instan
             points?.let { markers[station] = createMarker(it.last(), station) }
         }
         else {
-            // Prune the polyline if there aren't enough points
+            // Prune the marker if there aren't any points left.
             if (points == null) {
                 currentMarker.remove()
-                polylines.remove(station)
+                markers.remove(station)
             } else {
                 currentMarker.position = points.last()
             }
@@ -96,6 +101,14 @@ class PacketPlotter @Inject constructor(val map: Provider<GoogleMap>, val instan
         return map.get().addMarker(markerOptions)
     }
 
+    private fun trackToPointsAfterForPolyline(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {
+        val points = trackToPointsAfter(track, cutoffTime) ?: return null
+        if (points.count() > 1) {
+            return points
+        }
+        return null
+    }
+
     private fun trackToPointsAfter(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {
         val points = track.stream().sorted()
                 .filter { it.time.isAfter(cutoffTime) }
@@ -103,9 +116,6 @@ class PacketPlotter @Inject constructor(val map: Provider<GoogleMap>, val instan
                 .filter { it != null }
                 .map { LatLng(it!!.latitude, it.longitude) }
                 .collect(Utils.toImmutableList())
-        if (points.count() > 1) {
-            return points
-        }
-        return null
+        return if (points.isEmpty()) null else points
     }
 }
