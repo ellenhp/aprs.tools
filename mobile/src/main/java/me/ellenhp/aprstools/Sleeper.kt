@@ -17,21 +17,12 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.aprs
+package me.ellenhp.aprstools
 
-import com.google.android.gms.maps.model.LatLng
-import java.io.Serializable
-import java.util.*
+import javax.inject.Inject
 
-class LocationFilter(location: LatLng, private val radiusKilometers: Double) : Serializable {
-
-    private val latitude = location.latitude
-    private val longitude = location.longitude
-
-    internal val filterCommand: String
-        get() {
-            val filterTemplate = "#filter r/%f/%f/%f\r\n"
-            return String.format(Locale.US, filterTemplate, latitude, longitude, radiusKilometers)
-        }
-
+open class Sleeper @Inject constructor() {
+    open fun sleep(millis: Long) {
+        Thread.sleep(millis)
+    }
 }

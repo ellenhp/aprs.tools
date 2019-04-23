@@ -40,9 +40,9 @@ class AprsIsService : Service() {
     @Inject
     lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
     @Inject
-    lateinit var packetTrackHistory: PacketTrackHistory
+    lateinit var clientFactory: AprsIsClientFactory
     @Inject
-    lateinit var instantProvider: Provider<Instant>
+    lateinit var aprsIsThreadProvider: Provider<AprsIsThread>
 
     private val binder = AprsIsServiceBinder()
 
@@ -58,7 +58,7 @@ class AprsIsService : Service() {
         (application as AprsToolsApplication).activityComponent?.inject(this)
 
         if (thread == null || thread?.isAlive == true) {
-            thread = AprsIsThread(packetTrackHistory, instantProvider)
+            thread = aprsIsThreadProvider.get()
             resetClient()
             thread?.start()
         } else {
@@ -72,7 +72,7 @@ class AprsIsService : Service() {
     }
 
     fun resetClient() {
-        thread?.setClient(AprsIsClient(
+        thread?.setClient(clientFactory.create(
                 aprsIsServerAddress.get().host,
                 aprsIsServerAddress.get().port,
                 userCreds.get()?.call ?: return,

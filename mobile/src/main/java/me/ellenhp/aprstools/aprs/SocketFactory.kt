@@ -19,19 +19,11 @@
 
 package me.ellenhp.aprstools.aprs
 
-import com.google.android.gms.maps.model.LatLng
-import java.io.Serializable
-import java.util.*
+import java.net.Socket
+import javax.inject.Inject
 
-class LocationFilter(location: LatLng, private val radiusKilometers: Double) : Serializable {
-
-    private val latitude = location.latitude
-    private val longitude = location.longitude
-
-    internal val filterCommand: String
-        get() {
-            val filterTemplate = "#filter r/%f/%f/%f\r\n"
-            return String.format(Locale.US, filterTemplate, latitude, longitude, radiusKilometers)
-        }
-
+open class SocketFactory @Inject constructor() {
+    open fun makeSocket(host: String, port: Int): Socket {
+        return Socket(host, port)
+    }
 }

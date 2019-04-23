@@ -49,12 +49,14 @@ import me.ellenhp.aprstools.aprs.LocationFilter
 import me.ellenhp.aprstools.history.HistoryUpdateListener
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.map.PacketPlotter
+import me.ellenhp.aprstools.map.PacketPlotterFactory
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.PasscodeDialogFragment
 import me.ellenhp.aprstools.tnc.TncDevice
 import me.ellenhp.aprstools.tracker.TrackerService
+import java.time.Duration
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
@@ -71,13 +73,14 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
     @Inject
     lateinit var tncDevice: Provider<TncDevice?>
     @Inject
-    lateinit var plotter: PacketPlotter
+    lateinit var plotterFactory: PacketPlotterFactory
 
     val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
     val passcodeDialog = PasscodeDialogFragment()
 
     lateinit var packetHistory: PacketTrackHistory
+    lateinit var plotter: PacketPlotter
     private val packetHistoryBundleKey = "PacketTrackHistory"
 
     var map: GoogleMap? = null
@@ -102,6 +105,8 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
         activityCompoment.inject(this)
 
         setContentView(R.layout.activity_main)
+
+        plotter = plotterFactory.create(Duration.ofHours(6))
 
         val packetHistoryBundle = savedInstanceState?.getBundle(packetHistoryBundleKey)
         packetHistory = packetHistoryBundle?.getParcelable(packetHistoryBundleKey) ?: PacketTrackHistory()
@@ -215,7 +220,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
     }
 
     private fun updateAprsIsListener(location: Location?) {
-        aprsIsService?.filter = LocationFilter(location ?: return, 50.0)
+        location ?: return
+        val latLng = LatLng(location.latitude, location.longitude)
+        aprsIsService?.filter = LocationFilter(latLng, 50.0)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
