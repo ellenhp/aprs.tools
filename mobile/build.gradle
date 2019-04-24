@@ -42,6 +42,7 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt 'com.google.dagger:dagger-android-processor:2.20'
     kapt 'com.google.dagger:dagger-compiler:2.20'
     annotationProcessor 'com.google.auto.factory:auto-factory:1.0-beta6'
@@ -63,6 +64,8 @@ dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.1.1"
     implementation 'com.google.guava:guava:27.1-android'
     implementation project(path: ':aprslib')
+    implementation 'android.arch.navigation:navigation-fragment:1.0.0'
+    implementation 'android.arch.navigation:navigation-ui:1.0.0'
 }
 repositories {
     mavenCentral()

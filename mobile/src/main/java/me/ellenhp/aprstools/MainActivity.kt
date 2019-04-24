@@ -21,69 +21,55 @@ package me.ellenhp.aprstools
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.bluetooth.BluetoothAdapter
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.location.Location
+import android.net.Uri
 import android.os.Bundle
 import android.os.IBinder
+import android.view.MenuItem
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.appcompat.widget.Toolbar
 import androidx.core.app.ActivityCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.appcompat.widget.AppCompatButton
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import androidx.navigation.NavController
+import androidx.navigation.NavDestination
+import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.ui.NavigationUI.onNavDestinationSelected
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.maps.CameraUpdateFactory
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.OnMapReadyCallback
-import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.navigation.NavigationView
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
-import me.ellenhp.aprstools.history.HistoryUpdateListener
 import me.ellenhp.aprstools.history.PacketTrackHistory
-import me.ellenhp.aprstools.map.PacketPlotter
-import me.ellenhp.aprstools.map.PacketPlotterFactory
 import me.ellenhp.aprstools.modules.ActivityModule
-import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
-import me.ellenhp.aprstools.settings.PasscodeDialogFragment
-import me.ellenhp.aprstools.tnc.TncDevice
-import me.ellenhp.aprstools.tracker.TrackerService
-import java.time.Duration
-import java.util.*
 import javax.inject.Inject
 import javax.inject.Provider
-import kotlin.collections.HashMap
 
-class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallback, CoroutineScope by MainScope(), HistoryUpdateListener {
+class MainActivity : androidx.appcompat.app.AppCompatActivity(),
+        MapViewFragment.OnFragmentInteractionListener,
+        AboutFragment.OnFragmentInteractionListener,
+        CoroutineScope by MainScope(), NavController.OnDestinationChangedListener {
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject
-    lateinit var bluetoothAdapter: Lazy<BluetoothAdapter?>
-    @Inject
     lateinit var userCreds: Provider<UserCreds?>
-    @Inject
-    lateinit var tncDevice: Provider<TncDevice?>
-    @Inject
-    lateinit var plotterFactory: PacketPlotterFactory
 
-    val bluetoothDialog = BluetoothPromptFragment()
     val callsignDialog = CallsignDialogFragment()
-    val passcodeDialog = PasscodeDialogFragment()
 
     lateinit var packetHistory: PacketTrackHistory
-    lateinit var plotter: PacketPlotter
     private val packetHistoryBundleKey = "PacketTrackHistory"
 
-    var map: GoogleMap? = null
     var aprsIsService: AprsIsService? = null
 
     private val mConnection = object : ServiceConnection {
@@ -99,23 +85,30 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val activityCompoment = (application as AprsToolsApplication).component
+        val activityComponent = (application as AprsToolsApplication).component
                 .newActivityComponent(ActivityModule(this))
-        (application as AprsToolsApplication).activityComponent = activityCompoment
-        activityCompoment.inject(this)
+        (application as AprsToolsApplication).activityComponent = activityComponent
+        activityComponent.inject(this)
 
         setContentView(R.layout.activity_main)
 
-        plotter = plotterFactory.create(Duration.ofHours(6))
+        val toolbar = findViewById<Toolbar>(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+
+        findViewById<NavigationView>(R.id.nav_view).setNavigationItemSelectedListener(this::onOptionsItemSelected)
+
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        val toggle = ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer.addDrawerListener(toggle)
+        toggle.isDrawerIndicatorEnabled = true
+        toggle.syncState()
 
         val packetHistoryBundle = savedInstanceState?.getBundle(packetHistoryBundleKey)
         packetHistory = packetHistoryBundle?.getParcelable(packetHistoryBundleKey) ?: PacketTrackHistory()
-        packetHistory.listener = this
 
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        val mapFragment = supportFragmentManager
-                .findFragmentById(R.id.map) as SupportMapFragment?
-        mapFragment?.getMapAsync(this)
+        val navController = findNavController(supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!)
+        navController.addOnDestinationChangedListener(this)
     }
 
     override fun onStart() {
@@ -124,9 +117,6 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
         // Start our AprsIsService.
         val intent = Intent(this, AprsIsService::class.java)
         bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
-
-        findViewById<AppCompatButton>(R.id.start_igate).setOnClickListener { startIGate() }
-        findViewById<AppCompatButton>(R.id.start_tracking).setOnClickListener { startTracking() }
 
         launch {
             maybeShowCallsignDialog()
@@ -148,81 +138,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
         outState?.putBundle(packetHistoryBundleKey, packetHistoryBundle)
     }
 
-    private fun startTracking() {
-        launch {
-            maybeShowCallsignDialog()
-            maybeShowPasscodeDialog()
-            runOnUiThread {
-                // Start our AprsIsService.
-                val intent = Intent(this@MainActivity, TrackerService::class.java)
-                startService(intent)
-            }
-        }
-    }
-
-    private fun startIGate() {
-        launch {
-            maybeShowCallsignDialog()
-            maybeShowBluetoothDialog()
-        }
-    }
-
-    override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
-        val settings = googleMap.uiSettings
-
-        settings.isCompassEnabled = true
-        settings.isMyLocationButtonEnabled = true
-        settings.isScrollGesturesEnabled = true
-        settings.isZoomGesturesEnabled = true
-        settings.isTiltGesturesEnabled = false
-        settings.isRotateGesturesEnabled = true
-
-        animateToLastLocation()
-
-        for (station in packetHistory.getStations()) {
-            historyUpate(station)
-        }
-
-        runOnUiThread {
-            plotter.plot(packetHistory)
-        }
-    }
-
-    private suspend fun maybeShowCallsignDialog() {
-        if (userCreds.get() == null) {
-            callsignDialog.showBlocking(supportFragmentManager, "CallsignDialogFragment", this::runOnUiThread)
-
-        }
-    }
-
-    private suspend fun maybeShowBluetoothDialog() {
-        if (tncDevice.get() == null) {
-            bluetoothDialog.showBlocking(supportFragmentManager, "BluetoothPromptFragment", this::runOnUiThread)
-        }
-    }
-
-    private suspend fun maybeShowPasscodeDialog() {
-        if (userCreds.get()?.passcode == null) {
-            passcodeDialog.showBlocking(supportFragmentManager, "PasscodePromptFragment", this::runOnUiThread)
-            aprsIsService?.resetClient()
-        }
-    }
-
-    private fun requestLocation() {
-        ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
-    }
-
-    private fun animateToLastLocation() {
-        if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
-                ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED)
-            fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(this) { this.processLocation(it) }
-    }
-
-    private fun updateAprsIsListener(location: Location?) {
-        location ?: return
-        val latLng = LatLng(location.latitude, location.longitude)
-        aprsIsService?.filter = LocationFilter(latLng, 50.0)
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        val navController = findNavController(supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!)
+        return onNavDestinationSelected(item, navController)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -232,21 +150,41 @@ class MainActivity : androidx.fragment.app.FragmentActivity(), OnMapReadyCallbac
         }
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
-            map?.isMyLocationEnabled = true
-            animateToLastLocation()
+            fusedLocationClient.get().lastLocation.addOnSuccessListener { updateAprsIsListener(it) }
         }
     }
 
-    override fun historyUpate(station: Ax25Address) {
-        runOnUiThread {
-            plotter.plot(packetHistory)
+    override fun onFragmentInteraction(uri: Uri) {
+        // No-op for now.
+    }
+
+    override fun onDestinationChanged(controller: NavController, destination: NavDestination, arguments: Bundle?) {
+        findViewById<DrawerLayout>(R.id.drawer_layout).closeDrawer(GravityCompat.START)
+    }
+
+    override fun onBackPressed() {
+        val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
         }
     }
 
-    private fun processLocation(location: Location?) {
+    private suspend fun maybeShowCallsignDialog() {
+        if (userCreds.get() == null) {
+            callsignDialog.showBlocking(supportFragmentManager, "CallsignDialogFragment", this::runOnUiThread)
+        }
+    }
+
+    private fun requestLocation() {
+        ActivityCompat.requestPermissions(this, arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
+    }
+
+    private fun updateAprsIsListener(location: Location?) {
         location ?: return
-        updateAprsIsListener(location)
-        map?.animateCamera(CameraUpdateFactory.newLatLngZoom(LatLng(location.latitude, location.longitude), 15f))
+        val latLng = LatLng(location.latitude, location.longitude)
+        aprsIsService?.filter = LocationFilter(latLng, 50.0)
     }
 
     companion object {

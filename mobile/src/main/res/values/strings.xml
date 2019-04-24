@@ -1,10 +1,18 @@
 <resources>
     <string name="default_aprs_server">rotate.aprs.net</string>
 
-    <!-- User-facing strings -->
+    <!-- Content Descriptions -->
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 
+    <!-- Menu items -->
+    <string name="callsign_menu_item_default">Set Callsign</string>
+    <string name="map_view_menu_item">Map View</string>
+    <string name="list_view_menu_item">List View</string>
+    <string name="about_menu_item">About</string>
+
+    <!-- User-facing strings -->
     <string name="app_name">APRSTools</string>
-    <string name="title_activity_map">Map</string>
     <string name="settings">Settings</string>
     <string name="track_position">Start Tracking</string>
     <string name="start_igate">Start IGate</string>
