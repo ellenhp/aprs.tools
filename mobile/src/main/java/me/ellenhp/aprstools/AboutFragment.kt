@@ -26,12 +26,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
+import android.widget.TextView
 
 /**
  * A simple [Fragment] subclass.
@@ -53,7 +48,12 @@ class AboutFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_about, container, false)
+        val view = inflater.inflate(R.layout.fragment_about, container, false)
+        view.findViewById<TextView>(R.id.aprstools_license).text =
+                activity?.assets?.open("APRSToolsLicense.txt")?.reader(Charsets.UTF_8)?.readText()
+        view.findViewById<TextView>(R.id.autumn_license).text =
+                activity?.assets?.open("AutumnLicense.txt")?.reader(Charsets.UTF_8)?.readText()
+        return view
     }
 
     override fun onAttach(context: Context) {
