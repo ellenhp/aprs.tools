@@ -34,8 +34,8 @@ import javax.inject.Inject
 import javax.inject.Provider
 
 @AutoFactory(allowSubclasses = true)
-class PacketPlotter constructor(@Provided val map: Provider<GoogleMap>,
-                                @Provided val instant: Provider<Instant>,
+class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
+                                val map: GoogleMap,
                                 val pruneDuration: Duration) {
 
     val markers = HashMap<Ax25Address, Marker>()
@@ -46,7 +46,7 @@ class PacketPlotter constructor(@Provided val map: Provider<GoogleMap>,
     }
 
     private fun updateStation(station: Ax25Address, track: ImmutableList<TimestampedPacket>) {
-        val cutoffTime = instant.get().minus(Duration.ofHours(6))
+        val cutoffTime = instant.get().minus(pruneDuration)
 
         updateCreateOrPrunePolyline(station, track, cutoffTime)
         updateCreateOrPruneMarker(station, track, cutoffTime)
@@ -91,14 +91,14 @@ class PacketPlotter constructor(@Provided val map: Provider<GoogleMap>,
     private fun createPolyline(points: ImmutableList<LatLng>): Polyline {
         val polylineOptions = PolylineOptions()
         polylineOptions.addAll(points)
-        return map.get().addPolyline(polylineOptions)
+        return map.addPolyline(polylineOptions)
     }
 
     private fun createMarker(point: LatLng, station: Ax25Address): Marker {
         val markerOptions = MarkerOptions()
         markerOptions.position(point)
         markerOptions.title(station.toString())
-        return map.get().addMarker(markerOptions)
+        return map.addMarker(markerOptions)
     }
 
     private fun trackToPointsAfterForPolyline(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {

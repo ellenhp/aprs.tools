@@ -34,11 +34,6 @@ import me.ellenhp.aprstools.tnc.TncDevice
 class ActivityModule(private val activity: MainActivity) {
 
     @Provides
-    fun provideMap(): GoogleMap? {
-        return activity.map
-    }
-
-    @Provides
     fun providesBluetoothAdapter(): BluetoothAdapter? {
         val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter

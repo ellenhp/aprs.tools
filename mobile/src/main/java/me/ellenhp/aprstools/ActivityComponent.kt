@@ -36,5 +36,8 @@ interface ActivityComponent {
     fun inject(dialogFragment: CallsignDialogFragment)
     fun inject(aprsIsService: AprsIsService)
     fun inject(trackerService: TrackerService)
+    fun inject(mapViewFragment: MapViewFragment) {
+
+    }
 
 }
