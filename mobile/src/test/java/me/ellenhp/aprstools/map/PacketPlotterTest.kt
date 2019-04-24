@@ -80,7 +80,7 @@ class PacketPlotterTest {
         time = Instant.ofEpochSecond(1555635010)
         history = PacketTrackHistory()
 
-        packetPlotter = PacketPlotter(Provider {map}, Provider {time}, Duration.ofHours(6))
+        packetPlotter = PacketPlotter(Provider {time}, map, Duration.ofHours(6))
     }
 
     @Test
