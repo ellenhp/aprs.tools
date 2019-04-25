@@ -42,6 +42,10 @@ android {
     }
 }
 
+licenseTools {
+    licensesYaml = file("src/main/assets/licenses.yml")
+}
+
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt 'com.google.dagger:dagger-android-processor:2.20'
