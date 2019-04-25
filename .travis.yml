@@ -10,7 +10,14 @@ android:
     - android-28
     - extra-android-m2repository
 
-script: ./gradlew test
+jobs:
+  include:
+    - stage: "Tests"
+      name: "Unit tests"
+      script: ./gradlew test
+    - stage: "CheckLicenses"
+      name: "Check Licenses"
+      script: ./gradlew checkLicenses
 
 before_cache:
     - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
