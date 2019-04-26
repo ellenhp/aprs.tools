@@ -43,8 +43,9 @@ class DependencyLicenseFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_dependency_license, container, false)
+        val packaged_deps = Dependency.parseFile(activity!!.assets.open("packaged_deps.yml").reader().readText())
         val deps = Dependency.parseFile(activity!!.assets.open("licenses.yml").reader().readText())
-        val adapter = DependencyAdapter(context!!, deps!!)
+        val adapter = DependencyAdapter(context!!, packaged_deps!! + deps!!)
         val recyclerView = view.findViewById<RecyclerView>(R.id.dependency_list_view)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
