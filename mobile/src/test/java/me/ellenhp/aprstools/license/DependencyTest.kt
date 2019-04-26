@@ -50,8 +50,8 @@ class DependencyTest {
                 "androidx.legacy:legacy-support-v4:+",
                 "Android Support Library v4",
                 "Copyright (c) 2005-2013, The Android Open Source Project",
-                "The Apache Software Dependency, Version 2.0",
-                "http://www.apache.org/dependencies/LICENSE-2.0.txt",
+                "The Apache Software License, Version 2.0",
+                "http://www.apache.org/licenses/LICENSE-2.0.txt",
                 "http://developer.android.com/tools/extras/support-library.html"))
 
     }
