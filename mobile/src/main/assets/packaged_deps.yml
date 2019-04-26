@@ -1,0 +1,6 @@
+- artifact: norswap.autumn
+  name: Whimsy Compiler Framework
+  copyrightHolder: Copyright (c) 2016, Nicolas LAURENT
+  license: The BSD 3-Clause License
+  licenseUrl: http://www.opensource.org/licenses/bsd-license.php
+  url: https://github.com/norswap/whimsy

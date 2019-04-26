@@ -50,6 +50,8 @@ import kotlinx.coroutines.launch
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.aprs.LocationFilter
 import me.ellenhp.aprstools.history.PacketTrackHistory
+import me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment
+import me.ellenhp.aprstools.licenses.DependencyLicenseFragment
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import javax.inject.Inject
@@ -58,6 +60,8 @@ import javax.inject.Provider
 class MainActivity : androidx.appcompat.app.AppCompatActivity(),
         MapViewFragment.OnFragmentInteractionListener,
         AboutFragment.OnFragmentInteractionListener,
+        DependencyLicenseFragment.OnFragmentInteractionListener,
+        AprsToolsLicenseFragment.OnFragmentInteractionListener,
         CoroutineScope by MainScope(), NavController.OnDestinationChangedListener {
 
     @Inject

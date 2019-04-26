@@ -28,5 +28,21 @@
             android:id="@+id/deepLink"
             app:uri="aprstools://about"
             android:autoVerify="true" />
+        <action
+            android:id="@+id/action_aboutFragment_to_dependencyLicenseFragment"
+            app:destination="@id/dependencyLicenseFragment" />
+        <action
+            android:id="@+id/action_aboutFragment_to_aprsToolsLicenseFragment"
+            app:destination="@id/aprsToolsLicenseFragment" />
     </fragment>
+    <fragment
+        android:id="@+id/dependencyLicenseFragment"
+        android:name="me.ellenhp.aprstools.licenses.DependencyLicenseFragment"
+        android:label="fragment_dependency_license"
+        tools:layout="@layout/fragment_dependency_license" />
+    <fragment
+        android:id="@+id/aprsToolsLicenseFragment"
+        android:name="me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment"
+        android:label="fragment_aprs_tools_license"
+        tools:layout="@layout/fragment_aprs_tools_license" />
 </navigation>

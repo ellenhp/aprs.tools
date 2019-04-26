@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".licenses.DependencyLicenseFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="web"
+            android:layout_marginTop="@dimen/about_screen_margin"
+            android:layout_marginStart="@dimen/about_screen_margin"
+            android:layout_marginEnd="@dimen/about_screen_margin"
+            android:layout_marginBottom="0dp"
+            android:textAppearance="@android:style/TextAppearance.Large"
+            android:text="@string/third_party_licenses"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:autoLink="web"
+            android:layout_margin="@dimen/about_screen_margin"
+            android:text="@string/third_party_thank_you"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/dependency_list_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="0dp"
+            android:layout_marginStart="@dimen/about_screen_margin"
+            android:layout_marginEnd="@dimen/about_screen_margin"
+            android:layout_marginBottom="0dp" />
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

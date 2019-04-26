@@ -2,6 +2,7 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'com.cookpad.android.licensetools'
 
 android {
     compileSdkVersion 28
@@ -41,6 +42,14 @@ android {
     }
 }
 
+sourceSets {
+    test.resources.srcDirs += 'src/main/assets'
+}
+
+licenseTools {
+    licensesYaml = file("src/main/assets/licenses.yml")
+}
+
 dependencies {
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     kapt 'com.google.dagger:dagger-android-processor:2.20'
@@ -57,6 +66,7 @@ dependencies {
     testImplementation 'androidx.test:runner:1.1.1'
     testImplementation 'org.robolectric:robolectric:4.2'
     testImplementation group: 'org.mockito', name: 'mockito-inline', version: '2.27.0'
+    testImplementation 'androidx.test:core:1.1.0'
     androidTestImplementation "com.google.truth:truth:0.42"
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
@@ -66,6 +76,7 @@ dependencies {
     implementation project(path: ':aprslib')
     implementation 'android.arch.navigation:navigation-fragment:1.0.0'
     implementation 'android.arch.navigation:navigation-ui:1.0.0'
+    implementation 'org.yaml:snakeyaml:1.24'
 }
 repositories {
     mavenCentral()
