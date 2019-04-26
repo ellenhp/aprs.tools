@@ -1,4 +1,8 @@
-
+- artifact: norswap.autumn
+  name: Whimsy Compiler Framework
+  copyrightHolder: Copyright (c) 2016, Nicolas LAURENT
+  license: The BSD 3-Clause License
+  licenseUrl: http://www.opensource.org/licenses/bsd-license.php
 - artifact: androidx.slidingpanelayout:slidingpanelayout:+
   name: Android Support Library Sliding Pane Layout
   copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project

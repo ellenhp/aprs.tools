@@ -42,8 +42,12 @@ android {
     }
 }
 
+sourceSets {
+    test.resources.srcDirs += 'src/main/assets'
+}
+
 licenseTools {
-    licensesYaml = file("src/main/assets/licenses.yml")
+    licensesYaml = file("src/main/assets/dependencies.yml")
 }
 
 dependencies {
@@ -62,6 +66,7 @@ dependencies {
     testImplementation 'androidx.test:runner:1.1.1'
     testImplementation 'org.robolectric:robolectric:4.2'
     testImplementation group: 'org.mockito', name: 'mockito-inline', version: '2.27.0'
+    testImplementation 'androidx.test:core:1.1.0'
     androidTestImplementation "com.google.truth:truth:0.42"
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
@@ -71,6 +76,8 @@ dependencies {
     implementation project(path: ':aprslib')
     implementation 'android.arch.navigation:navigation-fragment:1.0.0'
     implementation 'android.arch.navigation:navigation-ui:1.0.0'
+    implementation 'org.yaml:snakeyaml:1.24'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 }
 repositories {
     mavenCentral()

@@ -35,10 +35,12 @@
     <string name="copyright_info_aprstools_intro" tools:ignore="TypographyOther">Copyright (C) 2019 Ellen Poe</string>
     <string name="copyright_info_autumn_name">Whimsy Compiler Framework</string>
     <string name="copyright_info_autumn_intro">
-        APRSTools contains software from the whimsy compiler framework, by Nicolas Laurent. A copy of whimsy
+        APRSTools contains software from the whimsy compiler framework, by Nicolas Laurent. Whimsy makes it possible
+        for APRSTools to parse APRS packets and modify them in a simple (and almost whimsical) way. A copy of whimsy
         is available at <a href="https://github.com/norswap/whimsy">https://github.com/norswap/whimsy</a>.
         Parts of whimsy are reproduced under the BSD 3-Clause License, shown below.
     </string>
+    <string name="copyright_info_and_many_more">And many more!</string>
 
     <!-- User-facing strings -->
     <string name="settings">Settings</string>
@@ -51,5 +53,15 @@
     <string name="unknown_tnc">Unknown Bluetooth Device</string>
     <string name="passcode_prompt">You need an APRS-IS passcode to use this feature. Please enter it below.</string>
     <string name="passcode_prompt_title">Set APRS-IS Passcode</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="third_party_software">Third party software</string>
+    <string name="aprstools_copyright">APRSTools Copyright</string>
+    <string name="third_party_licenses">Third Party Licenses</string>
+    <string name="third_party_thank_you">This is a list of third party software that makes APRSTools tick. Big thank you to the open source community for creating for creating wonderful tools. Without these projects, APRSTools wouldn\'t exist.</string>
+    <string name="dep_license_label">License:</string>
+    <string name="dep_license_link_label">License link:</string>
+    <string name="dep_project_link_label">Project link:</string>
 
 </resources>

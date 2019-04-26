@@ -17,7 +17,7 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.licenses
 
 import android.content.Context
 import android.net.Uri
@@ -26,41 +26,33 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.TextView
-import androidx.navigation.fragment.NavHostFragment.findNavController
-import androidx.navigation.ui.NavigationUI
-import me.ellenhp.aprstools.licenses.DependencyLicenseFragment
+
+import me.ellenhp.aprstools.R
 
 /**
  * A simple [Fragment] subclass.
  * Activities that contain this fragment must implement the
- * [AboutFragment.OnFragmentInteractionListener] interface
+ * [AprsToolsLicenseFragment.OnFragmentInteractionListener] interface
  * to handle interaction events.
- * Use the [AboutFragment.newInstance] factory method to
+ * Use the [AprsToolsLicenseFragment.newInstance] factory method to
  * create an instance of this fragment.
  *
  */
-class AboutFragment : Fragment() {
+class AprsToolsLicenseFragment : Fragment() {
     private var listener: OnFragmentInteractionListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let { }
+        arguments?.let {
+        }
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
-        // Inflate the layout for this fragment
-        val view = inflater.inflate(R.layout.fragment_about, container, false)
-
-        view.findViewById<Button>(R.id.thirdparty_copyright_button).setOnClickListener {
-            findNavController(this).navigate(R.id.dependencyLicenseFragment)
-        }
-        view.findViewById<Button>(R.id.aprstools_copyright_button).setOnClickListener {
-            findNavController(this).navigate(R.id.aprsToolsLicenseFragment)
-        }
-
+        val view = inflater.inflate(R.layout.fragment_aprs_tools_license, container, false)
+        view.findViewById<TextView>(R.id.aprstools_gpl_textview).text =
+                activity!!.assets.open("APRSToolsLicense.txt").reader().readText()
         return view
     }
 
@@ -98,13 +90,13 @@ class AboutFragment : Fragment() {
          * Use this factory method to create a new instance of
          * this fragment using the provided parameters.
          *
-         * @return A new instance of fragment AboutFragment.
+         * @return A new instance of fragment AprsToolsLicenseFragment.
          */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance() =
-                AboutFragment().apply {
-                    arguments = Bundle().apply { }
+                AprsToolsLicenseFragment().apply {
+                    arguments = Bundle().apply {
+                    }
                 }
     }
 }
