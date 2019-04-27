@@ -47,7 +47,7 @@ import java.time.Duration
 import javax.inject.Inject
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.drawerlayout.widget.DrawerLayout
-
+import me.ellenhp.aprstools.map.AprsSymbolTable
 
 
 /**
@@ -68,9 +68,11 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject
-    lateinit var packetHistory: PacketTrackHistory
+    lateinit var packetHistory: Lazy<PacketTrackHistory>
     @Inject
     lateinit var plotterFactory: PacketPlotterFactory
+    @Inject
+    lateinit var symbolTable: Lazy<AprsSymbolTable>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -91,8 +93,6 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
         }
 
         (activity?.application as AprsToolsApplication).activityComponent!!.inject(this)
-
-        packetHistory.listener = this
 
         val mapFragment = SupportMapFragment()
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
@@ -120,10 +120,11 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
 
         animateToLastLocation()
 
-        plotter.plot(packetHistory)
+        plotter.plot(packetHistory.get())
+        packetHistory.get().listener = this
 
         activity!!.runOnUiThread {
-            plotter.plot(packetHistory)
+            plotter.plot(packetHistory.get())
         }
     }
 
@@ -137,7 +138,7 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
 
     override fun historyUpate(station: Ax25Address) {
         activity?.runOnUiThread {
-            plotter.plot(packetHistory)
+            plotter.plot(packetHistory.get())
         }
     }
 
