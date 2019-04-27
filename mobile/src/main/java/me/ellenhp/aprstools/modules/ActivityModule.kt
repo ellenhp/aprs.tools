@@ -34,6 +34,11 @@ import me.ellenhp.aprstools.tnc.TncDevice
 class ActivityModule(private val activity: MainActivity) {
 
     @Provides
+    fun providesContext(): Context {
+        return activity
+    }
+
+    @Provides
     fun providesBluetoothAdapter(): BluetoothAdapter? {
         val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter

@@ -29,3 +29,9 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
+
+task travisTask() {
+    dependsOn ':mobile:build'
+    dependsOn ':mobile:test'
+    dependsOn ':mobile:checkLicenses'
+}

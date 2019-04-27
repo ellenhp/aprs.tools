@@ -24,17 +24,20 @@ import com.google.android.gms.maps.model.*
 import com.google.auto.factory.AutoFactory
 import com.google.auto.factory.Provided
 import com.google.common.collect.ImmutableList
+import me.ellenhp.aprslib.packet.AprsSymbol
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.Utils
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.history.TimestampedPacket
 import java.time.Duration
 import java.time.Instant
-import javax.inject.Inject
 import javax.inject.Provider
+import dagger.Lazy
+import me.ellenhp.aprstools.Utils.Companion.toImmutableList
 
 @AutoFactory(allowSubclasses = true)
 class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
+                                @Provided val symbolTable: Lazy<AprsSymbolTable>,
                                 val map: GoogleMap,
                                 val pruneDuration: Duration) {
 
@@ -73,9 +76,11 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
     private fun updateCreateOrPruneMarker(station: Ax25Address, track: ImmutableList<TimestampedPacket>, cutoffTime: Instant) {
         val currentMarker = markers[station]
         val points = trackToPointsAfter(track, cutoffTime)
+        val latestSymbol = getLatestSymbol(track)
         if (currentMarker == null) {
             // Create a new marker if there's at least one point.
-            points?.let { markers[station] = createMarker(it.last(), station) }
+            latestSymbol?.let { points?.let {
+                markers[station] = createMarker(it.last(), station, latestSymbol) } }
         }
         else {
             // Prune the marker if there aren't any points left.
@@ -94,8 +99,9 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
         return map.addPolyline(polylineOptions)
     }
 
-    private fun createMarker(point: LatLng, station: Ax25Address): Marker {
+    private fun createMarker(point: LatLng, station: Ax25Address, symbol: AprsSymbol): Marker {
         val markerOptions = MarkerOptions()
+        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(symbolTable.get().getSymbol(symbol.symbolTable, symbol.symbol)))
         markerOptions.position(point)
         markerOptions.title(station.toString())
         return map.addMarker(markerOptions)
@@ -115,7 +121,15 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
                 .map { it.packet.location() }
                 .filter { it != null }
                 .map { LatLng(it!!.latitude, it.longitude) }
-                .collect(Utils.toImmutableList())
+                .collect(toImmutableList())
         return if (points.isEmpty()) null else points
+    }
+
+    private fun getLatestSymbol(track: ImmutableList<TimestampedPacket>): AprsSymbol? {
+        val symbols =  track.stream().sorted()
+                .map { it.packet.symbol() }
+                .filter { it != null }
+                .collect(toImmutableList())
+        return if (symbols.isEmpty()) null else symbols.last()
     }
 }

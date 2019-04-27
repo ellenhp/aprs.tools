@@ -37,6 +37,10 @@ data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: 
         return informationField.aprsData.findDatumOfType<AprsPosition>()?.position
     }
 
+    fun symbol(): AprsSymbol? {
+        return informationField.aprsData.findDatumOfType<AprsPosition>()?.symbol
+    }
+
     override fun toString(): String {
         return "%s>%s%s:%s".format(source, dest, path, informationField)
     }

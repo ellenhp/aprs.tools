@@ -4,3 +4,9 @@
   license: The BSD 3-Clause License
   licenseUrl: http://www.opensource.org/licenses/bsd-license.php
   url: https://github.com/norswap/whimsy
+- artifact: org.aprsdroid.app
+  name: APRSdroid
+  copyrightHolder: Copyright © 2009-2018 Georg Lukas (DO1GL)
+  license: GNU General Public License v2.0
+  licenseUrl: https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
+  url: https://github.com/ge0rg/aprsdroid
