@@ -20,7 +20,7 @@ android {
         }
         release {
             resValue 'string', "google_maps_key", google_maps_key
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -62,12 +62,12 @@ dependencies {
     implementation 'com.google.dagger:dagger-android:2.20'
     implementation 'com.google.dagger:dagger-android-support:2.20'
     testImplementation 'junit:junit:4.12'
-    testImplementation "com.google.truth:truth:0.42"
+    testImplementation "com.google.truth:truth:0.41"
     testImplementation 'androidx.test:runner:1.1.1'
     testImplementation 'org.robolectric:robolectric:4.2'
     testImplementation group: 'org.mockito', name: 'mockito-inline', version: '2.27.0'
     testImplementation 'androidx.test:core:1.1.0'
-    androidTestImplementation "com.google.truth:truth:0.42"
+    androidTestImplementation "com.google.truth:truth:0.41"
     androidTestImplementation 'androidx.test:runner:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
