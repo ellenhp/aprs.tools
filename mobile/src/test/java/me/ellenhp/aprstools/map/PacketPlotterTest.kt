@@ -19,7 +19,11 @@
 
 package me.ellenhp.aprstools.map
 
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.MapsInitializer
 import com.google.android.gms.maps.model.*
 import com.google.common.collect.ImmutableList
 import me.ellenhp.aprslib.packet.AprsInformationField
@@ -29,8 +33,6 @@ import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers.any
-import org.mockito.ArgumentMatchers.argThat
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.verify
@@ -40,7 +42,12 @@ import java.time.Duration
 import java.time.Duration.ofHours
 import java.time.Instant
 import javax.inject.Provider
+import dagger.Lazy
+import org.junit.runner.RunWith
+import org.mockito.ArgumentMatchers.*
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class PacketPlotterTest {
 
     @Mock
@@ -51,6 +58,10 @@ class PacketPlotterTest {
     lateinit var polyline2: Polyline
     @Mock
     lateinit var marker1: Marker
+    @Mock
+    lateinit var symbolTable: AprsSymbolTable
+    @Mock
+    lateinit var symbolDescriptor: BitmapDescriptor
 
     lateinit var time: Instant
     lateinit var packetPlotter: PacketPlotter
@@ -77,10 +88,13 @@ class PacketPlotterTest {
     @Before
     fun setUp() {
         MockitoAnnotations.initMocks(this)
+        MapsInitializer.initialize(getApplicationContext())
         time = Instant.ofEpochSecond(1555635010)
         history = PacketTrackHistory()
 
-        packetPlotter = PacketPlotter(Provider {time}, map, Duration.ofHours(6))
+        packetPlotter = PacketPlotter(Provider {time}, Lazy {symbolTable}, map, ofHours(6))
+
+        Mockito.`when`(symbolTable.getSymbol(anyChar(), anyChar())).thenReturn(symbolDescriptor)
     }
 
     @Test
@@ -99,6 +113,18 @@ class PacketPlotterTest {
         packetPlotter.plot(history)
 
         verify(map).addMarker(argThat{ it.position == LatLng(123.45, 67.89) })
+        verifyNoMoreInteractions(map)
+    }
+
+    @Test
+    fun testSingleMarker_noSymbol() {
+        Mockito.`when`(symbolTable.getSymbol(anyChar(), anyChar())).thenReturn(null)
+        Mockito.`when`(map.addMarker(any())).thenReturn(marker1)
+        history.add(packet1, time)
+        passTime(ofHours(1))
+
+        packetPlotter.plot(history)
+
         verifyNoMoreInteractions(map)
     }
 
