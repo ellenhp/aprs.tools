@@ -79,8 +79,9 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
         val latestSymbol = getLatestSymbol(track)
         if (currentMarker == null) {
             // Create a new marker if there's at least one point.
-            latestSymbol?.let { points?.let {
-                markers[station] = createMarker(it.last(), station, latestSymbol) } }
+            if (latestSymbol != null && points != null) {
+                createMarker(points.last(), station, latestSymbol)?.let { markers[station] = it }
+            }
         }
         else {
             // Prune the marker if there aren't any points left.
@@ -99,9 +100,10 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
         return map.addPolyline(polylineOptions)
     }
 
-    private fun createMarker(point: LatLng, station: Ax25Address, symbol: AprsSymbol): Marker {
+    private fun createMarker(point: LatLng, station: Ax25Address, symbol: AprsSymbol): Marker? {
         val markerOptions = MarkerOptions()
-        markerOptions.icon(BitmapDescriptorFactory.fromBitmap(symbolTable.get().getSymbol(symbol.symbolTable, symbol.symbol)))
+        val symbolDescriptor = symbolTable.get().getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
+        markerOptions.icon(symbolDescriptor)
         markerOptions.position(point)
         markerOptions.title(station.toString())
         return map.addMarker(markerOptions)

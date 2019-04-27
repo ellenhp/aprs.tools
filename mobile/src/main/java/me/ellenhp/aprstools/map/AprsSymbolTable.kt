@@ -21,6 +21,8 @@ package me.ellenhp.aprstools.map
 
 import android.content.Context
 import android.graphics.*
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import me.ellenhp.aprstools.R
 import javax.inject.Inject
 
@@ -28,13 +30,13 @@ data class SymbolTableKey(val table: Char, val index: Char)
 
 class AprsSymbolTable @Inject constructor(val context: Context) {
 
-    val bitmapCache = HashMap<SymbolTableKey, Bitmap>()
+    val bitmapCache = HashMap<SymbolTableKey, BitmapDescriptor>()
     val symbolTableImg = BitmapFactory.decodeResource(context.resources, R.drawable.aprs_symbols)
     val symbolsPerRow = 16
     val symbolsPerColumn = 6
     val symbolSize = symbolTableImg.width / symbolsPerRow
 
-    fun getSymbol(table: Char, index: Char): Bitmap {
+    fun getSymbol(table: Char, index: Char): BitmapDescriptor? {
         val key = SymbolTableKey(table, index)
         val existingBitmap = bitmapCache[key]
         existingBitmap?.let { return existingBitmap }
@@ -49,8 +51,9 @@ class AprsSymbolTable @Inject constructor(val context: Context) {
                     Rect(0, 0, symbol.width, symbol.height),
                     Paint())
         }
-        bitmapCache[key] = symbol
-        return symbol
+        val symbolDescriptor = BitmapDescriptorFactory.fromBitmap(symbol)
+        bitmapCache[key] = symbolDescriptor
+        return symbolDescriptor
     }
 
     fun createSymbol(page: Int, indexInPage: Int): Bitmap {
