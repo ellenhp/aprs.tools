@@ -26,7 +26,7 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import me.ellenhp.aprstools.PreferenceKeys
+import androidx.preference.PreferenceManager
 import me.ellenhp.aprstools.R
 
 class CallsignDialogFragment : AprsToolsDialogFragment() {
@@ -51,7 +51,7 @@ class CallsignDialogFragment : AprsToolsDialogFragment() {
         }
         val callsignEditText = dialogView?.findViewById<EditText>(R.id.callsign_edit_text)
         val callsign = callsignEditText?.text.toString()
-        val preferences = activity?.getPreferences(Activity.MODE_PRIVATE)
+        val preferences = PreferenceManager.getDefaultSharedPreferences(activity)
         // TODO validate input here?
         preferences?.edit()?.putString(PreferenceKeys.CALLSIGN, callsign)?.apply()
     }

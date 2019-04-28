@@ -22,6 +22,8 @@ package me.ellenhp.aprstools.modules
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
+import android.content.SharedPreferences
+import androidx.preference.PreferenceManager
 import dagger.Module
 import dagger.Provides
 import me.ellenhp.aprstools.*
@@ -32,30 +34,21 @@ import me.ellenhp.aprstools.history.PacketTrackHistory
 class ActivityModule(private val activity: MainActivity) {
 
     @Provides
+    @ActivityScope
     fun providesContext(): Context {
         return activity
+    }
+
+    @Provides
+    @ActivityScope
+    fun providesSharedPreferences(): SharedPreferences {
+        return PreferenceManager.getDefaultSharedPreferences(activity)
     }
 
     @Provides
     fun providesBluetoothAdapter(): BluetoothAdapter? {
         val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter
-    }
-
-    @Provides
-    fun providesCreds(): UserCreds? {
-        val prefs = activity.getPreferences(Context.MODE_PRIVATE)
-        val call = prefs.getString(PreferenceKeys.CALLSIGN, null) ?: return null
-        val passcode = prefs.getString(PreferenceKeys.PASSCODE, null)
-        return UserCreds(call, passcode)
-    }
-
-    @Provides
-    fun providesAprsIsServerAddress(): AprsIsServerAddress {
-        val prefs = activity.getPreferences(Context.MODE_PRIVATE)
-        val host = prefs.getString(PreferenceKeys.APRS_IS_HOST, activity.getString(R.string.default_aprs_server))
-        val port = prefs.getInt(PreferenceKeys.APRS_IS_PORT, activity.resources.getInteger(R.integer.default_aprs_port))
-        return AprsIsServerAddress(host!!, port)
     }
 
     @Provides

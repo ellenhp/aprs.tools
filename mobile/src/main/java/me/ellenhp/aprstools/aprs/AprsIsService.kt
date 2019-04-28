@@ -24,18 +24,17 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprstools.AprsIsServerAddress
+import me.ellenhp.aprstools.settings.AprsIsServerAddress
 import me.ellenhp.aprstools.AprsToolsApplication
-import me.ellenhp.aprstools.UserCreds
+import me.ellenhp.aprstools.settings.Preferences
 import javax.inject.Inject
 import javax.inject.Provider
+import dagger.Lazy
 
 class AprsIsService : Service() {
 
     @Inject
-    lateinit var userCreds: Provider<UserCreds?>
-    @Inject
-    lateinit var aprsIsServerAddress: Provider<AprsIsServerAddress>
+    lateinit var preferences: Lazy<Preferences?>
     @Inject
     lateinit var clientFactory: AprsIsClientFactory
     @Inject
@@ -69,11 +68,13 @@ class AprsIsService : Service() {
     }
 
     private fun resetClient() {
+        val credentials = preferences.get()?.getAprsIsCredentials() ?: return
+        val serverAddress = preferences.get()?.getAprsIsServerAddress() ?: return
         thread?.setClient(clientFactory.create(
-                aprsIsServerAddress.get().host,
-                aprsIsServerAddress.get().port,
-                userCreds.get()?.call ?: return,
-                userCreds.get()?.passcode,
+                serverAddress.host,
+                serverAddress.port,
+                credentials.call,
+                credentials.passcode,
                 filter))
     }
 

@@ -45,7 +45,6 @@ import com.google.android.gms.maps.model.*
 import com.google.android.material.navigation.NavigationView
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import me.ellenhp.aprstools.aprs.AprsIsService
@@ -55,8 +54,8 @@ import me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment
 import me.ellenhp.aprstools.licenses.DependencyLicenseFragment
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
+import me.ellenhp.aprstools.settings.Preferences
 import javax.inject.Inject
-import javax.inject.Provider
 
 class MainActivity : androidx.appcompat.app.AppCompatActivity(),
         MapViewFragment.OnFragmentInteractionListener,
@@ -68,7 +67,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
     @Inject
-    lateinit var userCreds: Provider<UserCreds?>
+    lateinit var preferences: Lazy<Preferences>
 
     private val callsignDialog = CallsignDialogFragment()
 
@@ -177,7 +176,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     }
 
     private suspend fun maybeShowCallsignDialog() {
-        if (userCreds.get() == null) {
+        if (preferences.get().getCallsign() == null) {
             callsignDialog.showBlocking(supportFragmentManager, "CallsignDialogFragment", this::runOnUiThread)
         }
     }

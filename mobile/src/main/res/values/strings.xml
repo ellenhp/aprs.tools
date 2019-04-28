@@ -14,6 +14,7 @@
     <string name="map_view_menu_item">Map View</string>
     <string name="list_view_menu_item">List View</string>
     <string name="about_menu_item">About</string>
+    <string name="settings_menu_item">Preferences</string>
 
     <!-- Copyright notices -->
     <string name="aprstools_about_heading">About</string>

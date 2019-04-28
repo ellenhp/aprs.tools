@@ -10,24 +10,19 @@
         android:name="me.ellenhp.aprstools.MapViewFragment"
         android:label="fragment_map_view"
         tools:layout="@layout/fragment_map_view" >
-        <deepLink
-            android:id="@+id/deepLink2"
-            app:uri="aprstools://map"
-            android:autoVerify="true" />
         <action
             android:id="@+id/action_mapViewFragment_to_aboutFragment"
             app:destination="@id/aboutFragment"
             app:popUpTo="@+id/mapViewFragment" />
+        <action
+            android:id="@+id/action_mapViewFragment_to_settingsFragment"
+            app:destination="@id/settingsFragment" />
     </fragment>
     <fragment
         android:id="@+id/aboutFragment"
         android:name="me.ellenhp.aprstools.AboutFragment"
         android:label="fragment_about"
         tools:layout="@layout/fragment_about" >
-        <deepLink
-            android:id="@+id/deepLink"
-            app:uri="aprstools://about"
-            android:autoVerify="true" />
         <action
             android:id="@+id/action_aboutFragment_to_dependencyLicenseFragment"
             app:destination="@id/dependencyLicenseFragment" />
@@ -45,4 +40,8 @@
         android:name="me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment"
         android:label="fragment_aprs_tools_license"
         tools:layout="@layout/fragment_aprs_tools_license" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="me.ellenhp.aprstools.settings.SettingsFragment"
+        android:label="SettingsFragment" />
 </navigation>
