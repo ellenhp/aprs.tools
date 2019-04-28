@@ -22,13 +22,11 @@ package me.ellenhp.aprstools.modules
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
-import com.google.android.gms.maps.GoogleMap
 import dagger.Module
 import dagger.Provides
 import me.ellenhp.aprstools.*
 import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.history.PacketTrackHistory
-import me.ellenhp.aprstools.tnc.TncDevice
 
 @Module
 class ActivityModule(private val activity: MainActivity) {
@@ -53,19 +51,11 @@ class ActivityModule(private val activity: MainActivity) {
     }
 
     @Provides
-    fun providesTncDevice(bluetoothAdapter: BluetoothAdapter?): TncDevice? {
-        bluetoothAdapter ?: return null // Can't do much here without a bluetooth adapter
-        val prefs = activity.getPreferences(Context.MODE_PRIVATE)
-        val address = prefs.getString(PreferenceKeys.TNC_BT_ADDRESS, null) ?: return null
-        return TncDevice(bluetoothAdapter.getRemoteDevice(address))
-    }
-
-    @Provides
     fun providesAprsIsServerAddress(): AprsIsServerAddress {
         val prefs = activity.getPreferences(Context.MODE_PRIVATE)
         val host = prefs.getString(PreferenceKeys.APRS_IS_HOST, activity.getString(R.string.default_aprs_server))
         val port = prefs.getInt(PreferenceKeys.APRS_IS_PORT, activity.resources.getInteger(R.integer.default_aprs_port))
-        return AprsIsServerAddress(host!!, port);
+        return AprsIsServerAddress(host!!, port)
     }
 
     @Provides

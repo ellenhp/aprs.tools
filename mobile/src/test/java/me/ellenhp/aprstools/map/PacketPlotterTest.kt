@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprstools.map
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.test.core.app.ApplicationProvider.getApplicationContext
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.MapsInitializer
@@ -38,14 +36,14 @@ import org.mockito.Mockito
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.MockitoAnnotations
-import java.time.Duration
-import java.time.Duration.ofHours
-import java.time.Instant
 import javax.inject.Provider
 import dagger.Lazy
 import org.junit.runner.RunWith
 import org.mockito.ArgumentMatchers.*
 import org.robolectric.RobolectricTestRunner
+import org.threeten.bp.Duration
+import org.threeten.bp.Duration.ofHours
+import org.threeten.bp.Instant
 
 @RunWith(RobolectricTestRunner::class)
 class PacketPlotterTest {
@@ -63,9 +61,9 @@ class PacketPlotterTest {
     @Mock
     lateinit var symbolDescriptor: BitmapDescriptor
 
-    lateinit var time: Instant
-    lateinit var packetPlotter: PacketPlotter
-    lateinit var history: PacketTrackHistory
+    private lateinit var time: Instant
+    private lateinit var packetPlotter: PacketPlotter
+    private lateinit var history: PacketTrackHistory
 
     val packet1 = AprsPacket(
             Ax25Address("KI7UKU", null),

@@ -22,14 +22,12 @@ package me.ellenhp.aprstools
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
-import android.location.Location
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.*
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -42,12 +40,8 @@ import me.ellenhp.aprstools.history.HistoryUpdateListener
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.map.PacketPlotterFactory
-import me.ellenhp.aprstools.modules.ActivityModule
-import java.time.Duration
+import org.threeten.bp.Duration
 import javax.inject.Inject
-import androidx.appcompat.app.ActionBarDrawerToggle
-import androidx.drawerlayout.widget.DrawerLayout
-import me.ellenhp.aprstools.map.AprsSymbolTable
 
 
 /**
@@ -71,8 +65,6 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
     lateinit var packetHistory: Lazy<PacketTrackHistory>
     @Inject
     lateinit var plotterFactory: PacketPlotterFactory
-    @Inject
-    lateinit var symbolTable: Lazy<AprsSymbolTable>
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {

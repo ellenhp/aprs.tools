@@ -33,7 +33,6 @@ import android.widget.ListView
 import android.widget.RadioButton
 import dagger.Lazy
 import me.ellenhp.aprstools.AprsToolsApplication
-import me.ellenhp.aprstools.PreferenceKeys
 import me.ellenhp.aprstools.R
 import javax.inject.Inject
 
@@ -68,7 +67,7 @@ class BluetoothPromptFragment : AprsToolsDialogFragment() {
         val bluetoothDeviceAdapter = BluetoothDeviceAdapter(activity!!)
         tncPickerView?.adapter = bluetoothDeviceAdapter
 
-        tncPickerView?.setOnItemClickListener { parent, view, position, id -> System.exit(0) }
+        tncPickerView?.setOnItemClickListener { _, _, _, _ -> System.exit(0) }
 
         bluetoothDeviceAdapter.items = bluetoothAdapter.get()?.bondedDevices?.toList()
 
@@ -77,7 +76,7 @@ class BluetoothPromptFragment : AprsToolsDialogFragment() {
 
     private fun onButtonClick(dialog: DialogInterface, which: Int) {
         if (which == Dialog.BUTTON_POSITIVE) {
-            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(PreferenceKeys.TNC_BT_ADDRESS, selectedItem?.address)?.apply()
+//            activity?.getPreferences(Context.MODE_PRIVATE)?.edit()?.putString(PreferenceKeys.TNC_BT_ADDRESS, selectedItem?.address)?.apply()
         }
         dismiss()
     }

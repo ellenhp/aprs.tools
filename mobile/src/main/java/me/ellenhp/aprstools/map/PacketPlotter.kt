@@ -26,26 +26,24 @@ import com.google.auto.factory.Provided
 import com.google.common.collect.ImmutableList
 import me.ellenhp.aprslib.packet.AprsSymbol
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.Utils
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.history.TimestampedPacket
-import java.time.Duration
-import java.time.Instant
 import javax.inject.Provider
 import dagger.Lazy
-import me.ellenhp.aprstools.Utils.Companion.toImmutableList
+import org.threeten.bp.Duration
+import org.threeten.bp.Instant
 
 @AutoFactory(allowSubclasses = true)
 class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
                                 @Provided val symbolTable: Lazy<AprsSymbolTable>,
                                 val map: GoogleMap,
-                                val pruneDuration: Duration) {
+                                private val pruneDuration: Duration) {
 
-    val markers = HashMap<Ax25Address, Marker>()
-    val polylines = HashMap<Ax25Address, Polyline>()
+    private val markers = HashMap<Ax25Address, Marker>()
+    private val polylines = HashMap<Ax25Address, Polyline>()
 
     fun plot(history: PacketTrackHistory) {
-        history.getStations().stream().forEach { updateStation(it, history.getTrack(it)!!) }
+        history.getStations().forEach { updateStation(it, history.getTrack(it)!!) }
     }
 
     private fun updateStation(station: Ax25Address, track: ImmutableList<TimestampedPacket>) {
@@ -118,20 +116,18 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
     }
 
     private fun trackToPointsAfter(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {
-        val points = track.stream().sorted()
+        val points = track
                 .filter { it.time.isAfter(cutoffTime) }
                 .map { it.packet.location() }
                 .filter { it != null }
                 .map { LatLng(it!!.latitude, it.longitude) }
-                .collect(toImmutableList())
-        return if (points.isEmpty()) null else points
+        return if (points.isEmpty()) null else ImmutableList.copyOf(points)
     }
 
     private fun getLatestSymbol(track: ImmutableList<TimestampedPacket>): AprsSymbol? {
-        val symbols =  track.stream().sorted()
+        val symbols =  track
                 .map { it.packet.symbol() }
                 .filter { it != null }
-                .collect(toImmutableList())
         return if (symbols.isEmpty()) null else symbols.last()
     }
 }

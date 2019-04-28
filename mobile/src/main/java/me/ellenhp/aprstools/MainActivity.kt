@@ -45,6 +45,7 @@ import com.google.android.gms.maps.model.*
 import com.google.android.material.navigation.NavigationView
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import me.ellenhp.aprstools.aprs.AprsIsService
@@ -69,7 +70,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     @Inject
     lateinit var userCreds: Provider<UserCreds?>
 
-    val callsignDialog = CallsignDialogFragment()
+    private val callsignDialog = CallsignDialogFragment()
 
     lateinit var packetHistory: PacketTrackHistory
     private val packetHistoryBundleKey = "PacketTrackHistory"

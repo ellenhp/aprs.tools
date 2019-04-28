@@ -19,23 +19,13 @@
 
 package me.ellenhp.aprstools.history
 
-import android.os.Bundle
 import android.os.Parcel
 import android.os.Parcelable
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.Multiset
-import com.google.common.collect.SortedMultiset
 import com.google.common.collect.TreeMultiset
 import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprslib.packet.AprsTimestamp
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.Utils
-import java.time.Duration
-import java.time.Instant
-import java.time.temporal.TemporalAmount
-import java.util.*
-import javax.inject.Inject
-import javax.inject.Provider
+import org.threeten.bp.Instant
 import kotlin.collections.HashMap
 
 open class PacketTrackHistory() : Parcelable {
@@ -61,7 +51,7 @@ open class PacketTrackHistory() : Parcelable {
 
     @Synchronized
     fun getTrack(station: Ax25Address): ImmutableList<TimestampedPacket>? {
-        return history.get(station)?.toImmutableList()
+        return history[station]?.toImmutableList()
     }
 
     @Synchronized
@@ -71,7 +61,7 @@ open class PacketTrackHistory() : Parcelable {
 
     private fun getOrCreateTrack(sourceStation: Ax25Address): PacketTrack {
         if (!history.containsKey(sourceStation)) {
-            history.put(sourceStation, PacketTrack(sourceStation))
+            history[sourceStation] = PacketTrack(sourceStation)
         }
         return history[sourceStation]!!
     }
@@ -113,12 +103,7 @@ data class PacketTrack(val station: Ax25Address): Parcelable {
     }
 
     fun toImmutableList(): ImmutableList<TimestampedPacket> {
-        return packets.stream().collect(Utils.toImmutableList())
-    }
-
-    fun prune(currentTime: Instant) {
-        val oldestAllowedTimestamp = currentTime.minus(Duration.ofDays(1))
-        packets.removeIf{it.time.isBefore(oldestAllowedTimestamp)}
+        return ImmutableList.copyOf(packets)
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {

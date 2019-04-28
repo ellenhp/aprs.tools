@@ -28,6 +28,6 @@ import javax.inject.Singleton
 @Singleton
 interface ApplicationComponent {
 
-    fun newActivityComponent(activityComponent: ActivityModule): ActivityComponent;
+    fun newActivityComponent(activityComponent: ActivityModule): ActivityComponent
 
 }

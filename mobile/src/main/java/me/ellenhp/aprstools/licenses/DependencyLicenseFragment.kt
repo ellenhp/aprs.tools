@@ -31,6 +31,15 @@ import androidx.recyclerview.widget.RecyclerView
 
 import me.ellenhp.aprstools.R
 
+/**
+ * A simple [Fragment] subclass.
+ * Activities that contain this fragment must implement the
+ * [DependencyLicenseFragment.OnFragmentInteractionListener] interface
+ * to handle interaction events.
+ * Use the [DependencyLicenseFragment.newInstance] factory method to
+ * create an instance of this fragment.
+ *
+ */
 class DependencyLicenseFragment : Fragment() {
     private var listener: OnFragmentInteractionListener? = null
 
@@ -43,9 +52,9 @@ class DependencyLicenseFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         val view = inflater.inflate(R.layout.fragment_dependency_license, container, false)
-        val packaged_deps = Dependency.parseFile(activity!!.assets.open("packaged_deps.yml").reader().readText())
+        val packagedDeps = Dependency.parseFile(activity!!.assets.open("packaged_deps.yml").reader().readText())
         val deps = Dependency.parseFile(activity!!.assets.open("licenses.yml").reader().readText())
-        val adapter = DependencyAdapter(context!!, packaged_deps!! + deps!!)
+        val adapter = DependencyAdapter(context!!, packagedDeps!! + deps!!)
         val recyclerView = view.findViewById<RecyclerView>(R.id.dependency_list_view)
         recyclerView.layoutManager = LinearLayoutManager(activity)
         recyclerView.adapter = adapter
@@ -57,7 +66,7 @@ class DependencyLicenseFragment : Fragment() {
         if (context is OnFragmentInteractionListener) {
             listener = context
         } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
+            throw RuntimeException("$context must implement OnFragmentInteractionListener")
         }
     }
 

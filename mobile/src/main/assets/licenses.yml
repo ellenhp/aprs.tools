@@ -27,12 +27,6 @@
   copyrightHolder: Copyright 2013 Google, Inc.
   license: The Apache Software License, Version 2.0
   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
-- artifact: org.jetbrains.kotlinx:kotlinx-coroutines-core-common:+
-  name: kotlinx-coroutines-core-common
-  copyrightHolder: Copyright 2016-2019 JetBrains s.r.o.
-  license: The Apache Software License, Version 2.0
-  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
-  url: https://github.com/Kotlin/kotlinx.coroutines
 - artifact: androidx.customview:customview:+
   name: Android Support Library Custom View
   copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
@@ -433,3 +427,27 @@
   copyrightHolder: 
   license: Android Software Development Kit License
   licenseUrl: https://developer.android.com/studio/terms.html
+- artifact: org.jetbrains.kotlinx:atomicfu:+
+  name: atomicfu
+  copyrightHolder: Copyright 2010-2018 JetBrains s.r.o.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: https://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/Kotlin/atomicfu
+- artifact: org.threeten:threetenbp:+
+  name: ThreeTen backport
+  copyrightHolder: Copyright (c) 2007-present, Stephen Colebourne & Michael Nascimento Santos.
+  license: BSD 3-clause
+  licenseUrl: https://raw.githubusercontent.com/ThreeTen/threetenbp/master/LICENSE.txt
+  url: https://www.threeten.org/threetenbp
+- artifact: androidx.preference:preference:+
+  name: Android Support Preference v7
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: org.jetbrains.kotlinx:atomicfu-common:+
+  name: atomicfu
+  copyrightHolder: Copyright 2010-2018 JetBrains s.r.o.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: https://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://github.com/Kotlin/atomicfu

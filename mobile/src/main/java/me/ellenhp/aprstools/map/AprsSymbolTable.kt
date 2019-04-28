@@ -30,11 +30,11 @@ data class SymbolTableKey(val table: Char, val index: Char)
 
 class AprsSymbolTable @Inject constructor(val context: Context) {
 
-    val bitmapCache = HashMap<SymbolTableKey, BitmapDescriptor>()
-    val symbolTableImg = BitmapFactory.decodeResource(context.resources, R.drawable.aprs_symbols)
-    val symbolsPerRow = 16
-    val symbolsPerColumn = 6
-    val symbolSize = symbolTableImg.width / symbolsPerRow
+    private val bitmapCache = HashMap<SymbolTableKey, BitmapDescriptor>()
+    private val symbolTableImg = BitmapFactory.decodeResource(context.resources, R.drawable.aprs_symbols)
+    private val symbolsPerRow = 16
+    private val symbolsPerColumn = 6
+    private val symbolSize = symbolTableImg.width / symbolsPerRow
 
     fun getSymbol(table: Char, index: Char): BitmapDescriptor? {
         val key = SymbolTableKey(table, index)
@@ -56,7 +56,7 @@ class AprsSymbolTable @Inject constructor(val context: Context) {
         return symbolDescriptor
     }
 
-    fun createSymbol(page: Int, indexInPage: Int): Bitmap {
+    private fun createSymbol(page: Int, indexInPage: Int): Bitmap {
         val pageOffset = page * symbolsPerColumn
         return Bitmap.createScaledBitmap(
                 Bitmap.createBitmap(

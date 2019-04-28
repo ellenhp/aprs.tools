@@ -59,7 +59,10 @@
     <string name="third_party_software">Third party software</string>
     <string name="aprstools_copyright">APRSTools Copyright</string>
     <string name="third_party_licenses">Third Party Licenses</string>
-    <string name="third_party_thank_you">This is a list of third party software that makes APRSTools tick. Big thank you to the open source community for creating for creating wonderful tools. Without these projects, APRSTools wouldn\'t exist.</string>
+    <string name="third_party_thank_you">This is a list of third party software that makes APRSTools tick.
+        Big thank you to the open source community for creating wonderful tools. Without these projects,
+        APRSTools wouldn\'t exist.
+    </string>
     <string name="dep_license_label">License:</string>
     <string name="dep_license_link_label">License link:</string>
     <string name="dep_project_link_label">Project link:</string>

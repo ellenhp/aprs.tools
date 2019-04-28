@@ -29,14 +29,6 @@ fun Any?.discard() = Unit
 
 class Utils {
     companion object {
-        fun <T> toImmutableList(): Collector<T, ImmutableList.Builder<T>, ImmutableList<T>>? {
-            val supplier = {ImmutableList.builder<T>()}
-            val accumulator = {builder:ImmutableList.Builder<T>, item: T -> builder.add(item).discard()}
-            val combiner = {builder1: ImmutableList.Builder<T>, builder2: ImmutableList.Builder<T> -> builder1.addAll(builder2.build())}
-            val finisher = {builder: ImmutableList.Builder<T> -> builder.build()}
-            return Collector.of(supplier, accumulator, combiner, finisher, arrayOf(Collector.Characteristics.UNORDERED))
-        }
-
         fun distanceMeters(pos1: LatLng, pos2: LatLng): Double {
             // Mean radius of the earth
             val radiusMeters = 6_371_008.8

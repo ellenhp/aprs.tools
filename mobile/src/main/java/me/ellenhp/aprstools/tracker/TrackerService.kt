@@ -72,7 +72,7 @@ class TrackerService : Service() {
     fun onLocation(location: LocationResult) {
         val creds = userCreds.get() ?: return
         val originStation = Ax25Address(creds.call, /* TODO make SSID configurable */ "5")
-        val destination = Ax25Address("APRS", null);
+        val destination = Ax25Address("APRS", null)
         val path = AprsPath.directToAprsIs()
         // TODO match accuracy with position ambiguity?
         val informationField = AprsInformationField.locationUpdate(location.lastLocation.latitude, location.lastLocation.longitude)

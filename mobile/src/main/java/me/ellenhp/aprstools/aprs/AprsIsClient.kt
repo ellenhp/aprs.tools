@@ -25,7 +25,6 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import java.io.*
 import java.net.Socket
-import javax.inject.Inject
 
 @AutoFactory(allowSubclasses = true)
 open class AprsIsClient constructor(@Provided private val socketFactory: SocketFactory,
@@ -77,9 +76,6 @@ open class AprsIsClient constructor(@Provided private val socketFactory: SocketF
         writer?.flush()
 
         isInitialized = true
-    }
-
-    private fun authenticate() {
     }
 
     companion object {

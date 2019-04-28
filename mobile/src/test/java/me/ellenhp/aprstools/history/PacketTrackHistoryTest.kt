@@ -29,26 +29,26 @@ import me.ellenhp.aprslib.packet.Ax25Address
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import java.time.Duration
-import java.time.Instant
+import org.threeten.bp.Duration
+import org.threeten.bp.Instant
 
 @RunWith(RobolectricTestRunner::class)
 class PacketTrackHistoryTest {
 
-    val packetTrackHistory = PacketTrackHistory()
+    private val packetTrackHistory = PacketTrackHistory()
 
-    val exampleStation = Ax25Address("KI7UKU", null)
-    val examplePacket1 = AprsPacket(
+    private val exampleStation = Ax25Address("KI7UKU", null)
+    private val examplePacket1 = AprsPacket(
             exampleStation,
             Ax25Address("APRS", null),
             AprsPath(listOf()),
             AprsInformationField.locationUpdate(123.0, 45.0))
-    val examplePacket2 = AprsPacket(
+    private val examplePacket2 = AprsPacket(
             exampleStation,
             Ax25Address("APRS", null),
             AprsPath(listOf()),
             AprsInformationField.locationUpdate(123.45678, 56.78))
-    val startTime = Instant.ofEpochSecond(1555635010)
+    private val startTime = Instant.ofEpochSecond(1555635010)
 
     @Test
     fun testGetTrack_simpleRecall() {
