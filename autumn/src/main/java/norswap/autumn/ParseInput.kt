@@ -5,8 +5,6 @@ import norswap.autumn.conf.LINE_START
 import norswap.autumn.conf.TAB_SIZE
 import norswap.utils.expandTabsToBuilder
 import norswap.utils.plusAssign
-import norswap.utils.read_file
-import java.nio.file.Path
 
 /**
  * Container for a null-terminated, tab-expanded input string, and for the positions
@@ -59,20 +57,6 @@ class ParseInput(
     companion object {
         val DUMMY = ParseInput("", "DUMMY INPUT", timestamp = 0)
     }
-
-    // ---------------------------------------------------------------------------------------------
-
-    constructor (path: Path,
-                 tab_size: Int = TAB_SIZE,
-                 line_start: Int = LINE_START,
-                 column_start: Int = COLUMN_START)
-            : this(
-            read_file(path.toString()),
-            path.toString(),
-            path.toFile().lastModified(),
-            tab_size,
-            line_start,
-            column_start)
 
     // ---------------------------------------------------------------------------------------------
 

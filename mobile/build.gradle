@@ -45,6 +45,9 @@ android {
         // TODO REMOVE ME WHEN THIS IS MITIGATED
         pickFirst("META-INF/atomicfu.kotlin_module")
     }
+    lintOptions {
+        lintConfig file("lint.xml")
+    }
 }
 
 sourceSets {

@@ -21,13 +21,18 @@ operator fun <T> ThreadLocal<T>.provideDelegate(self: Any, prop: KProperty<*>) =
 class ThreadLocalDelegate<T>(val local: ThreadLocal<T>) : ReadWriteProperty<Any, T> {
     companion object {
         fun <T> late_init() = ThreadLocalDelegate<T>(ThreadLocal())
+        private fun <T>threadLocalWithInitial(initial: T): ThreadLocal<T> {
+            val tl = ThreadLocal<T>()
+            tl.set(initial)
+            return tl
+        }
     }
 
-    constructor (initial: T) : this(ThreadLocal.withInitial { initial })
+    constructor (initial: T) : this(threadLocalWithInitial<T>(initial))
 
-    constructor (initial: () -> T) : this(ThreadLocal.withInitial(initial))
+    constructor (initial: () -> T) : this(threadLocalWithInitial<T>(initial.invoke()))
 
-    override fun getValue(thisRef: Any, property: KProperty<*>): T = local.get()
+    override fun getValue(thisRef: Any, property: KProperty<*>): T = local.get()!!
 
     override fun setValue(thisRef: Any, property: KProperty<*>, value: T) = local.set(value)
 }
