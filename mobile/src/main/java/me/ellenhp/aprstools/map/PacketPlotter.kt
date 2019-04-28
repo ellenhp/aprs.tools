@@ -103,6 +103,7 @@ class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
         val symbolDescriptor = symbolTable.get().getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
         markerOptions.icon(symbolDescriptor)
         markerOptions.position(point)
+        markerOptions.anchor(0.5f, 0.5f)
         markerOptions.title(station.toString())
         return map.addMarker(markerOptions)
     }
