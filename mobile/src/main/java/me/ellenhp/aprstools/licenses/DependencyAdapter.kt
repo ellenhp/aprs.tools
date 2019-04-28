@@ -25,10 +25,10 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import me.ellenhp.aprstools.R
 
-class DependencyAdapter(val context: Context, var dependencies: List<Dependency>): RecyclerView.Adapter<DependencyViewHolder>() {
+class DependencyAdapter(val context: Context, private val dependencies: List<Dependency>): RecyclerView.Adapter<DependencyViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DependencyViewHolder {
-        val view = context.getSystemService(LayoutInflater::class.java)
-                .inflate(R.layout.license_list_item, null)
+        val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+        val view = inflater.inflate(R.layout.license_list_item, parent, false)
         return DependencyViewHolder(view)
     }
 

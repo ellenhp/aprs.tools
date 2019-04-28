@@ -19,7 +19,6 @@
 
 package me.ellenhp.aprstools.licenses
 
-import me.ellenhp.aprstools.Utils.Companion.toImmutableList
 import org.yaml.snakeyaml.Yaml
 
 data class Dependency(val artifact: String? = null,
@@ -42,7 +41,7 @@ data class Dependency(val artifact: String? = null,
         fun parseFile(file: String): List<Dependency>? {
             val yaml = Yaml()
             val maps = yaml.load<List<LinkedHashMap<String, String>>>(file)
-            return maps.stream().map { Dependency(it) }.collect(toImmutableList())
+            return maps.toList().map { Dependency(it) }
         }
     }
 }

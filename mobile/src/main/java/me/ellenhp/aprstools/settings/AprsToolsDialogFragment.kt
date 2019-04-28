@@ -20,8 +20,6 @@
 package me.ellenhp.aprstools.settings
 
 import android.content.DialogInterface
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.FragmentManager
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine

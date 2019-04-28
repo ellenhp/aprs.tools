@@ -21,11 +21,11 @@ package me.ellenhp.aprstools
 
 class PreferenceKeys {
     companion object {
-        val CALLSIGN = "CALLSIGN"
-        val PASSCODE = "PASSCODE"
-        val TNC_BT_ADDRESS = "TNC_BT_ADDRESS"
-        val APRS_IS_HOST = "APRS_IS_HOST"
-        val APRS_IS_PORT = "APRS_IS_PORT"
+        const val CALLSIGN = "callsign"
+        const val SSID = "ssid"
+        const val PASSCODE = "aprs_is_passcode"
+        const val APRS_IS_HOST = "aprs_is_host"
+        const val APRS_IS_PORT = "aprs_is_port"
     }
 }
 

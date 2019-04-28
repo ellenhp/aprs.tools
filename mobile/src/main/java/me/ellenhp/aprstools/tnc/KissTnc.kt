@@ -101,10 +101,7 @@ class KissTnc(private val inputStream: InputStream, private val outputStream: Ou
     }
 
     companion object {
-
-        private val FEND = 0xC0
-        private val FESC = 0xDB
-        private val TFEND = 0xDC
-        private val TFESC = 0xDD
+        private const val FEND = 0xC0
+        private const val FESC = 0xDB
     }
 }

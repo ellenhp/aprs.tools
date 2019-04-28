@@ -21,7 +21,7 @@ package me.ellenhp.aprstools.modules.testing
 
 import dagger.Module
 import dagger.Provides
-import java.time.Instant
+import org.threeten.bp.Instant
 
 @Module
 class FakeTimeModule {

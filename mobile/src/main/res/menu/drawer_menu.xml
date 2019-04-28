@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <item android:title="@string/callsign_menu_item_default" />
     <item
         android:id="@+id/mapViewFragment"
         android:title="@string/map_view_menu_item" />
-    <item android:title="@string/list_view_menu_item" />
     <item
         android:id="@+id/aboutFragment"
         android:title="@string/about_menu_item" />

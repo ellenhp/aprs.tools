@@ -27,12 +27,11 @@ import me.ellenhp.aprstools.Sleeper
 import me.ellenhp.aprstools.history.PacketTrackHistory
 import org.junit.Before
 import org.junit.Test
-import org.mockito.ArgumentMatchers
 import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
-import java.time.Instant
+import org.threeten.bp.Instant
 import javax.inject.Provider
 
 class AprsIsThreadTest {

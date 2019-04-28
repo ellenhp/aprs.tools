@@ -27,9 +27,6 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprstools.AprsIsServerAddress
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.UserCreds
-import me.ellenhp.aprstools.history.HistoryUpdateListener
-import me.ellenhp.aprstools.history.PacketTrackHistory
-import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Provider
 
@@ -71,7 +68,7 @@ class AprsIsService : Service() {
         thread?.enqueuePacket(packet)
     }
 
-    fun resetClient() {
+    private fun resetClient() {
         thread?.setClient(clientFactory.create(
                 aprsIsServerAddress.get().host,
                 aprsIsServerAddress.get().port,
