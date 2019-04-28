@@ -1,0 +1,6 @@
+<lint>
+    <issue id="InvalidPackage">
+	<ignore path="**/auto-factory-*.jar"/>
+	<ignore path="**/auto-value-*.jar"/>
+    </issue>
+</lint>

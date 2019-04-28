@@ -81,7 +81,7 @@ fun <K, V> MutableMultiMap<K, V>.remove(k: K, v: V): Boolean = get(k)?.remove(v)
  * Adds all key value pairs from [map] into this multi-map.
  */
 fun <K, V> MutableMultiMap<K, V>.putSingles(map: Map<K, V>) {
-    map.forEach { k, v -> append(k, v) }
+    map.entries.forEach { append(it.key, it.value) }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ fun <K, V> MutableMultiMap<K, V>.putSingles(map: Map<K, V>) {
  * Adds the key-value pairs of [other] into this multi-map.
  */
 fun <K, V> MutableMultiMap<K, V>.putAll(other: MultiMap<K, V>) {
-    other.forEach { k, vs -> append(k, vs) }
+    other.entries.forEach { append(it.key, it.value) }
 }
 
 // -------------------------------------------------------------------------------------------------

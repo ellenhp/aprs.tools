@@ -31,6 +31,7 @@ task clean(type: Delete) {
 }
 
 task travisTask() {
-    dependsOn ':mobile:test'
+    dependsOn ':mobile:lint'
     dependsOn ':mobile:checkLicenses'
+    dependsOn ':mobile:test'
 }
