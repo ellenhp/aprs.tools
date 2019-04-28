@@ -26,7 +26,6 @@ import android.content.DialogInterface
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import me.ellenhp.aprstools.PreferenceKeys
 import me.ellenhp.aprstools.R
 
 class PasscodeDialogFragment : AprsToolsDialogFragment() {

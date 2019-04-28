@@ -36,10 +36,11 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.AprsPath
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.AprsToolsApplication
-import me.ellenhp.aprstools.UserCreds
 import me.ellenhp.aprstools.aprs.AprsIsService
 import javax.inject.Inject
 import javax.inject.Provider
+import dagger.Lazy
+import me.ellenhp.aprstools.settings.Preferences
 
 class TrackerService : Service() {
 
@@ -48,7 +49,7 @@ class TrackerService : Service() {
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     @Inject
-    lateinit var userCreds: Provider<UserCreds?>
+    lateinit var preferences: Lazy<Preferences?>
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
@@ -70,11 +71,11 @@ class TrackerService : Service() {
     }
 
     fun onLocation(location: LocationResult) {
-        val creds = userCreds.get() ?: return
-        val originStation = Ax25Address(creds.call, /* TODO make SSID configurable */ "5")
+        val originStation = preferences.get()?.getAprsOriginStation() ?: return
         val destination = Ax25Address("APRS", null)
         val path = AprsPath.directToAprsIs()
         // TODO match accuracy with position ambiguity?
+        // TODO do position ambiguity at all!!!
         val informationField = AprsInformationField.locationUpdate(location.lastLocation.latitude, location.lastLocation.longitude)
         val packet = AprsPacket(originStation, destination, path, informationField)
         aprsIsService.get().sendPacket(packet)

@@ -1,49 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--suppress AndroidElementNotAllowed -->
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 
     <PreferenceCategory android:title="APRS Settings">
 
-        <EditTextPreference
+        <me.ellenhp.aprstools.settings.EditTextPreferenceWithPreview
             android:key="callsign"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:summary="Your government-issued callsign"
             android:title="Callsign" />
         <SwitchPreference
-            android:contentDescription="Use S S I D"
             android:defaultValue="false"
             android:key="use_ssid"
             android:title="Use SSID" />
-        <EditTextPreference
-            android:contentDescription="S S I D"
+        <me.ellenhp.aprstools.settings.EditTextPreferenceWithPreview
             android:defaultValue=""
             android:dependency="use_ssid"
-            android:key="SSID"
+            android:key="ssid"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:title="SSID" />
     </PreferenceCategory>
     <PreferenceCategory android:title="APRS-IS Connection">
 
-        <EditTextPreference
+        <me.ellenhp.aprstools.settings.EditTextPreferenceWithPreview
             android:key="aprs_is_passcode"
             android:selectAllOnFocus="true"
             android:singleLine="true"
             android:summary="If you don't have a passcode, please request one"
             android:title="APRS-IS Passcode" />
-        <EditTextPreference
-            android:defaultValue="true"
+        <me.ellenhp.aprstools.settings.EditTextPreferenceWithPreview
+            android:defaultValue="rotate.aprs.net"
+            android:summary="rotate.aprs.net"
             android:key="aprs_is_host"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:title="APRS-IS host" />
-        <EditTextPreference
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:title="APRS-IS Host" />
+        <me.ellenhp.aprstools.settings.EditTextPreferenceWithPreview
             android:defaultValue="14580"
+            android:summary="14580"
             android:key="aprs_is_port"
             android:selectAllOnFocus="true"
             android:singleLine="true"
-            android:title="APRS-IS port" />
+            android:title="APRS-IS Port" />
     </PreferenceCategory>
 </PreferenceScreen>

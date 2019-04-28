@@ -29,11 +29,6 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
-                            <entry key="deepLink">
-                              <value>
-                                <LayoutPositions />
-                              </value>
-                            </entry>
                           </map>
                         </option>
                       </LayoutPositions>
@@ -68,8 +63,8 @@
                       <LayoutPositions>
                         <option name="myPosition">
                           <Point>
-                            <option name="x" value="70" />
-                            <option name="y" value="70" />
+                            <option name="x" value="19" />
+                            <option name="y" value="336" />
                           </Point>
                         </option>
                         <option name="myPositions">
@@ -79,12 +74,24 @@
                                 <LayoutPositions />
                               </value>
                             </entry>
-                            <entry key="deepLink2">
+                            <entry key="action_mapViewFragment_to_settingsFragment">
                               <value>
                                 <LayoutPositions />
                               </value>
                             </entry>
                           </map>
+                        </option>
+                      </LayoutPositions>
+                    </value>
+                  </entry>
+                  <entry key="settingsFragment">
+                    <value>
+                      <LayoutPositions>
+                        <option name="myPosition">
+                          <Point>
+                            <option name="x" value="432" />
+                            <option name="y" value="600" />
+                          </Point>
                         </option>
                       </LayoutPositions>
                     </value>

@@ -17,17 +17,14 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.settings
 
-class PreferenceKeys {
-    companion object {
-        const val CALLSIGN = "callsign"
-        const val SSID = "ssid"
-        const val PASSCODE = "aprs_is_passcode"
-        const val APRS_IS_HOST = "aprs_is_host"
-        const val APRS_IS_PORT = "aprs_is_port"
+import android.os.Bundle
+import androidx.preference.PreferenceFragmentCompat
+import me.ellenhp.aprstools.R
+
+class SettingsFragment: PreferenceFragmentCompat() {
+    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        addPreferencesFromResource(R.xml.preferences)
     }
 }
-
-data class UserCreds(val call: String, val passcode: String?)
-data class AprsIsServerAddress(val host: String, val port: Int)
