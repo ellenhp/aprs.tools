@@ -20,7 +20,7 @@ android {
         }
         release {
             resValue 'string', "google_maps_key", google_maps_key
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
@@ -58,7 +58,7 @@ licenseTools {
 dependencies {
     kapt 'com.google.dagger:dagger-android-processor:2.20'
     kapt 'com.google.dagger:dagger-compiler:2.20'
-    kapt 'com.google.auto.factory:auto-factory:1.0-beta6'
+    annotationProcessor 'com.google.auto.factory:auto-factory:1.0-beta6'
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     implementation 'com.google.auto.factory:auto-factory:1.0-beta6'
