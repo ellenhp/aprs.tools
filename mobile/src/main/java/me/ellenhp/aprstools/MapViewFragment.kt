@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools
 
+import android.Manifest
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
@@ -28,6 +29,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.*
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -42,6 +44,11 @@ import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.map.PacketPlotterFactory
 import org.threeten.bp.Duration
 import javax.inject.Inject
+import android.Manifest.permission
+import android.Manifest.permission.ACCESS_COARSE_LOCATION
+import android.Manifest.permission.ACCESS_FINE_LOCATION
+
+
 
 
 /**
@@ -90,6 +97,7 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
         mapFragment.getMapAsync(this)
 
+        requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
     }
 
     override fun onDetach() {
@@ -117,6 +125,15 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
 
         activity!!.runOnUiThread {
             plotter.plot(packetHistory.get())
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        animateToLastLocation()
+        if (checkSelfPermission(context!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
+                checkSelfPermission(context!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
+            map?.uiSettings?.isMyLocationButtonEnabled = true
         }
     }
 
@@ -161,5 +178,8 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
                 MapViewFragment().apply {
                     arguments = Bundle().apply { }
                 }
+
+
+        private const val LOCATION_PERMISSION_REQUEST = 10001
     }
 }
