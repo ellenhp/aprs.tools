@@ -33,7 +33,21 @@ class PreferenceKeys {
     }
 }
 
-class Preferences @Inject constructor(private val sharedPreferences: SharedPreferences) {
+class Preferences @Inject constructor(private val sharedPreferences: SharedPreferences) : SharedPreferences.OnSharedPreferenceChangeListener {
+    private val preferenceListeners = ArrayList<PreferenceListener>()
+
+    init {
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this)
+    }
+
+    fun registerPreferenceListener(listener: PreferenceListener) {
+        preferenceListeners.add(listener)
+    }
+
+    fun removePreferenceListener(listener: PreferenceListener) {
+        preferenceListeners.remove(listener)
+    }
+
     fun getAprsIsCredentials(): UserCredentials? {
         val call = sharedPreferences.getString(PreferenceKeys.CALLSIGN, null) ?: return null
         val passcode = sharedPreferences.getString(PreferenceKeys.PASSCODE, null)
@@ -47,13 +61,21 @@ class Preferences @Inject constructor(private val sharedPreferences: SharedPrefe
     }
 
     fun getAprsIsServerAddress(): AprsIsServerAddress? {
-        val host = sharedPreferences.getString(PreferenceKeys.APRS_IS_HOST, null) ?: return null
-        val port = sharedPreferences.getString(PreferenceKeys.APRS_IS_PORT, "0")?.toIntOrNull() ?: return null
+        val host = sharedPreferences.getString(PreferenceKeys.APRS_IS_HOST, "rotate.aprs.net") ?: return null
+        val port = sharedPreferences.getString(PreferenceKeys.APRS_IS_PORT, "14580")?.toIntOrNull() ?: return null
         return AprsIsServerAddress(host, port)
     }
 
     fun getCallsign(): String? {
         return sharedPreferences.getString(PreferenceKeys.CALLSIGN, null)
+    }
+
+    interface PreferenceListener {
+        fun onPreferencesChanged(preferences: Preferences)
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        preferenceListeners.forEach { it.onPreferencesChanged(this) }
     }
 }
 

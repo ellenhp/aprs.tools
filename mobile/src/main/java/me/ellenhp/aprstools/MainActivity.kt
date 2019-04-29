@@ -148,10 +148,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        if (requestCode != LOCATION_PERMISSION_REQUEST) {
-            // TODO is this necessary?
-            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
             fusedLocationClient.get().lastLocation.addOnSuccessListener { updateAprsIsListener(it) }

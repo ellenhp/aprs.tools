@@ -24,17 +24,16 @@ import android.content.Intent
 import android.os.Binder
 import android.os.IBinder
 import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprstools.settings.AprsIsServerAddress
 import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.settings.Preferences
 import javax.inject.Inject
 import javax.inject.Provider
 import dagger.Lazy
 
-class AprsIsService : Service() {
+class AprsIsService : Service(), Preferences.PreferenceListener {
 
     @Inject
-    lateinit var preferences: Lazy<Preferences?>
+    lateinit var preferences: Lazy<Preferences>
     @Inject
     lateinit var clientFactory: AprsIsClientFactory
     @Inject
@@ -53,6 +52,8 @@ class AprsIsService : Service() {
     override fun onBind(intent: Intent?): IBinder? {
         (application as AprsToolsApplication).activityComponent?.inject(this)
 
+        preferences.get().registerPreferenceListener(this)
+
         if (thread == null || thread?.isAlive == true) {
             thread = aprsIsThreadProvider.get()
             resetClient()
@@ -63,19 +64,28 @@ class AprsIsService : Service() {
         return binder
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        preferences.get().removePreferenceListener(this)
+    }
+
     fun sendPacket(packet: AprsPacket) {
         thread?.enqueuePacket(packet)
     }
 
     private fun resetClient() {
-        val credentials = preferences.get()?.getAprsIsCredentials() ?: return
-        val serverAddress = preferences.get()?.getAprsIsServerAddress() ?: return
+        val credentials = preferences.get().getAprsIsCredentials() ?: return
+        val serverAddress = preferences.get().getAprsIsServerAddress() ?: return
         thread?.setClient(clientFactory.create(
                 serverAddress.host,
                 serverAddress.port,
                 credentials.call,
                 credentials.passcode,
                 filter))
+    }
+
+    override fun onPreferencesChanged(preferences: Preferences) {
+        resetClient()
     }
 
     inner class AprsIsServiceBinder : Binder() {
