@@ -108,8 +108,7 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
         toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
 
-        val packetHistoryBundle = savedInstanceState?.getBundle(packetHistoryBundleKey)
-        packetHistory = packetHistoryBundle?.getParcelable(packetHistoryBundleKey) ?: PacketTrackHistory()
+        packetHistory = PacketTrackHistory()
 
         val navController = findNavController(supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!)
         navController.addOnDestinationChangedListener(this)
@@ -132,14 +131,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     override fun onStop() {
         super.onStop()
         unbindService(mConnection)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle?) {
-        super.onSaveInstanceState(outState)
-        // Workaround for a weird bug!
-        val packetHistoryBundle = Bundle()
-        packetHistoryBundle.putParcelable(packetHistoryBundleKey, packetHistory)
-        outState?.putBundle(packetHistoryBundleKey, packetHistoryBundle)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

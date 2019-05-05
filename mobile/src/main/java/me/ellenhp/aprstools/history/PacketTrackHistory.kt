@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprstools.history
 
-import android.os.Parcel
-import android.os.Parcelable
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.TreeMultiset
 import me.ellenhp.aprslib.packet.AprsPacket
@@ -28,20 +26,11 @@ import me.ellenhp.aprslib.packet.Ax25Address
 import org.threeten.bp.Instant
 import kotlin.collections.HashMap
 
-open class PacketTrackHistory() : Parcelable {
+open class PacketTrackHistory {
 
     var listener: HistoryUpdateListener? = null
 
     private val history: HashMap<Ax25Address, PacketTrack> = HashMap()
-
-    constructor(parcel: Parcel) : this() {
-        history.clear()
-        while (true) {
-            val station: Ax25Address = parcel.readParcelable(Ax25Address::class.java.classLoader) ?: return
-            val track: PacketTrack = parcel.readParcelable(PacketTrack::class.java.classLoader) ?: return
-            history[station] = track
-        }
-    }
 
     @Synchronized
     fun add(packet: AprsPacket, timestamp: Instant) {
@@ -65,38 +54,10 @@ open class PacketTrackHistory() : Parcelable {
         }
         return history[sourceStation]!!
     }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        for (stationTrackPair in history) {
-            parcel.writeParcelable(stationTrackPair.key, flags)
-            parcel.writeParcelable(stationTrackPair.value, flags)
-        }
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<PacketTrackHistory> {
-        override fun createFromParcel(parcel: Parcel): PacketTrackHistory {
-            return PacketTrackHistory(parcel)
-        }
-
-        override fun newArray(size: Int): Array<PacketTrackHistory?> {
-            return arrayOfNulls(size)
-        }
-    }
 }
 
-data class PacketTrack(val station: Ax25Address): Parcelable {
+data class PacketTrack(val station: Ax25Address) {
     private var packets = TreeMultiset.create<TimestampedPacket>()
-
-    constructor(parcel: Parcel) : this(parcel.readParcelable<Ax25Address>(Ax25Address::class.java.classLoader)!!) {
-        val packetArray = parcel.readArray(TimestampedPacket::class.java.classLoader)!!
-        for (packet in packetArray) {
-            packets.add(packet as TimestampedPacket)
-        }
-    }
 
     fun addPacket(timestampedPacket: TimestampedPacket) {
         packets.add(timestampedPacket)
@@ -105,28 +66,9 @@ data class PacketTrack(val station: Ax25Address): Parcelable {
     fun toImmutableList(): ImmutableList<TimestampedPacket> {
         return ImmutableList.copyOf(packets)
     }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeParcelable(station, flags)
-        parcel.writeArray(packets.toArray())
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<PacketTrack> {
-        override fun createFromParcel(parcel: Parcel): PacketTrack {
-            return PacketTrack(parcel)
-        }
-
-        override fun newArray(size: Int): Array<PacketTrack?> {
-            return arrayOfNulls(size)
-        }
-    }
 }
 
-data class TimestampedPacket(val packet: AprsPacket, val time: Instant): Parcelable, Comparable<TimestampedPacket> {
+data class TimestampedPacket(val packet: AprsPacket, val time: Instant): Comparable<TimestampedPacket> {
     override fun compareTo(other: TimestampedPacket): Int {
         if (time.isBefore(other.time)) {
             return -1
@@ -134,30 +76,6 @@ data class TimestampedPacket(val packet: AprsPacket, val time: Instant): Parcela
             return 1
         } else {
             return 0
-        }
-    }
-
-    constructor(parcel: Parcel) : this(
-            parcel.readParcelable(AprsPacket::class.java.classLoader)!!,
-            Instant.parse(parcel.readString())) {
-    }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeParcelable(packet, flags)
-        parcel.writeString(time.toString())
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<TimestampedPacket> {
-        override fun createFromParcel(parcel: Parcel): TimestampedPacket {
-            return TimestampedPacket(parcel)
-        }
-
-        override fun newArray(size: Int): Array<TimestampedPacket?> {
-            return arrayOfNulls(size)
         }
     }
 }

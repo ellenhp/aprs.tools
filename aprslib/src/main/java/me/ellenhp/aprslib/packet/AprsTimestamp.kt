@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprslib.packet
 
-import kotlinx.android.parcel.Parcelize
-
 interface AprsTimestamp : AprsDatum
 
 enum class AprsTimezone(val code: Char) {
@@ -28,21 +26,18 @@ enum class AprsTimezone(val code: Char) {
     LOCAL('/')
 }
 
-@Parcelize
 data class AprsTimestampDhm(val day: Int, val hour: Int, val minute: Int, val timeZone: AprsTimezone) : AprsTimestamp {
     override fun toString(): String {
         return "%02d%02d%02d%c".format(day, hour, minute, timeZone.code)
     }
 }
 
-@Parcelize
 data class AprsTimestampHms(val hour: Int, val minute: Int, val second: Int) : AprsTimestamp {
     override fun toString(): String {
         return "%02d%02d%02dh".format(hour, minute, second)
     }
 }
 
-@Parcelize
 data class AprsTimestampMdhm(val month: Int, val day: Int, val hour: Int, val minute: Int) : AprsTimestamp {
     override fun toString(): String {
         return "%02d%02d%02d%02d".format(month, day, hour, minute)

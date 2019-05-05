@@ -1,0 +1,34 @@
+buildscript {
+    ext.appengine_version = '1.9.60'
+    ext.appengine_plugin_version = '1.3.4'
+    ext.ktor_version = '1.1.5'
+
+    repositories {
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
+apply plugin: 'kotlin'
+apply plugin: 'application'
+
+mainClassName = "io.ktor.server.netty.DevelopmentEngine"
+
+repositories {
+    jcenter()
+    maven { url "https://dl.bintray.com/kotlin/ktor" }
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+    compile "io.ktor:ktor-server-netty:$ktor_version"
+    compile "io.ktor:ktor-websockets:$ktor_version"
+    compile "org.jetbrains.exposed:exposed:0.13.6"
+    compile "net.postgis:postgis-jdbc:2.2.0"
+    compile "com.google.cloud:google-cloud-datastore:1.70.0"
+    compile "com.google.cloud:google-cloud-kms:1.6.0"
+    testCompile "io.ktor:ktor-server-test-host:$ktor_version"
+    compile project(path: ':aprslib')
+}

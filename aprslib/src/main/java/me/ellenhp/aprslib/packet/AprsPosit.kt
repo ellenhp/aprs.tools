@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
 import kotlin.math.abs
 import kotlin.math.round
 import kotlin.math.truncate
@@ -38,13 +36,10 @@ enum class AprsPositAmbiguity(val boundingCircleRadiusMeters: Int, val omittedSp
     }
 }
 
-@Parcelize
-data class AprsLatLng(val latitude: Double, val longitude: Double, val ambiguity: AprsPositAmbiguity) : Parcelable
+data class AprsLatLng(val latitude: Double, val longitude: Double, val ambiguity: AprsPositAmbiguity)
 
-@Parcelize
-data class AprsSymbol(val symbolTable: Char, val symbol: Char) : Parcelable
+data class AprsSymbol(val symbolTable: Char, val symbol: Char)
 
-@Parcelize
 data class AprsPosition(val position: AprsLatLng, val symbol: AprsSymbol) : AprsDatum {
 
     override fun toString(): String {

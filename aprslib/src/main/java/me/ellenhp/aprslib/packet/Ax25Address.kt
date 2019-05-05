@@ -19,11 +19,7 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
-data class Ax25Address(val call: String, val ssid: String?) : Parcelable {
+data class Ax25Address(val call: String, val ssid: String?) {
     override fun toString(): String {
         return if (ssid == null)
             call

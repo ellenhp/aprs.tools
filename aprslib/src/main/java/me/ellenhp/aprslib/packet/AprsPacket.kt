@@ -19,11 +19,7 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
-data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) : Parcelable {
+data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) {
     fun isWeather(): Boolean {
         val standaloneWx = informationField.dataType in listOf('!', '#', '$', '*', '_')
 

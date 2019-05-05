@@ -1,1 +1,1 @@
-include ':mobile', ':aprslib', ':aprslib', ':aprslib', ':autumn'
+include ':mobile', ':aprslib', ':autumn', ':aprsmonitor', ":aprsbackend"

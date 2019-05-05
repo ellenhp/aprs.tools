@@ -19,16 +19,12 @@
 
 package me.ellenhp.aprslib.packet
 
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
 data class AprsPowerHeightGain(val powerCode: Char, val heightCode: Char, val gainCode: Char, val directivityCode: Char) : AprsDataExtension {
     override fun toString(): String {
         return "PHG%c%c%c%c".format(powerCode, heightCode, gainCode, directivityCode)
     }
 }
 
-@Parcelize
 data class CourseSpeed(val course: Int, val speedKnots: Int) : AprsDataExtension {
     override fun toString(): String {
         return "%03d/%03d".format(course, speedKnots)
