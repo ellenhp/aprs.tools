@@ -1,11 +1,14 @@
 package me.ellenhp.aprsbackend
 
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.postgis.*
+import javax.sql.DataSource
 import javax.sql.rowset.serial.SerialBlob
 
 
@@ -17,12 +20,28 @@ object Packets: IntIdTable() {
     val packet = blob("packet")
 }
 
-class DatabaseLayer(dbConnectionString: String, user: String, password: String) {
+class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, password: String) {
 
     val parser = AprsParser()
+    val pool: DataSource
 
     init {
-        Database.connect(dbConnectionString, "org.postgresql.Driver", user, password)
+        val config = HikariConfig()
+
+        config.jdbcUrl = String.format("jdbc:postgresql:///%s", dbName)
+        config.username = user
+        config.password = password
+        config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory")
+        config.addDataSourceProperty("cloudSqlInstance", dbConnectionString)
+        config.addDataSourceProperty("useSSL", false)
+        config.maximumPoolSize = 5
+        config.minimumIdle = 5
+        config.connectionTimeout = 10000
+        config.idleTimeout = 600000
+        config.maxLifetime = 1800000
+
+        pool = HikariDataSource(config)
+        Database.connect(getNewConnection = { pool.connection })
     }
 
     fun putPackets(packets: List<AprsPacket>) {
