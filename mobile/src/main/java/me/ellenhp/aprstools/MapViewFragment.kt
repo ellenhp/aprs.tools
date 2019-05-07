@@ -19,7 +19,6 @@
 
 package me.ellenhp.aprstools
 
-import android.Manifest
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
@@ -29,7 +28,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.*
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -44,11 +42,18 @@ import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.map.PacketPlotterFactory
 import org.threeten.bp.Duration
 import javax.inject.Inject
-import android.Manifest.permission
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
-
-
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
+import me.ellenhp.aprslib.parser.AprsParser
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
+import org.threeten.bp.Instant
 
 
 /**
@@ -60,7 +65,9 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
  * create an instance of this fragment.
  *
  */
-class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
+class MapViewFragment : Fragment(),
+        OnMapReadyCallback,
+        CoroutineScope by MainScope() {
     private var listener: OnFragmentInteractionListener? = null
     private var map: GoogleMap? = null
 
@@ -121,10 +128,41 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
         animateToLastLocation()
 
         plotter.plot(packetHistory.get())
-        packetHistory.get().listener = this
+
+        map?.setOnCameraIdleListener { loadRegion() }
 
         activity!!.runOnUiThread {
             plotter.plot(packetHistory.get())
+        }
+    }
+
+    private fun loadRegion() {
+        val bounds = map!!.projection.visibleRegion
+        val sw = bounds.latLngBounds.southwest
+        val ne = bounds.latLngBounds.northeast
+        val url = "https://aprstools.appspot.com/within/" +
+                "${sw.longitude}/${sw.latitude}/" +
+                "${ne.longitude}/${ne.latitude}/"
+
+        doAsync {
+            val response = OkHttpClient().newCall(Request.Builder().url(url).build()).execute()
+
+            if (!response.isSuccessful)
+                return@doAsync // TODO LOG
+
+            val parser = AprsParser()
+            val body = response.body()?.string()
+            val packets = Gson().fromJson<Array<TimestampedSerializedPacket>>(
+                    body, Array<TimestampedSerializedPacket>::class.java)
+
+            for (packet in packets) {
+                parser.parse(packet.packet)?.let {
+                    packetHistory.get().add(it, Instant.ofEpochMilli(packet.millisSinceEpoch)) }
+            }
+
+            uiThread {
+                plotter.plot(packetHistory.get())
+            }
         }
     }
 
@@ -143,12 +181,6 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
             fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(activity!!) {
                 map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f))
             }
-    }
-
-    override fun historyUpate(station: Ax25Address) {
-        activity?.runOnUiThread {
-            plotter.plot(packetHistory.get())
-        }
     }
 
     /**

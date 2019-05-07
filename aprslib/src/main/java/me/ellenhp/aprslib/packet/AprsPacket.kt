@@ -41,3 +41,5 @@ data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: 
         return "%s>%s%s:%s".format(source, dest, path, informationField)
     }
 }
+
+data class TimestampedSerializedPacket(val millisSinceEpoch: Long, val packet: String)

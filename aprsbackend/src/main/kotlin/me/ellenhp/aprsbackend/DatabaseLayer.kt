@@ -1,21 +1,42 @@
+/*
+ * Copyright (c) 2019 Ellen Poe
+ *
+ * This file is part of APRSTools.
+ *
+ * APRSTools is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * APRSTools is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package me.ellenhp.aprsbackend
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.joda.time.DateTime
 import org.postgis.*
 import javax.sql.DataSource
 import javax.sql.rowset.serial.SerialBlob
 
 
 object Packets: IntIdTable() {
-    val fromCallsign = varchar("fromCallsign", 20).index()
-    val toCallsign = varchar("toCallsign", 20).index()
-    val millisSinceEpoch = long("timestamp")
+    val fromCallsign = text("fromCallsign").index()
+    val toCallsign = text("toCallsign").index()
+    val timestamp = datetime("timestamp")
     val latLng = point("latLng").nullable() // Not all APRS packets have location info
     val packet = blob("packet")
 }
@@ -50,50 +71,61 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
             Packets.batchInsert(packets) {
                 this[Packets.fromCallsign] = it.source.call
                 this[Packets.toCallsign] = it.dest.call
-                this[Packets.millisSinceEpoch] = System.currentTimeMillis() // TODO this isn't testable
+                this[Packets.timestamp] = DateTime.now()
                 it.location()?.let { location -> this[Packets.latLng] = Point(location.longitude, location.latitude) }
                 this[Packets.packet] = SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1))
             }
         }
     }
 
-    fun getAllFrom(callsign: String): List<AprsPacket> {
+    fun getAllFrom(callsign: String): List<TimestampedSerializedPacket> {
         val packetRows = transaction {
             Packets.select {
                 Packets.fromCallsign eq callsign
             }.toList()
         }
         return packetRows
-                .map { it[Packets.packet].binaryStream.readBytes() }
-                .map { String(it, Charsets.ISO_8859_1) }
-                .map { parser.parse(it) }
-                .filterNotNull()
+                .map {
+                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
+                    val timestamp = it[Packets.timestamp].millis
+                    TimestampedSerializedPacket(timestamp, packet)
+                }
     }
 
-    fun getAllTo(callsign: String): List<AprsPacket> {
+    fun getAllTo(callsign: String): List<TimestampedSerializedPacket> {
         val packetRows = transaction {
             Packets.select {
                 Packets.toCallsign eq callsign
             }.toList()
         }
         return packetRows
-                .map { it[Packets.packet].binaryStream.readBytes() }
-                .map { String(it, Charsets.ISO_8859_1) }
-                .map { parser.parse(it) }
-                .filterNotNull()
+                .map {
+                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
+                    val timestamp = it[Packets.timestamp].millis
+                    TimestampedSerializedPacket(timestamp, packet)
+                }
     }
 
-    fun getPacketsNear(southWestCorner: Point, northEastCorner: Point): List<AprsPacket> {
+    fun getPacketsNear(southWestCorner: Point, northEastCorner: Point): List<TimestampedSerializedPacket> {
         val packetRows = transaction {
             Packets.select {
                 Packets.latLng.isNotNull() and Packets.latLng.within(PGbox2d(southWestCorner, northEastCorner))
+            }.limit(1000).sortedByDescending {
+                Packets.timestamp
             }.toList()
         }
         return packetRows
-                .map { it[Packets.packet].binaryStream.readBytes() }
-                .map { String(it, Charsets.ISO_8859_1) }
-                .map { parser.parse(it) }
-                .filterNotNull()
+                .map {
+                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
+                    val timestamp = it[Packets.timestamp].millis
+                    TimestampedSerializedPacket(timestamp, packet)
+                }
+    }
+
+    fun setupSchema() {
+        transaction {
+            SchemaUtils.create(Packets)
+        }
     }
 }
 

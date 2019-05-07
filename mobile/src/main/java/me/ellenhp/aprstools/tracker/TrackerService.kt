@@ -36,7 +36,6 @@ import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.AprsPath
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.AprsToolsApplication
-import me.ellenhp.aprstools.aprs.AprsIsService
 import javax.inject.Inject
 import javax.inject.Provider
 import dagger.Lazy
@@ -44,8 +43,6 @@ import me.ellenhp.aprstools.settings.Preferences
 
 class TrackerService : Service() {
 
-    @Inject
-    lateinit var aprsIsService: Provider<AprsIsService>
     @Inject
     lateinit var fusedLocationProviderClient: FusedLocationProviderClient
     @Inject
@@ -78,6 +75,6 @@ class TrackerService : Service() {
         // TODO do position ambiguity at all!!!
         val informationField = AprsInformationField.locationUpdate(location.lastLocation.latitude, location.lastLocation.longitude)
         val packet = AprsPacket(originStation, destination, path, informationField)
-        aprsIsService.get().sendPacket(packet)
+//        aprsIsService.get().sendPacket(packet)
     }
 }

@@ -20,22 +20,19 @@
 package me.ellenhp.aprstools.history
 
 import com.google.common.collect.ImmutableList
-import com.google.common.collect.TreeMultiset
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.Ax25Address
 import org.threeten.bp.Instant
+import java.util.*
 import kotlin.collections.HashMap
 
 open class PacketTrackHistory {
-
-    var listener: HistoryUpdateListener? = null
 
     private val history: HashMap<Ax25Address, PacketTrack> = HashMap()
 
     @Synchronized
     fun add(packet: AprsPacket, timestamp: Instant) {
         getOrCreateTrack(packet.source).addPacket(TimestampedPacket(packet, timestamp))
-        listener?.historyUpate(packet.source)
     }
 
     @Synchronized
@@ -57,7 +54,7 @@ open class PacketTrackHistory {
 }
 
 data class PacketTrack(val station: Ax25Address) {
-    private var packets = TreeMultiset.create<TimestampedPacket>()
+    private var packets = TreeSet<TimestampedPacket>()
 
     fun addPacket(timestampedPacket: TimestampedPacket) {
         packets.add(timestampedPacket)

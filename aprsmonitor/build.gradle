@@ -3,6 +3,9 @@ apply plugin: 'application'
 
 dependencies {
     implementation "com.github.ajalt:clikt:1.7.0"
+    implementation "com.google.code.gson:gson:2.8.5"
+    implementation "com.github.jkcclemens:khttp:0.1.0"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.2.1"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation project(path: ':aprslib')
 }
