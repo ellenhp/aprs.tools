@@ -19,12 +19,10 @@
 
 package me.ellenhp.aprsismonitor
 
-import com.google.gson.JsonArray
 import khttp.post
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.json.JSONArray
-import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.IOException
 import java.net.Socket
@@ -48,7 +46,7 @@ class AprsIsThread(private val host: String,
                 connect()
             }
             readPacket()?.let { packetBuffer.add(it) }
-            if (packetBuffer.size >= 200) {
+            if (packetBuffer.size >= 1000) {
                 val packets = JSONArray(packetBuffer.map { it.toString() })
 
                 println(packets)

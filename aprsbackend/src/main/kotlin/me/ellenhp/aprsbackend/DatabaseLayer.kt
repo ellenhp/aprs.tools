@@ -23,11 +23,13 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
-import me.ellenhp.aprslib.parser.AprsParser
 import org.jetbrains.exposed.dao.IntIdTable
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.joda.time.DateTime
+import org.joda.time.Duration.*
+import org.joda.time.Instant
+import org.joda.time.Instant.*
 import org.postgis.*
 import javax.sql.DataSource
 import javax.sql.rowset.serial.SerialBlob
@@ -36,14 +38,13 @@ import javax.sql.rowset.serial.SerialBlob
 object Packets: IntIdTable() {
     val fromCallsign = text("fromCallsign").index()
     val toCallsign = text("toCallsign").index()
-    val timestamp = datetime("timestamp")
-    val latLng = point("latLng").nullable() // Not all APRS packets have location info
-    val packet = blob("packet")
+    val timestamp = datetime("timestamp").index()
+    val latLng = point("latLng").nullable().index() // Not all APRS packets have location info
+    val packet = blob("packet").index()
 }
 
 class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, password: String) {
 
-    val parser = AprsParser()
     val pool: DataSource
 
     init {
@@ -66,9 +67,23 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
     }
 
     fun putPackets(packets: List<AprsPacket>) {
+        val blobs = packets.map { SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)) }
         transaction {
-            SchemaUtils.create(Packets)
-            Packets.batchInsert(packets) {
+            val maxTimestamp = Packets.timestamp.max()
+            val blacklist = Packets.slice(maxTimestamp, Packets.packet)
+                    .select { Packets.packet inList blobs }
+                    .groupBy(Packets.packet)
+                    .mapNotNull {
+                        if (it[maxTimestamp]?.isBefore(
+                                        now().minus(standardSeconds(30)).toDateTime()) == true)
+                            it[Packets.packet] else null
+                    }
+
+            val newPackets = packets.filter {
+                !blacklist.contains(SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)))
+            }
+
+            Packets.batchInsert(newPackets) {
                 this[Packets.fromCallsign] = it.source.call
                 this[Packets.toCallsign] = it.dest.call
                 this[Packets.timestamp] = DateTime.now()
@@ -110,7 +125,7 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
         val packetRows = transaction {
             Packets.select {
                 Packets.latLng.isNotNull() and Packets.latLng.within(PGbox2d(southWestCorner, northEastCorner))
-            }.limit(1000).sortedByDescending {
+            }.limit(500).sortedByDescending {
                 Packets.timestamp
             }.toList()
         }
@@ -120,6 +135,14 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
                     val timestamp = it[Packets.timestamp].millis
                     TimestampedSerializedPacket(timestamp, packet)
                 }
+    }
+
+    fun cleanupPackets(expiryTime: Instant) {
+        transaction {
+            Packets.deleteWhere {
+                Packets.timestamp less expiryTime.toDateTime()
+            }
+        }
     }
 
     fun setupSchema() {

@@ -37,6 +37,8 @@ import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
 import me.ellenhp.aprslib.parser.AprsParser
+import org.joda.time.Duration.*
+import org.joda.time.Instant.now
 import org.json.JSONArray
 import org.postgis.Point
 import java.text.DateFormat
@@ -106,6 +108,11 @@ fun Application.main() {
             val packetStrings = JSONArray(packets).map { if (it is String) it else null }.filterNotNull()
             database.putPackets(packetStrings.map { parser.parse(it) }.filterNotNull())
             call.respond(HttpStatusCode.OK, "Thanks!")
+        }
+
+        get("/cleanup") {
+            database.cleanupPackets(now().minus(standardHours(6)))
+            call.respond(HttpStatusCode.OK, "Did the thing.")
         }
 
         get("/setupschema") {
