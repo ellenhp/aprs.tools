@@ -48,7 +48,7 @@ class AprsIsThread(private val host: String,
                     connect()
                 }
                 readPacket()?.let { packetBuffer.add(it) }
-                if (packetBuffer.size >= 1000) {
+                if (packetBuffer.size >= 100) {
                     val packets = JSONArray(packetBuffer.map { it.toString() })
 
                     println(packets)
@@ -65,7 +65,7 @@ class AprsIsThread(private val host: String,
     private fun connect() {
         socket = Socket()
         socket?.connect(InetSocketAddress(host, port), 5000)
-        // This looks dangerous at first blush until you remember we're connected to the full feed
+        // 1000ms looks dangerous at first blush until you remember we're connected to the full feed
         // port which is a firehose of packets at a very consistent 60-70/second. I'd rather roll
         // the round-robin dice again than settle with a poor connection.
         socket?.soTimeout = 1000

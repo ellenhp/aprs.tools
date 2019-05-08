@@ -76,7 +76,7 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
                     .mapNotNull {
                         if (it[maxTimestamp]?.isBefore(
                                         now().minus(standardSeconds(30)).toDateTime()) == true)
-                            it[Packets.packet] else null
+                            null else it[Packets.packet]
                     }
 
             val newPackets = packets.filter {
