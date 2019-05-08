@@ -119,5 +119,10 @@ fun Application.main() {
             database.setupSchema()
             call.respond(HttpStatusCode.OK, "Did the thing.")
         }
+
+        get("/_ah/warmup") {
+            database.getAllFrom("KI7UKU")
+            call.respondText { "Warmed up" }
+        }
     }
 }
