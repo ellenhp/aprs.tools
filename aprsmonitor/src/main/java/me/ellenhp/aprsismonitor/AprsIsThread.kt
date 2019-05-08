@@ -25,6 +25,7 @@ import me.ellenhp.aprslib.parser.AprsParser
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.IOException
+import java.net.InetSocketAddress
 import java.net.Socket
 
 class AprsIsThread(private val host: String,
@@ -41,24 +42,33 @@ class AprsIsThread(private val host: String,
     override fun run() {
         println("Starting APRS-IS thread.")
         while (!Thread.interrupted()) {
-            if (socket?.isConnected != true) {
-                print("Connecting to $host:$port")
-                connect()
-            }
-            readPacket()?.let { packetBuffer.add(it) }
-            if (packetBuffer.size >= 1000) {
-                val packets = JSONArray(packetBuffer.map { it.toString() })
+            try {
+                if (socket?.isConnected != true) {
+                    print("Connecting to $host:$port")
+                    connect()
+                }
+                readPacket()?.let { packetBuffer.add(it) }
+                if (packetBuffer.size >= 1000) {
+                    val packets = JSONArray(packetBuffer.map { it.toString() })
 
-                println(packets)
+                    println(packets)
 
-                post("https://$backendHost/uploadpackets", data=packets)
-                packetBuffer.clear()
+                    post("https://$backendHost/uploadpackets", data = packets)
+                    packetBuffer.clear()
+                }
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
         }
     }
 
     private fun connect() {
-        socket = Socket(host, port)
+        socket = Socket()
+        socket?.connect(InetSocketAddress(host, port), 5000)
+        // This looks dangerous at first blush until you remember we're connected to the full feed
+        // port which is a firehose of packets at a very consistent 60-70/second. I'd rather roll
+        // the round-robin dice again than settle with a poor connection.
+        socket?.soTimeout = 1000
         reader = socket?.getInputStream()?.bufferedReader(Charsets.ISO_8859_1)
         val writer = socket?.getOutputStream()?.bufferedWriter()
         writer?.write("user $callsign pass -1\r\n")
