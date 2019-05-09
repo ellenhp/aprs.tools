@@ -21,6 +21,7 @@ package me.ellenhp.aprsbackend
 
 import com.google.cloud.kms.v1.CryptoKeyName
 import com.google.cloud.kms.v1.KeyManagementServiceClient
+import com.google.openlocationcode.OpenLocationCode
 import com.google.protobuf.ByteString
 import io.ktor.application.Application
 import io.ktor.application.call
@@ -44,6 +45,10 @@ import org.postgis.Point
 import java.text.DateFormat
 import java.util.*
 
+fun Application.init() {
+
+}
+
 fun Application.main() {
 
     val config = environment.config.config("sql")
@@ -62,6 +67,9 @@ fun Application.main() {
                     "aprstools-symmetric-key"), ByteString.copyFrom(dbPasswordEncrypted))
 
     val database = DatabaseLayer(dbConnectionString, dbName, dbUser, passwordResponse.plaintext.toStringUtf8())
+
+    // Warm the database connection pool by making a meaningless request.
+    database.getAllFrom("")
 
     install(DefaultHeaders)
     install(Compression)
@@ -90,15 +98,10 @@ fun Application.main() {
             }
         }
 
-        get("/within/{lowerLeftLong}/{lowerLeftLat}/{upperRightLong}/{upperRightLat}/") {
+        get("/within/{plusCodes}/") {
+            val plusCodes = call.parameters["plusCodes"]!!.toString().split(",")
+            val packets = database.getPacketsNear(plusCodes.map { OpenLocationCode.decode(it) })
             call.respondText {
-                val lowerLeftLong = call.parameters["lowerLeftLong"]!!.toDouble()
-                val lowerLeftLat = call.parameters["lowerLeftLat"]!!.toDouble()
-                val upperRightLong = call.parameters["upperRightLong"]!!.toDouble()
-                val upperRightLat = call.parameters["upperRightLat"]!!.toDouble()
-                val packets = database.getPacketsNear(
-                        Point(lowerLeftLong, lowerLeftLat),
-                        Point(upperRightLong, upperRightLat))
                 JSONArray(packets).toString()
             }
         }
@@ -117,7 +120,8 @@ fun Application.main() {
 
         get("/setupschema") {
             database.setupSchema()
-            call.respond(HttpStatusCode.OK, "Did the thing.")
+            call.respond(HttpStatusCode.OK,
+                    "Don't forget to create an index on latLng using PostGIS!")
         }
     }
 }

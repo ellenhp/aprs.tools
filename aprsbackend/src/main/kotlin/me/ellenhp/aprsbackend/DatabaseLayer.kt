@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprsbackend
 
+import com.google.openlocationcode.OpenLocationCode
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import me.ellenhp.aprslib.packet.AprsPacket
@@ -31,6 +32,7 @@ import org.joda.time.Duration.*
 import org.joda.time.Instant
 import org.joda.time.Instant.*
 import org.postgis.*
+import java.sql.Blob
 import javax.sql.DataSource
 import javax.sql.rowset.serial.SerialBlob
 
@@ -39,8 +41,8 @@ object Packets: IntIdTable() {
     val fromCallsign = text("fromCallsign").index()
     val toCallsign = text("toCallsign").index()
     val timestamp = datetime("timestamp").index()
-    val latLng = point("latLng").nullable().index() // Not all APRS packets have location info
-    val packet = blob("packet").index()
+    val latLng = point("latLng").nullable() // Not all APRS packets have location info
+    val packet = blob("packet")
 }
 
 class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, password: String) {
@@ -57,9 +59,9 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
         config.addDataSourceProperty("cloudSqlInstance", dbConnectionString)
         config.addDataSourceProperty("useSSL", false)
         config.maximumPoolSize = 5
-        config.minimumIdle = 5
+        config.minimumIdle = 2
         config.connectionTimeout = 10000
-        config.idleTimeout = 600000
+        config.idleTimeout = 60000
         config.maxLifetime = 1800000
 
         pool = HikariDataSource(config)
@@ -67,20 +69,17 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
     }
 
     fun putPackets(packets: List<AprsPacket>) {
-        val blobs = packets.map { SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)) }
+        val blobs: Map<AprsPacket, Blob> =
+                packets.map { it to SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)) }.toMap()
         transaction {
-            val maxTimestamp = Packets.timestamp.max()
-            val blacklist = Packets.slice(maxTimestamp, Packets.packet)
-                    .select { Packets.packet inList blobs }
-                    .groupBy(Packets.packet)
-                    .mapNotNull {
-                        if (it[maxTimestamp]?.isBefore(
-                                        now().minus(standardSeconds(30)).toDateTime()) == true)
-                            null else it[Packets.packet]
-                    }
+            val blacklist = Packets.select {
+                Packets.timestamp.greaterEq(now().minus(standardSeconds(30)).toDateTime()) and
+                Packets.toCallsign.inList(packets.map { it.source.call }) and
+                Packets.packet.inList(blobs.values)
+            }.map { it[Packets.packet] }
 
             val newPackets = packets.filter {
-                !blacklist.contains(SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)))
+                !blacklist.contains(blobs[it])
             }
 
             Packets.batchInsert(newPackets) {
@@ -88,7 +87,7 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
                 this[Packets.toCallsign] = it.dest.call
                 this[Packets.timestamp] = DateTime.now()
                 it.location()?.let { location -> this[Packets.latLng] = Point(location.longitude, location.latitude) }
-                this[Packets.packet] = SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1))
+                this[Packets.packet] = blobs[it] ?: error("No blob found, this shouldn't happen")
             }
         }
     }
@@ -97,7 +96,7 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
         val packetRows = transaction {
             Packets.select {
                 Packets.fromCallsign eq callsign
-            }.toList()
+            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(500).toList()
         }
         return packetRows
                 .map {
@@ -111,7 +110,7 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
         val packetRows = transaction {
             Packets.select {
                 Packets.toCallsign eq callsign
-            }.toList()
+            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(500).toList()
         }
         return packetRows
                 .map {
@@ -121,18 +120,26 @@ class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, pa
                 }
     }
 
-    fun getPacketsNear(southWestCorner: Point, northEastCorner: Point): List<TimestampedSerializedPacket> {
+    fun getPacketsNear(codeAreas: List<OpenLocationCode.CodeArea>): List<TimestampedSerializedPacket> {
         val packetRows = transaction {
             Packets.select {
-                Packets.latLng.isNotNull() and Packets.latLng.within(PGbox2d(southWestCorner, northEastCorner))
-            }.limit(500).sortedByDescending {
-                Packets.timestamp
-            }.toList()
+                val isInCodeAreas = codeAreas.map {
+                    Packets.latLng.within(
+                            PGbox2d(Point(it.westLongitude, it.southLatitude),
+                                    Point(it.eastLongitude, it.northLatitude)))
+                }.reduce { arg1, arg2 ->
+                    arg1 or arg2
+                }
+                Packets.latLng.isNotNull() and isInCodeAreas
+            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(250).toList()
         }
         return packetRows
                 .map {
-                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
+                    val packetBlob = it[Packets.packet]
+                    // Blob.getBytes uses 1-based indexing.
+                    val packet = String(packetBlob.getBytes(1, packetBlob.length().toInt()), Charsets.ISO_8859_1)
                     val timestamp = it[Packets.timestamp].millis
+                    packetBlob.free()
                     TimestampedSerializedPacket(timestamp, packet)
                 }
     }
@@ -162,7 +169,8 @@ infix fun ExpressionWithColumnType<*>.within(box: PGbox2d) : Op<Boolean>
 
 private class WithinOp(val expr1: Expression<*>, val box: PGbox2d) : Op<Boolean>() {
     override fun toSQL(queryBuilder: QueryBuilder) =
-            "${expr1.toSQL(queryBuilder)} && ST_MakeEnvelope(${box.llb.x}, ${box.llb.y}, ${box.urt.x}, ${box.urt.y}, 4326)"
+            "ST_Contains(ST_MakeEnvelope(${box.llb.x}, ${box.llb.y}, ${box.urt.x}, ${box.urt.y}, 4326)," +
+            "${expr1.toSQL(queryBuilder)})"
 }
 
 private class PointColumnType(): ColumnType() {

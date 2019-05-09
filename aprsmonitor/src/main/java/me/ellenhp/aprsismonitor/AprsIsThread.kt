@@ -41,19 +41,17 @@ class AprsIsThread(private val host: String,
 
     override fun run() {
         println("Starting APRS-IS thread.")
-        while (!Thread.interrupted()) {
+        while (!interrupted()) {
             try {
                 if (socket?.isConnected != true) {
-                    print("Connecting to $host:$port")
                     connect()
                 }
                 readPacket()?.let { packetBuffer.add(it) }
                 if (packetBuffer.size >= 100) {
                     val packets = JSONArray(packetBuffer.map { it.toString() })
-
-                    println(packets)
-
-                    post("https://$backendHost/uploadpackets", data = packets)
+                    println("Sending packets to server.")
+                    post("https://$backendHost/uploadpackets", data = packets, timeout = 10.0)
+                    println("Success.")
                     packetBuffer.clear()
                 }
             } catch (e: IOException) {
@@ -63,6 +61,7 @@ class AprsIsThread(private val host: String,
     }
 
     private fun connect() {
+        println("Connecting to $host:$port")
         socket = Socket()
         socket?.connect(InetSocketAddress(host, port), 5000)
         // 1000ms looks dangerous at first blush until you remember we're connected to the full feed
@@ -73,6 +72,7 @@ class AprsIsThread(private val host: String,
         val writer = socket?.getOutputStream()?.bufferedWriter()
         writer?.write("user $callsign pass -1\r\n")
         writer?.flush()
+        println("Connected to $host:$port")
     }
 
     private fun readPacket(): AprsPacket? {

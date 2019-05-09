@@ -21,6 +21,8 @@ repositories {
     maven { url "https://dl.bintray.com/kotlin/ktor" }
 }
 
+appengine.deploy.version = "prod"
+
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     compile "io.ktor:ktor-server-servlet:$ktor_version"
@@ -33,6 +35,7 @@ dependencies {
     compile "com.google.cloud:google-cloud-logging-logback:0.60.0-alpha"
     compile 'com.google.cloud.sql:postgres-socket-factory:1.0.13'
     compile "org.postgresql:postgresql:42.2.5"
+    compile "com.google.openlocationcode:openlocationcode:1.0.2"
     compile group: 'org.json', name: 'json', version: '20180813'
     compile group: 'org.hibernate', name: 'hibernate-hikaricp', version: '5.4.2.Final'
     compile group: 'com.google.api-client', name: 'google-api-client', version: '1.28.0'
