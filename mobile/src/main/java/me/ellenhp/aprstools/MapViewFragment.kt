@@ -91,7 +91,6 @@ class MapViewFragment : Fragment(),
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
         mapFragment.getMapAsync(this)
 
-
         requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
     }
 
@@ -139,6 +138,7 @@ class MapViewFragment : Fragment(),
         if (checkSelfPermission(context!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 checkSelfPermission(context!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
             map?.uiSettings?.isMyLocationButtonEnabled = true
+            animateToLastLocation()
         }
     }
 
