@@ -70,13 +70,15 @@ class PacketCacheCell(val cell: OpenLocationCode) {
             packetsByStation.remove(it)
         }
 
-        command.newOrUpdated.map { timestampedSerializedPacket ->
+        val newPackets = command.newOrUpdated.map { timestampedSerializedPacket ->
             parser.parse(timestampedSerializedPacket.packet)?.let { TimestampedPacket(
                     timestampedSerializedPacket.millisSinceEpoch, it) }
-        }.filterNotNull().forEach {
+        }.filterNotNull()
+
+        newPackets.forEach {
             packetsByStation[it.packet.source] = it
-            plotter.plotOrUpdate(it.packet)
         }
+        plotter.plotOrUpdate(newPackets.map { it.packet })
 
         updateToken = command.secondsSinceEpoch
     }

@@ -46,10 +46,12 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
     }
 
     @Synchronized
-    fun plotOrUpdate(packet: AprsPacket) {
+    fun plotOrUpdate(packets: List<AprsPacket>) {
         activity.runOnUiThread {
-            Log.d("Plotter", "Plotting packet $packet")
-            createOrUpdateMarker(packet)
+            packets.forEach {
+                Log.d("Plotter", "Plotting packet $it")
+                createOrUpdateMarker(it)
+            }
         }
     }
 
@@ -61,7 +63,10 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
             createMarker(location, packet.source, symbol)?.let { markers[packet.source] = it }
         }
         else {
-            currentMarker.position = LatLng(location.latitude, location.longitude)
+            val newPos = LatLng(location.latitude, location.longitude)
+            if (currentMarker.position != newPos) {
+                currentMarker.position = newPos
+            }
         }
     }
 

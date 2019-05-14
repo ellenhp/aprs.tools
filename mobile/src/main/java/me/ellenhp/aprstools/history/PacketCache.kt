@@ -32,8 +32,8 @@ class PacketCache(private val plotter: PacketPlotter) {
 
     private var head: PacketCacheCell? = null
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 12
-    private val targetCells = 10
+    private val maxCells = 20
+    private val targetCells = 15
 
     @Synchronized
     fun requestUpdate(cellKey: OpenLocationCode) {
