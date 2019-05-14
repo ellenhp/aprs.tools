@@ -81,14 +81,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
         navController.addOnDestinationChangedListener(this)
     }
 
-    override fun onStart() {
-        super.onStart()
-
-        launch {
-            maybeShowCallsignDialog()
-        }
-    }
-
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         val navController = findNavController(supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!)
         return onNavDestinationSelected(item, navController)
