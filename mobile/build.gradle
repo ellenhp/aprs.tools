@@ -55,6 +55,7 @@ sourceSets {
 }
 
 licenseTools {
+    ignoredProjects = ["aprsbackend", "aprsmonitor"]
     licensesYaml = file("src/main/assets/licenses.yml")
 }
 
@@ -93,4 +94,5 @@ dependencies {
 }
 repositories {
     mavenCentral()
+    maven { url "https://dl.bintray.com/kotlin/ktor" }
 }
