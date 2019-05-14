@@ -23,164 +23,298 @@ import com.google.openlocationcode.OpenLocationCode
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
-import org.jetbrains.exposed.dao.IntIdTable
-import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.joda.time.DateTime
-import org.joda.time.Duration.*
-import org.joda.time.Instant
-import org.joda.time.Instant.*
-import org.postgis.*
-import java.sql.Blob
+import me.ellenhp.aprslib.parser.AprsParser
+import org.postgis.PGgeometry
+import org.postgis.Point
+import java.sql.Connection
 import javax.sql.DataSource
-import javax.sql.rowset.serial.SerialBlob
 
-
-object Packets: IntIdTable() {
-    val fromCallsign = text("fromCallsign").index()
-    val toCallsign = text("toCallsign").index()
-    val timestamp = datetime("timestamp").index()
-    val latLng = point("latLng").nullable() // Not all APRS packets have location info
-    val packet = blob("packet")
-}
-
-class DatabaseLayer(dbConnectionString: String, dbName: String, user: String, password: String) {
+class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName: String, user: String, password: String) {
 
     val pool: DataSource
 
     init {
+
         val config = HikariConfig()
 
         config.jdbcUrl = String.format("jdbc:postgresql:///%s", dbName)
         config.username = user
         config.password = password
-        config.addDataSourceProperty("socketFactory", "com.google.cloud.sql.postgres.SocketFactory")
-        config.addDataSourceProperty("cloudSqlInstance", dbConnectionString)
+        socketFactory?.let { config.addDataSourceProperty("socketFactory", it) }
+        dbConnectionString?.let { config.addDataSourceProperty("cloudSqlInstance", it) }
         config.addDataSourceProperty("useSSL", false)
-        config.maximumPoolSize = 5
-        config.minimumIdle = 2
+        config.maximumPoolSize = 20
+        config.minimumIdle = 10
         config.connectionTimeout = 10000
-        config.idleTimeout = 60000
+        config.idleTimeout = 600000
         config.maxLifetime = 1800000
 
         pool = HikariDataSource(config)
-        Database.connect(getNewConnection = { pool.connection })
     }
 
     fun putPackets(packets: List<AprsPacket>) {
-        val blobs: Map<AprsPacket, Blob> =
-                packets.map { it to SerialBlob(it.toString().toByteArray(Charsets.ISO_8859_1)) }.toMap()
-        transaction {
-            val blacklist = Packets.select {
-                Packets.timestamp.greaterEq(now().minus(standardSeconds(30)).toDateTime()) and
-                Packets.toCallsign.inList(packets.map { it.source.call }) and
-                Packets.packet.inList(blobs.values)
-            }.map { it[Packets.packet] }
+        val conn = pool.connection
+        conn.autoCommit = false
 
-            val newPackets = packets.filter {
-                !blacklist.contains(blobs[it])
+        try {
+            insertAllStations(conn, packets.map { it.source })
+            insertAllStations(conn, packets.map { it.dest })
+            conn.commit()
+            insertAllPackets(conn, packets)
+            conn.commit()
+        } finally {
+            conn.autoCommit = true
+            conn.close()
+        }
+    }
+
+    fun getAllFrom(station: Ax25Address): List<TimestampedSerializedPacket> {
+        val conn = pool.connection
+        try {
+            val select = conn.prepareStatement("""
+                SELECT packet, received_timestamp, source_call, source_ssid FROM packets WHERE source_call=? AND source_ssid=?;
+            """.trimIndent())
+            select.fetchSize = 500
+            select.setString(1, station.call)
+            select.setString(2, station.ssid)
+            val results = select.executeQuery()
+            val packets = ArrayList<TimestampedSerializedPacket>()
+            while (results.next()) {
+                val blob = results.getBytes(1)
+                packets.add(TimestampedSerializedPacket(
+                        results.getTimestamp(2).time,
+                        String(blob, Charsets.ISO_8859_1)))
             }
+            return packets.toList()
+        } finally {
+            conn.close()
+        }
+    }
 
-            Packets.batchInsert(newPackets) {
-                this[Packets.fromCallsign] = it.source.call
-                this[Packets.toCallsign] = it.dest.call
-                this[Packets.timestamp] = DateTime.now()
-                it.location()?.let { location -> this[Packets.latLng] = Point(location.longitude, location.latitude) }
-                this[Packets.packet] = blobs[it] ?: error("No blob found, this shouldn't happen")
+
+    fun getAllTo(station: Ax25Address): List<TimestampedSerializedPacket> {
+        val conn = pool.connection
+        try {
+            val select = conn.prepareStatement("""
+                SELECT packet, received_timestamp, dest_call, dest_ssid FROM packets WHERE dest_call=? AND dest_ssid=?;
+            """.trimIndent())
+            select.fetchSize = 500
+            select.setString(1, station.call)
+            select.setString(2, station.ssid)
+            val results = select.executeQuery()
+            val packets = ArrayList<TimestampedSerializedPacket>()
+            while (results.next()) {
+                val blob = results.getBytes(1)
+                packets.add(TimestampedSerializedPacket(
+                        results.getTimestamp(2).time,
+                        String(blob, Charsets.ISO_8859_1)))
             }
+            return packets.toList()
+        } finally {
+            conn.close()
         }
     }
 
-    fun getAllFrom(callsign: String): List<TimestampedSerializedPacket> {
-        val packetRows = transaction {
-            Packets.select {
-                Packets.fromCallsign eq callsign
-            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(500).toList()
-        }
-        return packetRows
-                .map {
-                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
-                    val timestamp = it[Packets.timestamp].millis
-                    TimestampedSerializedPacket(timestamp, packet)
-                }
-    }
-
-    fun getAllTo(callsign: String): List<TimestampedSerializedPacket> {
-        val packetRows = transaction {
-            Packets.select {
-                Packets.toCallsign eq callsign
-            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(500).toList()
-        }
-        return packetRows
-                .map {
-                    val packet = String(it[Packets.packet].binaryStream.readBytes(), Charsets.ISO_8859_1)
-                    val timestamp = it[Packets.timestamp].millis
-                    TimestampedSerializedPacket(timestamp, packet)
-                }
-    }
-
-    fun getPacketsNear(codeAreas: List<OpenLocationCode.CodeArea>): List<TimestampedSerializedPacket> {
-        val packetRows = transaction {
-            Packets.select {
-                val isInCodeAreas = codeAreas.map {
-                    Packets.latLng.within(
-                            PGbox2d(Point(it.westLongitude, it.southLatitude),
-                                    Point(it.eastLongitude, it.northLatitude)))
-                }.reduce { arg1, arg2 ->
-                    arg1 or arg2
-                }
-                Packets.latLng.isNotNull() and isInCodeAreas
-            }.orderBy(Packets.timestamp, SortOrder.DESC).limit(250).toList()
-        }
-        return packetRows
-                .map {
-                    val packetBlob = it[Packets.packet]
-                    // Blob.getBytes uses 1-based indexing.
-                    val packet = String(packetBlob.getBytes(1, packetBlob.length().toInt()), Charsets.ISO_8859_1)
-                    val timestamp = it[Packets.timestamp].millis
-                    packetBlob.free()
-                    TimestampedSerializedPacket(timestamp, packet)
-                }
-    }
-
-    fun cleanupPackets(expiryTime: Instant) {
-        transaction {
-            Packets.deleteWhere {
-                Packets.timestamp less expiryTime.toDateTime()
+    fun getStationsIn(codeArea: OpenLocationCode.CodeArea): Pair<Long, List<TimestampedSerializedPacket>>? {
+        val conn = pool.connection
+        try {
+            val select = conn.prepareStatement("""
+                SELECT packets.packet, packets.received_timestamp, NOW()
+                FROM latestPackets
+                JOIN packets ON latestPackets.packet=packets.id
+                WHERE packets.latlng && ST_MakeEnvelope(?, ?, ?, ?);
+             """.trimIndent())
+            select.fetchSize = 500
+            select.setDouble(1, codeArea.westLongitude)
+            select.setDouble(2, codeArea.southLatitude)
+            select.setDouble(3, codeArea.eastLongitude)
+            select.setDouble(4, codeArea.northLatitude)
+            val results = select.executeQuery()
+            val packets = ArrayList<TimestampedSerializedPacket>()
+            var now: Long? = null
+            while (results.next()) {
+                val blob = results.getBytes(1)
+                packets.add(TimestampedSerializedPacket(
+                        results.getTimestamp(2).time,
+                        String(blob, Charsets.ISO_8859_1)))
+                now = now ?: results.getTimestamp(3).time/1000
             }
+            packets.map { AprsParser().parse(it.packet)?.location() }.filterNotNull().forEach {
+                if (it.latitude < codeArea.southLatitude || it.latitude > codeArea.northLatitude)
+                    error("latitude out of bounds")
+                if (it.longitude < codeArea.westLongitude || it.longitude > codeArea.eastLongitude)
+                    error("{$it.longitude} out of bounds")
+            }
+            return now?.let { it to packets.toList() }
+        } finally {
+            conn.close()
         }
+    }
+
+    fun getStationsAtTime(codeArea: OpenLocationCode.CodeArea, rewindTo: Long): List<TimestampedSerializedPacket> {
+        val conn = pool.connection
+        try {
+            val select = conn.prepareStatement("""
+                SELECT first_old.packet, first_old.received_timestamp FROM (
+                    SELECT old.packet, old.received_timestamp, old.latlng, old.source_call, old.source_ssid,
+                        ROW_NUMBER() OVER (PARTITION BY old.source_call, old.source_ssid ORDER BY old.received_timestamp DESC) row_num
+                    FROM (
+                        SELECT * FROM packets
+                        WHERE packets.received_timestamp >= TO_TIMESTAMP(?) - INTERVAL '6 hours' AND
+                            packets.received_timestamp <= TO_TIMESTAMP(?) AND latlng IS NOT NULL
+                    ) AS old
+                ) AS first_old
+                WHERE row_num = 1 AND first_old.latlng && ST_MakeEnvelope(?, ?, ?, ?)
+                ;
+             """.trimIndent())
+            select.fetchSize = 500
+            select.setLong(1, rewindTo)
+            select.setLong(2, rewindTo)
+            select.setDouble(3, codeArea.westLongitude)
+            select.setDouble(4, codeArea.southLatitude)
+            select.setDouble(5, codeArea.eastLongitude)
+            select.setDouble(6, codeArea.northLatitude)
+            val results = select.executeQuery()
+            val packets = ArrayList<TimestampedSerializedPacket>()
+            while (results.next()) {
+                val blob = results.getBytes(1)
+                packets.add(TimestampedSerializedPacket(
+                        results.getTimestamp(2).time,
+                        String(blob, Charsets.ISO_8859_1)))
+            }
+            return packets.toList()
+        } finally {
+            conn.close()
+        }
+    }
+
+    fun cleanupPackets() {
+        val conn = pool.connection
+        val delete = conn.prepareStatement("""
+            DELETE FROM packets WHERE packets.received_timestamp < NOW() - '24 hours' ON DELETE CASCADE;
+        """.trimIndent())
+        delete.executeUpdate()
+        conn.close()
     }
 
     fun setupSchema() {
-        transaction {
-            SchemaUtils.create(Packets)
+        val conn = pool.connection
+        try {
+            val setupSchemaStatement = conn.prepareStatement("""
+                CREATE EXTENSION IF NOT EXISTS postgis;
+                CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+                CREATE TABLE IF NOT EXISTS stations (
+                    callsign text,
+                    ssid text,
+                    track geometry(LINESTRING),
+                    PRIMARY KEY (callsign, ssid));
+
+                CREATE TABLE IF NOT EXISTS packets (
+                    id BIGSERIAL PRIMARY KEY,
+                    source_call text,
+                    source_ssid text,
+                    dest_call text,
+                    dest_ssid text,
+                    received_timestamp timestamptz,
+                    latlng geometry(POINT),
+                    packet bytea,
+                    FOREIGN KEY (source_call, source_ssid) REFERENCES stations,
+                    FOREIGN KEY (dest_call, dest_ssid) REFERENCES stations,
+                    CONSTRAINT possible_duplicate EXCLUDE USING GIST (
+                        packet WITH =,
+                        tsrange(received_timestamp AT TIME ZONE 'UTC', received_timestamp AT TIME ZONE 'UTC' + INTERVAL '30 seconds') WITH &&
+                    ));
+
+                CREATE TABLE IF NOT EXISTS latestPackets (
+                    callsign text,
+                    ssid text,
+                    packet bigint REFERENCES packets,
+                    PRIMARY KEY (callsign, ssid),
+                    FOREIGN KEY (callsign, ssid) REFERENCES stations);
+
+
+                CREATE INDEX ON stations(callsign);
+                CREATE INDEX ON stations USING gist (track);
+
+                CREATE INDEX ON packets(source_call);
+                CREATE INDEX ON packets(dest_call);
+                CREATE INDEX ON packets(source_ssid);
+                CREATE INDEX ON packets(dest_ssid);
+                CREATE INDEX ON packets(received_timestamp);
+                CREATE INDEX ON packets(packet);
+                CREATE INDEX ON packets USING gist (latlng);
+
+                CREATE INDEX ON latestPackets(callsign);
+                CREATE INDEX ON latestPackets(ssid);
+
+            """.trimIndent())
+            setupSchemaStatement.executeUpdate()
+        } finally {
+            conn.close()
         }
     }
-}
 
-// We need a bunch of extension functions to do geospatial queries.
-
-fun Table.point(name: String): Column<Point>
-        = registerColumn(name, PointColumnType())
-
-infix fun ExpressionWithColumnType<*>.within(box: PGbox2d) : Op<Boolean>
-        = WithinOp(this, box)
-
-private class WithinOp(val expr1: Expression<*>, val box: PGbox2d) : Op<Boolean>() {
-    override fun toSQL(queryBuilder: QueryBuilder) =
-            "ST_Contains(ST_MakeEnvelope(${box.llb.x}, ${box.llb.y}, ${box.urt.x}, ${box.urt.y}, 4326)," +
-            "${expr1.toSQL(queryBuilder)})"
-}
-
-private class PointColumnType(): ColumnType() {
-    override fun sqlType() = "GEOMETRY(Point, 4326)"
-    override fun valueFromDB(value: Any) = if (value is PGgeometry) value.geometry else value
-    override fun notNullValueToDB(value: Any): Any {
-        if (value is Point) {
-            if (value.srid == Point.UNKNOWN_SRID) value.srid = 4326
-            return PGgeometry(value)
+    private fun insertAllStations(conn: Connection, stations: List<Ax25Address>) {
+        val statement = conn.prepareStatement(
+                "INSERT INTO stations(callsign, ssid, track) VALUES(?, ?, null) ON CONFLICT DO NOTHING;")
+        for (station in stations) {
+            statement.setString(1, station.call)
+            statement.setString(2, station.ssid ?: "")
+            statement.addBatch()
         }
-        return value
+        statement.executeBatch()
+    }
+
+    private fun insertAllPackets(conn: Connection, packets: List<AprsPacket>) {
+        val insertPackets = conn.prepareStatement(
+                "INSERT INTO packets(" +
+                        "source_call," +
+                        "source_ssid," +
+                        "dest_call," +
+                        "dest_ssid," +
+                        "received_timestamp," +
+                        "latlng," +
+                        "packet)" +
+                        "VALUES(?, ?, ?, ?, NOW(), ?, ?)" +
+                        "ON CONFLICT DO NOTHING;", arrayOf("id"))
+        for (packet in packets) {
+            insertPackets.setString(1, packet.source.call)
+            insertPackets.setString(2, packet.source.ssid ?: "")
+            insertPackets.setString(3, packet.dest.call)
+            insertPackets.setString(4, packet.dest.ssid ?: "")
+            insertPackets.setObject(5, packet.location()?.let {
+                val point = Point(it.longitude, it.latitude)
+                PGgeometry(point)
+            })
+            insertPackets.setBytes(6, packet.toString().toByteArray(Charsets.ISO_8859_1))
+            insertPackets.addBatch()
+        }
+        insertPackets.executeBatch()
+
+        val upsertLatest = conn.prepareStatement(
+                "INSERT INTO latestPackets(" +
+                        "callsign," +
+                        "ssid," +
+                        "packet) " +
+                        "(" +
+                        "   SELECT source_call, source_ssid, id FROM packets WHERE id=?" +
+                        ")" +
+                        "ON CONFLICT (callsign, ssid) DO UPDATE SET (packet) = (EXCLUDED.packet);")
+
+        val keys = insertPackets.generatedKeys
+        var indexIntoPackets = 0
+        while (keys.next()) {
+            val currentPacket = packets[indexIntoPackets++]
+            val key = keys.getLong(1)
+            if (currentPacket.location() == null) {
+                continue
+            }
+            upsertLatest.setLong(1, key)
+            upsertLatest.addBatch()
+        }
+        upsertLatest.executeBatch()
     }
 }

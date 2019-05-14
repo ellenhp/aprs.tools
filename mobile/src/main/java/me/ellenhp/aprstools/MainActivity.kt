@@ -35,9 +35,9 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
-import me.ellenhp.aprstools.history.PacketTrackHistory
 import me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment
 import me.ellenhp.aprstools.licenses.DependencyLicenseFragment
+import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.Preferences
@@ -54,8 +54,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
     lateinit var preferences: Lazy<Preferences>
 
     private val callsignDialog = CallsignDialogFragment()
-
-    lateinit var packetHistory: PacketTrackHistory
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -78,8 +76,6 @@ class MainActivity : androidx.appcompat.app.AppCompatActivity(),
         drawer.addDrawerListener(toggle)
         toggle.isDrawerIndicatorEnabled = true
         toggle.syncState()
-
-        packetHistory = PacketTrackHistory()
 
         val navController = findNavController(supportFragmentManager.findFragmentById(R.id.nav_host_fragment)!!)
         navController.addOnDestinationChangedListener(this)

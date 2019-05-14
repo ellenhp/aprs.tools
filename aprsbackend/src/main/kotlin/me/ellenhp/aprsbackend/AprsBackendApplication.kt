@@ -37,39 +37,45 @@ import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.post
 import io.ktor.routing.routing
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprslib.packet.CacheUpdateCommand
+import me.ellenhp.aprslib.packet.TimestampedPacket
+import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
 import me.ellenhp.aprslib.parser.AprsParser
-import org.joda.time.Duration.*
-import org.joda.time.Instant.now
 import org.json.JSONArray
-import org.postgis.Point
+import org.json.JSONObject
+import java.sql.SQLException
 import java.text.DateFormat
 import java.util.*
-
-fun Application.init() {
-
-}
 
 fun Application.main() {
 
     val config = environment.config.config("sql")
-    val dbConnectionString = config.property("dbConnectionString").getString()
-    val dbUser = config.property("dbUser").getString()
-    val dbName = config.property("dbName").getString()
-    val dbPasswordEncrypted = Base64.getDecoder().decode(config.property("dbPasswordEncrypted").getString())
+    val isLocal = config.property("isLocal").getString()
 
     val parser = AprsParser()
 
-    val client = KeyManagementServiceClient.create()
-    val passwordResponse = client.decrypt(CryptoKeyName.of(
-                    "aprstools",
-                    "global",
-                    "api-keys",
-                    "aprstools-symmetric-key"), ByteString.copyFrom(dbPasswordEncrypted))
+    val database = if (isLocal.toBoolean()) {
+        DatabaseLayer(null, null, "postgres", "aprs", "localonly")
+    } else {
+        val dbConnectionString = config.property("dbConnectionString").getString()
+        val dbUser = config.property("dbUser").getString()
+        val dbName = config.property("dbName").getString()
+        val dbPasswordEncrypted = Base64.getDecoder().decode(config.property("dbPasswordEncrypted").getString())
+        val client = KeyManagementServiceClient.create()
+        val passwordResponse = client.decrypt(CryptoKeyName.of(
+                "aprstools",
+                "global",
+                "api-keys",
+                "aprstools-symmetric-key"), ByteString.copyFrom(dbPasswordEncrypted))
 
-    val database = DatabaseLayer(dbConnectionString, dbName, dbUser, passwordResponse.plaintext.toStringUtf8())
-
-    // Warm the database connection pool by making a meaningless request.
-    database.getAllFrom("")
+        DatabaseLayer(
+                dbConnectionString,
+                "com.google.cloud.sql.postgres.SocketFactory",
+                dbName,
+                dbUser,
+                passwordResponse.plaintext.toStringUtf8())
+    }
 
     install(DefaultHeaders)
     install(Compression)
@@ -85,7 +91,8 @@ fun Application.main() {
         get("/from/{callsign}") {
             call.respondText {
                 val callsign = call.parameters["callsign"]
-                val packets = database.getAllFrom(callsign!!)
+                val ssid = call.parameters["ssid"]
+                val packets = database.getAllFrom(Ax25Address(callsign!!, ssid ?: ""))
                 JSONArray(packets).toString()
             }
         }
@@ -93,17 +100,87 @@ fun Application.main() {
         get("/to/{callsign}") {
             call.respondText {
                 val callsign = call.parameters["callsign"]
-                val packets = database.getAllTo(callsign!!)
+                val ssid = call.parameters["ssid"]
+                val packets = database.getAllTo(Ax25Address(callsign!!, ssid ?: ""))
                 JSONArray(packets).toString()
             }
         }
 
-        get("/within/{plusCodes}/") {
-            val plusCodes = call.parameters["plusCodes"]!!.toString().split(",")
-            val packets = database.getPacketsNear(plusCodes.map { OpenLocationCode.decode(it) })
-            call.respondText {
-                JSONArray(packets).toString()
+        get("/within/{zone}") {
+            val zone = OpenLocationCode.decode(call.parameters["zone"]!!)
+
+            val currentStationsAndTime = database.getStationsIn(zone)
+
+            if (currentStationsAndTime == null) {
+                call.respondText {
+                    JSONObject(CacheUpdateCommand(
+                            true,
+                            0,
+                            listOf(),
+                            listOf())).toString()
+                }
+            } else {
+                call.respondText {
+                    JSONObject(CacheUpdateCommand(
+                            true,
+                            currentStationsAndTime.first,
+                            currentStationsAndTime.second,
+                            listOf())).toString()
+                }
             }
+
+        }
+
+        get("/withinSince/{zone}/{timestampSeconds}") {
+            val zone = OpenLocationCode.decode(call.parameters["zone"]!!)
+
+            val currentStationsAndTime = database.getStationsIn(zone)
+
+            if (currentStationsAndTime == null) {
+                call.respondText {
+                    JSONObject(CacheUpdateCommand(
+                            true,
+                            0,
+                            listOf(),
+                            listOf())).toString()
+                }
+            } else {
+                call.respondText {
+                    JSONObject(CacheUpdateCommand(
+                            true,
+                            currentStationsAndTime.first,
+                            currentStationsAndTime.second,
+                            listOf())).toString()
+                }
+            }
+
+//            val timestampSeconds = call.parameters["timestampSeconds"]!!.toLong()
+//
+//            val currentStationsAndTime = database.getStationsIn(zone)
+//            if (currentStationsAndTime == null) {
+//                call.respondText {
+//                    JSONObject(CacheUpdateCommand(true, 0, listOf(), listOf())).toString()
+//                }
+//            } else {
+//                val time = currentStationsAndTime.first
+//                val oldPackets = database.getStationsAtTime(zone, timestampSeconds)
+//
+//                val current = currentStationsAndTime.second.map { timestampedSerialized ->
+//                    parser.parse(timestampedSerialized.packet)?.let { TimestampedPacket(timestampedSerialized.millisSinceEpoch, it) }
+//                }.filterNotNull().map { it.packet.source to it }.toMap()
+//                val old = oldPackets.map { timestampedSerialized ->
+//                    parser.parse(timestampedSerialized.packet)?.let { TimestampedPacket(timestampedSerialized.millisSinceEpoch, it) }
+//                }.filterNotNull().map { it.packet.source to it }.toMap()
+//
+//                val newPackets = current.filter { !old.containsValue(it.value) }.map { it.value }.map {
+//                    TimestampedSerializedPacket(it.millisSinceEpoch, it.packet.toString())
+//                }
+//                val stationsToEvict = old.filter { !current.containsKey(it.key) }.map { it.key }
+//
+//                call.respondText {
+//                    JSONObject(CacheUpdateCommand(false, time, newPackets, stationsToEvict)).toString()
+//                }
+//            }
         }
 
         post("/uploadpackets") {
@@ -114,14 +191,14 @@ fun Application.main() {
         }
 
         get("/cleanup") {
-            database.cleanupPackets(now().minus(standardHours(6)))
+            database.cleanupPackets()
             call.respond(HttpStatusCode.OK, "Did the thing.")
         }
 
         get("/setupschema") {
             database.setupSchema()
             call.respond(HttpStatusCode.OK,
-                    "Don't forget to create an index on latLng using PostGIS!")
+                    "Did the thing.")
         }
     }
 }

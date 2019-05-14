@@ -82,6 +82,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:3.14.1'
     implementation "com.google.code.gson:gson:2.8.5"
     implementation "org.jetbrains.anko:anko-commons:0.10.4"
+    implementation "com.google.openlocationcode:openlocationcode:1.0.2"
 
     testImplementation 'junit:junit:4.12'
     testImplementation "com.google.truth:truth:0.42"

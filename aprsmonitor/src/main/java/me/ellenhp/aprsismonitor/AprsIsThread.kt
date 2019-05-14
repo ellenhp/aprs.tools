@@ -20,6 +20,7 @@
 package me.ellenhp.aprsismonitor
 
 import khttp.post
+import khttp.structures.authorization.Authorization
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.json.JSONArray
@@ -31,7 +32,8 @@ import java.net.Socket
 class AprsIsThread(private val host: String,
                    private val port: Int,
                    private val callsign: String,
-                   private val backendHost: String): Thread() {
+                   private val backendHost: String,
+                   private val useSSL: Boolean): Thread() {
 
     private val parser = AprsParser()
     private val packetBuffer = ArrayList<AprsPacket>()
@@ -50,12 +52,18 @@ class AprsIsThread(private val host: String,
                 if (packetBuffer.size >= 100) {
                     val packets = JSONArray(packetBuffer.map { it.toString() })
                     println("Sending packets to server.")
-                    post("https://$backendHost/uploadpackets", data = packets, timeout = 10.0)
-                    println("Success.")
+                    val url = "http${if (useSSL) "s" else ""}://$backendHost/uploadpackets"
+                    val response = post(url, data = packets, timeout = 10.0)
+                    println("Response: ${response.statusCode}")
                     packetBuffer.clear()
                 }
             } catch (e: IOException) {
                 e.printStackTrace()
+                try {
+                    socket?.close()
+                } finally {
+                    socket = null
+                }
             }
         }
     }

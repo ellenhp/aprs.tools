@@ -27,7 +27,6 @@ import androidx.preference.PreferenceManager
 import dagger.Module
 import dagger.Provides
 import me.ellenhp.aprstools.*
-import me.ellenhp.aprstools.history.PacketTrackHistory
 
 @Module
 class ActivityModule(private val activity: MainActivity) {
@@ -48,10 +47,5 @@ class ActivityModule(private val activity: MainActivity) {
     fun providesBluetoothAdapter(): BluetoothAdapter? {
         val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter
-    }
-
-    @Provides
-    fun providesHistory(): PacketTrackHistory {
-        return activity.packetHistory
     }
 }

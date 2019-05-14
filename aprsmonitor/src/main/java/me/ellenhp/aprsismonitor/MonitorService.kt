@@ -21,6 +21,7 @@ package me.ellenhp.aprsismonitor
 
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.default
+import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
@@ -34,10 +35,11 @@ class BackendService : CliktCommand() {
             .required()
     private val backendHost: String by option(help="The callsign to use when connecting to APRS-IS")
             .required()
-
+    private val useSSL: Boolean by option("--use-ssl", help="Whether or not to use SSL")
+            .flag("--disable-ssl", default=true)
     override fun run() {
         println("Creating APRS-IS backend service.")
-        val thread = AprsIsThread(aprsIsHost, aprsIsPort, callsign, backendHost)
+        val thread = AprsIsThread(aprsIsHost, aprsIsPort, callsign, backendHost, useSSL)
         println("Starting APRS-IS backend service.")
         thread.start()
         thread.join()

@@ -24,6 +24,7 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -35,25 +36,13 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.CameraUpdateFactory.*
 import com.google.android.gms.maps.model.LatLng
 import dagger.Lazy
-import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.history.HistoryUpdateListener
-import me.ellenhp.aprstools.history.PacketTrackHistory
-import me.ellenhp.aprstools.map.PacketPlotter
-import me.ellenhp.aprstools.map.PacketPlotterFactory
-import org.threeten.bp.Duration
 import javax.inject.Inject
-import com.google.gson.Gson
+import com.google.openlocationcode.OpenLocationCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
-import me.ellenhp.aprslib.parser.AprsParser
-import okhttp3.OkHttpClient
-import okhttp3.Request
+import me.ellenhp.aprstools.history.PacketCache
+import me.ellenhp.aprstools.map.PacketPlotter
 import org.jetbrains.anko.doAsync
-import org.jetbrains.anko.uiThread
-import org.threeten.bp.Instant
 
 
 /**
@@ -75,10 +64,8 @@ class MapViewFragment : Fragment(),
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
-    @Inject
-    lateinit var packetHistory: Lazy<PacketTrackHistory>
-    @Inject
-    lateinit var plotterFactory: PacketPlotterFactory
+
+    var packetCache: PacketCache? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -104,6 +91,7 @@ class MapViewFragment : Fragment(),
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
         mapFragment.getMapAsync(this)
 
+
         requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
     }
 
@@ -123,52 +111,31 @@ class MapViewFragment : Fragment(),
         settings.isTiltGesturesEnabled = false
         settings.isRotateGesturesEnabled = true
 
-        plotter = plotterFactory.create(map, Duration.ofHours(6))
-
+        loadRegion()
         animateToLastLocation()
 
-        plotter.plot(packetHistory.get())
+        packetCache = PacketCache(PacketPlotter(activity!!, map!!))
 
-        map?.setOnCameraIdleListener { loadRegion() }
-
-        activity!!.runOnUiThread {
-            plotter.plot(packetHistory.get())
-        }
+        map?.setOnCameraMoveListener { loadRegion() }
     }
 
     private fun loadRegion() {
+        if (map!!.cameraPosition.zoom < 8) {
+            return
+        }
         val bounds = map!!.projection.visibleRegion
         val sw = bounds.latLngBounds.southwest
         val ne = bounds.latLngBounds.northeast
-        val url = "https://aprstools.appspot.com/within/" +
-                "${sw.longitude}/${sw.latitude}/" +
-                "${ne.longitude}/${ne.latitude}/"
+        val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
+                OpenLocationCode(ne.latitude, ne.longitude).decode())
 
-        doAsync {
-            val response = OkHttpClient().newCall(Request.Builder().url(url).build()).execute()
-
-            if (!response.isSuccessful)
-                return@doAsync // TODO LOG
-
-            val parser = AprsParser()
-            val body = response.body()?.string()
-            val packets = Gson().fromJson<Array<TimestampedSerializedPacket>>(
-                    body, Array<TimestampedSerializedPacket>::class.java)
-
-            for (packet in packets) {
-                parser.parse(packet.packet)?.let {
-                    packetHistory.get().add(it, Instant.ofEpochMilli(packet.millisSinceEpoch)) }
-            }
-
-            uiThread {
-                plotter.plot(packetHistory.get())
-            }
+        zones.forEach {
+            packetCache?.requestUpdate(it)
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        animateToLastLocation()
         if (checkSelfPermission(context!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 checkSelfPermission(context!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
             map?.uiSettings?.isMyLocationButtonEnabled = true

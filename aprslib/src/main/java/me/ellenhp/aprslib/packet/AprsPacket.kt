@@ -42,4 +42,10 @@ data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: 
     }
 }
 
+data class CacheUpdateCommand(val evictAllOldStations: Boolean,
+                              val secondsSinceEpoch: Long,
+                              val newOrUpdated: List<TimestampedSerializedPacket>,
+                              val stationsToEvict: List<Ax25Address>)
+
+data class TimestampedPacket(val millisSinceEpoch: Long, val packet: AprsPacket)
 data class TimestampedSerializedPacket(val millisSinceEpoch: Long, val packet: String)
