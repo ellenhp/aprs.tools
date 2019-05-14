@@ -328,12 +328,6 @@
   license: The Apache Software License, Version 2.0
   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
   url: http://developer.android.com/tools/extras/support-library.html
-- artifact: org.jetbrains.kotlin:kotlin-android-extensions-runtime:+
-  name: org.jetbrains.kotlin:kotlin-android-extensions-runtime
-  copyrightHolder: Copyright 2010-2018 JetBrains s.r.o.
-  license: The Apache License, Version 2.0
-  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
-  url: https://kotlinlang.org/
 - artifact: androidx.legacy:legacy-support-core-ui:+
   name: Android Support Library core UI
   copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
