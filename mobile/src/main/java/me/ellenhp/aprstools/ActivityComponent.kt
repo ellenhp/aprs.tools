@@ -20,8 +20,6 @@
 package me.ellenhp.aprstools
 
 import dagger.Subcomponent
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import me.ellenhp.aprstools.aprs.AprsIsService
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.modules.TimeModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
@@ -35,7 +33,6 @@ interface ActivityComponent {
     fun inject(mainActivity: MainActivity)
     fun inject(dialogFragment: BluetoothPromptFragment)
     fun inject(dialogFragment: CallsignDialogFragment)
-    fun inject(aprsIsService: AprsIsService)
     fun inject(trackerService: TrackerService)
     fun inject(mapViewFragment: MapViewFragment)
 

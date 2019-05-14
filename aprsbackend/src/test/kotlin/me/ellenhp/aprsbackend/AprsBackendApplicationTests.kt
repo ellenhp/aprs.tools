@@ -17,17 +17,13 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.aprs
+package me.ellenhp.aprsbackend
 
-import com.google.android.gms.maps.model.LatLng
-import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 
-class LocationFilterTest {
+class AprsBackendApplicationTests {
 
-    @Test
-    fun testFilterCommand() {
-        val filter = LocationFilter(LatLng(12.345, 67.8912), 30.0)
-        assertThat(filter.filterCommand).isEqualTo("#filter r/12.345000/67.891200/30.000000\r\n")
-    }
+	@Test
+	fun contextLoads() {
+	}
 }

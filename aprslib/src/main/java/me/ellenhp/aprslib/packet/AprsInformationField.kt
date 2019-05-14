@@ -19,11 +19,7 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
-data class AprsInformationField(val dataType: Char, val aprsData: AprsData, val aprsDataExtension: AprsDataExtension?, val comment: String) : Parcelable {
+data class AprsInformationField(val dataType: Char, val aprsData: AprsData, val aprsDataExtension: AprsDataExtension?, val comment: String) {
     override fun toString(): String {
         return "%c%s%s%s".format(dataType, aprsData, aprsDataExtension ?: "", comment)
     }
@@ -39,8 +35,7 @@ data class AprsInformationField(val dataType: Char, val aprsData: AprsData, val 
     }
 }
 
-@Parcelize
-data class AprsData(val data: List<AprsDatum>) : Parcelable {
+data class AprsData(val data: List<AprsDatum>) {
     inline fun <reified T> findDatumOfType(): T? {
         val instances = data.filterIsInstance<T>()
         if (instances.size == 0)
@@ -56,8 +51,8 @@ data class AprsData(val data: List<AprsDatum>) : Parcelable {
     }
 }
 
-interface AprsDatum : Parcelable
+interface AprsDatum
 
-interface AprsDataExtension : Parcelable
+interface AprsDataExtension
 
 class DuplicateAprsDataException : Exception("You may only have not have duplicate AprsData. One per subclass only.")

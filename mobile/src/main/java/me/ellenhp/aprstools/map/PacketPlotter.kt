@@ -19,116 +19,60 @@
 
 package me.ellenhp.aprstools.map
 
+import android.util.Log
+import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.*
-import com.google.auto.factory.AutoFactory
-import com.google.auto.factory.Provided
-import com.google.common.collect.ImmutableList
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import me.ellenhp.aprslib.packet.AprsLatLng
+import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.AprsSymbol
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.history.PacketTrackHistory
-import me.ellenhp.aprstools.history.TimestampedPacket
-import javax.inject.Provider
-import dagger.Lazy
-import org.threeten.bp.Duration
-import org.threeten.bp.Instant
 
-@AutoFactory(allowSubclasses = true)
-class PacketPlotter constructor(@Provided val instant: Provider<Instant>,
-                                @Provided val symbolTable: Lazy<AprsSymbolTable>,
-                                val map: GoogleMap,
-                                private val pruneDuration: Duration) {
+class PacketPlotter(private val activity: FragmentActivity, private val map: GoogleMap) {
 
-    private val markers = HashMap<Ax25Address, Marker>()
-    private val polylines = HashMap<Ax25Address, Polyline>()
+    val markers = HashMap<Ax25Address, Marker>()
+    val symbolTable = AprsSymbolTable(activity)
 
-    fun plot(history: PacketTrackHistory) {
-        history.getStations().forEach { updateStation(it, history.getTrack(it)!!) }
-    }
-
-    private fun updateStation(station: Ax25Address, track: ImmutableList<TimestampedPacket>) {
-        val cutoffTime = instant.get().minus(pruneDuration)
-
-        updateCreateOrPrunePolyline(station, track, cutoffTime)
-        updateCreateOrPruneMarker(station, track, cutoffTime)
-    }
-
-    private fun updateCreateOrPrunePolyline(station: Ax25Address, track: ImmutableList<TimestampedPacket>, cutoffTime: Instant) {
-        val currentPolyline = polylines[station]
-        val points = trackToPointsAfterForPolyline(track, cutoffTime)
-        if (currentPolyline == null) {
-            // Create a new polyline if there are enough points.
-            points?.let { polylines[station] = createPolyline(it) }
-        }
-        else {
-            // Prune the polyline if there aren't enough points.
-            if (points == null) {
-                currentPolyline.remove()
-                polylines.remove(station)
-            } else {
-                currentPolyline.points = points
-            }
-        }
-    }
-
-    private fun updateCreateOrPruneMarker(station: Ax25Address, track: ImmutableList<TimestampedPacket>, cutoffTime: Instant) {
-        val currentMarker = markers[station]
-        val points = trackToPointsAfter(track, cutoffTime)
-        val latestSymbol = getLatestSymbol(track)
-        if (currentMarker == null) {
-            // Create a new marker if there's at least one point.
-            if (latestSymbol != null && points != null) {
-                createMarker(points.last(), station, latestSymbol)?.let { markers[station] = it }
-            }
-        }
-        else {
-            // Prune the marker if there aren't any points left.
-            if (points == null) {
-                currentMarker.remove()
+    @Synchronized
+    fun removeAll(stationsToEvict: List<Ax25Address>) {
+        activity.runOnUiThread {
+            for (station in stationsToEvict) {
+                markers[station]?.remove()
                 markers.remove(station)
-            } else {
-                currentMarker.position = points.last()
             }
         }
     }
 
-    private fun createPolyline(points: ImmutableList<LatLng>): Polyline {
-        val polylineOptions = PolylineOptions()
-        polylineOptions.addAll(points)
-        return map.addPolyline(polylineOptions)
+    @Synchronized
+    fun plotOrUpdate(packet: AprsPacket) {
+        activity.runOnUiThread {
+            Log.d("Plotter", "Plotting packet $packet")
+            createOrUpdateMarker(packet)
+        }
     }
 
-    private fun createMarker(point: LatLng, station: Ax25Address, symbol: AprsSymbol): Marker? {
+    private fun createOrUpdateMarker(packet: AprsPacket) {
+        val currentMarker = markers[packet.source]
+        val location = packet.location() ?: return
+        val symbol = packet.symbol() ?: return
+        if (currentMarker == null) {
+            createMarker(location, packet.source, symbol)?.let { markers[packet.source] = it }
+        }
+        else {
+            currentMarker.position = LatLng(location.latitude, location.longitude)
+        }
+    }
+
+    private fun createMarker(point: AprsLatLng, station: Ax25Address, symbol: AprsSymbol): Marker? {
         val markerOptions = MarkerOptions()
-        val symbolDescriptor = symbolTable.get().getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
+        val symbolDescriptor = symbolTable.getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
         markerOptions.icon(symbolDescriptor)
-        markerOptions.position(point)
+        markerOptions.position(LatLng(point.latitude, point.longitude))
         markerOptions.anchor(0.5f, 0.5f)
         markerOptions.title(station.toString())
         return map.addMarker(markerOptions)
     }
 
-    private fun trackToPointsAfterForPolyline(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {
-        val points = trackToPointsAfter(track, cutoffTime) ?: return null
-        if (points.count() > 1) {
-            return points
-        }
-        return null
-    }
-
-    private fun trackToPointsAfter(track: ImmutableList<TimestampedPacket>, cutoffTime: Instant): ImmutableList<LatLng>? {
-        val points = track
-                .filter { it.time.isAfter(cutoffTime) }
-                .map { it.packet.location() }
-                .filter { it != null }
-                .map { LatLng(it!!.latitude, it.longitude) }
-        return if (points.isEmpty()) null else ImmutableList.copyOf(points)
-    }
-
-    private fun getLatestSymbol(track: ImmutableList<TimestampedPacket>): AprsSymbol? {
-        val symbols =  track
-                .map { it.packet.symbol() }
-                .filter { it != null }
-        return if (symbols.isEmpty()) null else symbols.last()
-    }
 }

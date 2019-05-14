@@ -68,4 +68,12 @@ public class AprsParserTest {
         assertThat(packet).isNotNull();
         assertThat(packet.toString()).isEqualTo(rawPacket);
     }
+
+    @Test
+    public void testLocation() {
+        String rawPacket = "BALDI>APOT21,WIDE2-1,qAR,N7TUG-8:!4713.13N/12150.61W_PHG7830/W2,WAn,Baldi N7FSP";
+        AprsPacket packet = parser.parse(rawPacket);
+        assertThat(packet.location().getLatitude()).isWithin(0.00001).of(47.21883333333334);
+        assertThat(packet.location().getLongitude()).isWithin(0.00001).of(-121.8435);
+    }
 }

@@ -19,17 +19,16 @@
 
 package me.ellenhp.aprstools
 
-import android.Manifest
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat
 import androidx.core.app.ActivityCompat.*
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -37,18 +36,13 @@ import com.google.android.gms.maps.*
 import com.google.android.gms.maps.CameraUpdateFactory.*
 import com.google.android.gms.maps.model.LatLng
 import dagger.Lazy
-import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.history.HistoryUpdateListener
-import me.ellenhp.aprstools.history.PacketTrackHistory
-import me.ellenhp.aprstools.map.PacketPlotter
-import me.ellenhp.aprstools.map.PacketPlotterFactory
-import org.threeten.bp.Duration
 import javax.inject.Inject
-import android.Manifest.permission
-import android.Manifest.permission.ACCESS_COARSE_LOCATION
-import android.Manifest.permission.ACCESS_FINE_LOCATION
-
-
+import com.google.openlocationcode.OpenLocationCode
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import me.ellenhp.aprstools.history.PacketCache
+import me.ellenhp.aprstools.map.PacketPlotter
+import org.jetbrains.anko.doAsync
 
 
 /**
@@ -60,7 +54,9 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
  * create an instance of this fragment.
  *
  */
-class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
+class MapViewFragment : Fragment(),
+        OnMapReadyCallback,
+        CoroutineScope by MainScope() {
     private var listener: OnFragmentInteractionListener? = null
     private var map: GoogleMap? = null
 
@@ -68,10 +64,8 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
-    @Inject
-    lateinit var packetHistory: Lazy<PacketTrackHistory>
-    @Inject
-    lateinit var plotterFactory: PacketPlotterFactory
+
+    var packetCache: PacketCache? = null
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
@@ -97,6 +91,7 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
         mapFragment.getMapAsync(this)
 
+
         requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
     }
 
@@ -116,21 +111,31 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
         settings.isTiltGesturesEnabled = false
         settings.isRotateGesturesEnabled = true
 
-        plotter = plotterFactory.create(map, Duration.ofHours(6))
-
+        loadRegion()
         animateToLastLocation()
 
-        plotter.plot(packetHistory.get())
-        packetHistory.get().listener = this
+        packetCache = PacketCache(PacketPlotter(activity!!, map!!))
 
-        activity!!.runOnUiThread {
-            plotter.plot(packetHistory.get())
+        map?.setOnCameraMoveListener { loadRegion() }
+    }
+
+    private fun loadRegion() {
+        if (map!!.cameraPosition.zoom < 8) {
+            return
+        }
+        val bounds = map!!.projection.visibleRegion
+        val sw = bounds.latLngBounds.southwest
+        val ne = bounds.latLngBounds.northeast
+        val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
+                OpenLocationCode(ne.latitude, ne.longitude).decode())
+
+        zones.forEach {
+            packetCache?.requestUpdate(it)
         }
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        animateToLastLocation()
         if (checkSelfPermission(context!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 checkSelfPermission(context!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
             map?.uiSettings?.isMyLocationButtonEnabled = true
@@ -143,12 +148,6 @@ class MapViewFragment : Fragment(), OnMapReadyCallback, HistoryUpdateListener {
             fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(activity!!) {
                 map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f))
             }
-    }
-
-    override fun historyUpate(station: Ax25Address) {
-        activity?.runOnUiThread {
-            plotter.plot(packetHistory.get())
-        }
     }
 
     /**

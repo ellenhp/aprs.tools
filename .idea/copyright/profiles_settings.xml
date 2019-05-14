@@ -3,6 +3,8 @@
     <module2copyright>
       <element module="APRSTools" copyright="APRSTools" />
       <element module="APRSLib" copyright="APRSTools" />
+      <element module="APRSMonitor" copyright="APRSTools" />
+      <element module="APRSBackend" copyright="APRSTools" />
     </module2copyright>
   </settings>
 </component>

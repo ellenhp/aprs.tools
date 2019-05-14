@@ -328,12 +328,6 @@
   license: The Apache Software License, Version 2.0
   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
   url: http://developer.android.com/tools/extras/support-library.html
-- artifact: org.jetbrains.kotlin:kotlin-android-extensions-runtime:+
-  name: org.jetbrains.kotlin:kotlin-android-extensions-runtime
-  copyrightHolder: Copyright 2010-2018 JetBrains s.r.o.
-  license: The Apache License, Version 2.0
-  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
-  url: https://kotlinlang.org/
 - artifact: androidx.legacy:legacy-support-core-ui:+
   name: Android Support Library core UI
   copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
@@ -451,3 +445,30 @@
   license: The Apache Software License, Version 2.0
   licenseUrl: https://www.apache.org/licenses/LICENSE-2.0.txt
   url: https://github.com/Kotlin/atomicfu
+- artifact: com.google.code.gson:gson:+
+  name: Gson
+  copyrightHolder: Copyright (C) 2008 Google Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/license/LICENSE-2.0.txt
+- artifact: org.jetbrains.anko:anko-commons:+
+  name: anko
+  copyrightHolder: Copyright 2016 JetBrains s.r.o.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/license/LICENSE-2.0.txt
+  url: https://github.com/JetBrains/anko
+- artifact: com.google.openlocationcode:openlocationcode:+
+  name: Open Location Code
+  copyrightHolder: Copyright 2014 Google Inc. All rights reserved.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/license/LICENSE-2.0.txt
+  url: https://github.com/google/open-location-code
+- artifact: com.squareup.okio:okio:+
+  name: Okio
+  copyrightHolder: Copyright 2013 Square, Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/license/LICENSE-2.0.txt
+- artifact: com.squareup.okhttp3:okhttp:+
+  name: OkHttp
+  copyrightHolder: Copyright (C) 2014 Square, Inc.
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/license/LICENSE-2.0.txt

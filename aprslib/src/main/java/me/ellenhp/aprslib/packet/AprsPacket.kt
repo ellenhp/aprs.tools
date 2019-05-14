@@ -19,11 +19,7 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
-data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) : Parcelable {
+data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) {
     fun isWeather(): Boolean {
         val standaloneWx = informationField.dataType in listOf('!', '#', '$', '*', '_')
 
@@ -45,3 +41,11 @@ data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: 
         return "%s>%s%s:%s".format(source, dest, path, informationField)
     }
 }
+
+data class CacheUpdateCommand(val evictAllOldStations: Boolean,
+                              val secondsSinceEpoch: Long,
+                              val newOrUpdated: List<TimestampedSerializedPacket>,
+                              val stationsToEvict: List<Ax25Address>)
+
+data class TimestampedPacket(val millisSinceEpoch: Long, val packet: AprsPacket)
+data class TimestampedSerializedPacket(val millisSinceEpoch: Long, val packet: String)

@@ -19,11 +19,7 @@
 
 package me.ellenhp.aprslib.packet
 
-import android.os.Parcelable
-import kotlinx.android.parcel.Parcelize
-
-@Parcelize
-data class AprsPath(val pathSegments: List<PathSegment>) : Parcelable {
+data class AprsPath(val pathSegments: List<PathSegment>) {
     override fun toString(): String {
         return pathSegments.joinToString("")
     }
@@ -37,8 +33,7 @@ data class AprsPath(val pathSegments: List<PathSegment>) : Parcelable {
     }
 }
 
-@Parcelize
-data class PathSegment(val address: Ax25Address, val digipeated: Boolean) : Parcelable {
+data class PathSegment(val address: Ax25Address, val digipeated: Boolean) {
     override fun toString(): String {
         return ",%s%s".format(address, if (digipeated) "*" else "")
     }
