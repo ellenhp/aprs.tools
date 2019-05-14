@@ -5,9 +5,9 @@
         android:id="@+id/mapViewFragment"
         android:title="@string/map_view_menu_item" />
     <item
-        android:id="@+id/aboutFragment"
-        android:title="@string/about_menu_item" />
-    <item
         android:id="@+id/settingsFragment"
         android:title="@string/settings_menu_item" />
+    <item
+        android:id="@+id/aboutFragment"
+        android:title="@string/about_menu_item" />
 </menu>
