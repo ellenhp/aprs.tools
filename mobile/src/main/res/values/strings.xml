@@ -1,6 +1,6 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App stuff -->
-    <string name="app_name">APRSTools</string>
+    <string name="app_name">aprs.tools</string>
     <string name="app_version">0.0.1 dev</string>
 
     <string name="default_aprs_server">rotate.aprs.net</string>
@@ -18,26 +18,26 @@
 
     <!-- Copyright notices -->
     <string name="aprstools_about_heading">About</string>
-    <string name="aprstools_intro">APRSTools is written by Ellen Poe, and it is
+    <string name="aprstools_intro">aprs.tools is written by Ellen Poe, and it is
         distributed under the terms of the
         <a href="https://www.gnu.org/licenses/">GNU General Public License, version 3</a>. Ellen
-        reminds users of APRSTools to follow all laws governing the use of amateur radio equipment
+        reminds users of aprs.tools to follow all laws governing the use of amateur radio equipment
         and frequencies in your area. Precautions have been taken to reduce the risk of major bugs
         and spurious transmissions, but it is your sole responsibility to ensure your equipment,
         including any software you use to operate your station, is functioning properly and
         configured correctly. If you need to contact the developer, you can email her at
-        <a href="ellen.h.poe+aprstools@gmail.com">ellen.h.poe+aprstools@gmail.com</a>. Do not remove
-        the &quot;+aprstools&quot; tag or your message will likely be ignored. You can find a copy
-        of the APRSTools source on GitHub at
-        <a href="https://github.com/ellenpoe/APRSTools">https://github.com/ellenpoe/APRSTools</a>.
+        <a href="ellen.h.poe+aprstools@gmail.com">ellen.h.poe+aprstools@gmail.com</a>. Please don\'t
+        remove the +aprstools tag because it lets me keep my email organized. You can find a copy
+        of the aprs.tools source on GitHub at
+        <a href="https://github.com/ellenpoe/aprs.tools">https://github.com/ellenpoe/aprs.tools</a>.
     </string>
     <string name="copyright_info_heading">Copyright Information</string>
-    <string name="copyright_info_aprstools_name">APRSTools</string>
+    <string name="copyright_info_aprstools_name">aprs.tools</string>
     <string name="copyright_info_aprstools_intro" tools:ignore="TypographyOther">Copyright (C) 2019 Ellen Poe</string>
     <string name="copyright_info_autumn_name">Whimsy Compiler Framework</string>
     <string name="copyright_info_autumn_intro">
-        APRSTools contains software from the whimsy compiler framework, by Nicolas Laurent. Whimsy makes it possible
-        for APRSTools to parse APRS packets and modify them in a simple (and almost whimsical) way. A copy of whimsy
+        aprs.tools contains software from the whimsy compiler framework, by Nicolas Laurent. Whimsy makes it possible
+        for aprs.tools to parse APRS packets and modify them in a simple (and almost whimsical) way. A copy of whimsy
         is available at <a href="https://github.com/norswap/whimsy">https://github.com/norswap/whimsy</a>.
         Parts of whimsy are reproduced under the BSD 3-Clause License, shown below.
     </string>
@@ -58,11 +58,11 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="third_party_software">Third party software</string>
-    <string name="aprstools_copyright">APRSTools Copyright</string>
+    <string name="aprstools_copyright">aprs.tools Copyright</string>
     <string name="third_party_licenses">Third Party Licenses</string>
-    <string name="third_party_thank_you">This is a list of third party software that makes APRSTools tick.
+    <string name="third_party_thank_you">This is a list of third party software that makes aprs.tools tick.
         Big thank you to the open source community for creating wonderful tools. Without these projects,
-        APRSTools wouldn\'t exist.
+        aprs.tools wouldn\'t exist.
     </string>
     <string name="dep_license_label">License:</string>
     <string name="dep_license_link_label">License link:</string>
