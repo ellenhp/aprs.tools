@@ -53,7 +53,7 @@ class PacketCacheCell(val cell: OpenLocationCode) {
         if (freshnessSnapshot.isBefore(Instant.now().minus(Duration.ofHours(6)))) {
             return "https://api.aprs.tools/within/$cell"
         }
-        return "https://api.aprs.tools/within/$cell/${updateToken ?: 0}"
+        return "https://api.aprs.tools/withinSince/$cell/${updateToken ?: 0}"
     }
 
     @Synchronized

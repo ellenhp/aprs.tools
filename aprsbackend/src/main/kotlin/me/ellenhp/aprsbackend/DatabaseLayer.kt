@@ -193,7 +193,7 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
     fun cleanupPackets() {
         val conn = pool.connection
         val delete = conn.prepareStatement("""
-            DELETE FROM packets WHERE packets.received_timestamp < NOW() - '24 hours' ON DELETE CASCADE;
+            DELETE FROM packets WHERE packets.received_timestamp < NOW() - '24 hours';
         """.trimIndent())
         delete.executeUpdate()
         conn.close()
@@ -231,7 +231,7 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
                 CREATE TABLE IF NOT EXISTS latestPackets (
                     callsign text,
                     ssid text,
-                    packet bigint REFERENCES packets,
+                    packet bigint REFERENCES packets ON DELETE CASCADE,
                     PRIMARY KEY (callsign, ssid),
                     FOREIGN KEY (callsign, ssid) REFERENCES stations);
 

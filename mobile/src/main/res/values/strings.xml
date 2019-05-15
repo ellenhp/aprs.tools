@@ -1,7 +1,7 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- App stuff -->
     <string name="app_name">aprs.tools</string>
-    <string name="app_version">0.0.1 dev</string>
+    <string name="app_version">0.1.1 beta</string>
 
     <string name="default_aprs_server">rotate.aprs.net</string>
 
