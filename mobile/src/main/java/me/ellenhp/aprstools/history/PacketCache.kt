@@ -32,11 +32,29 @@ class PacketCache(private val plotter: PacketPlotter) {
 
     private var head: PacketCacheCell? = null
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 8
-    private val targetCells = 6
+    private val maxCells = 35
+    private val targetCells = 30
+
 
     @Synchronized
-    fun requestUpdate(cellKey: OpenLocationCode) {
+    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>) {
+        if (requestedCodes.size > targetCells * 2) {
+            allCells.values.toList().forEach { purgeCell(it) }
+            return
+        }
+        if (requestedCodes.size > targetCells * 0.75) {
+            allCells.values.forEach { it.setHidden(true, plotter) }
+            return
+        }
+
+        val codesToHide = allCells.keys.minus(requestedCodes)
+        codesToHide.map { allCells[it] }.forEach { it?.setHidden(true, plotter) }
+        requestedCodes.map { allCells[it] }.forEach { it?.setHidden(false, plotter) }
+
+        requestedCodes.forEach { requestUpdate(it) }
+    }
+
+    private fun requestUpdate(cellKey: OpenLocationCode) {
         Log.d("Update", "Updating cell $cellKey")
         val cell = allCells.getOrDefault(cellKey, null) ?: allocateCell(cellKey)
 
@@ -53,7 +71,9 @@ class PacketCache(private val plotter: PacketPlotter) {
 
         cell.getUpdateUrl()?.let {
             doAsync {
-                getUpdateCommand(it)?.let { cell.update(it, plotter) }
+                getUpdateCommand(it)?.let {
+                    maybeUpdateCell(cell, it)
+                }
             }
         }
 
@@ -68,16 +88,27 @@ class PacketCache(private val plotter: PacketPlotter) {
         }
         while (cur != null) {
             Log.d("evicting", "evicting cell ${cur.cell}")
-            plotter.removeAll(cur.getAllStations())
-            allCells.remove(cur.cell)
             val tmp = cur.next
-            cur.prev?.next = null
-            cur.next?.prev = null
-            cur.prev = null
-            cur.next = null
+            purgeCell(cur)
             cur = tmp
         }
         Log.d("evicting", "we now have ${allCells.count()}")
+    }
+
+    @Synchronized
+    private fun maybeUpdateCell(cell: PacketCacheCell, command: CacheUpdateCommand) {
+        if (allCells.containsKey(cell.cell)) {
+            cell.update(command, plotter)
+        }
+    }
+
+    private fun purgeCell(cell: PacketCacheCell) {
+        plotter.removeAll(cell.getAllStations())
+        allCells.remove(cell.cell)
+        cell.prev?.next = null
+        cell.next?.prev = null
+        cell.prev = null
+        cell.next = null
     }
 
     private fun getUpdateCommand(url: String): CacheUpdateCommand? {
@@ -90,7 +121,6 @@ class PacketCache(private val plotter: PacketPlotter) {
         }
         val body = response.body()
         val command = body?.string()?.let { Gson().fromJson<CacheUpdateCommand>(it, CacheUpdateCommand::class.java) }
-        Log.d("Update", "Cache update command has ${command?.newOrUpdated} new stations")
         body?.close()
         return command
     }
