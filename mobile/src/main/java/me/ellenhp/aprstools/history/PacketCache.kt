@@ -27,16 +27,44 @@ import me.ellenhp.aprstools.map.PacketPlotter
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jetbrains.anko.doAsync
+import org.threeten.bp.Instant
+import org.threeten.bp.Instant.*
 
 class PacketCache(private val plotter: PacketPlotter) {
 
+    private var lastHttpRequest: Instant? = null
     private var head: PacketCacheCell? = null
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 8
-    private val targetCells = 6
+    private val maxCells = 35
+    private val targetCells = 30
 
     @Synchronized
-    fun requestUpdate(cellKey: OpenLocationCode) {
+    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>) {
+        if (requestedCodes.size > targetCells * 2) {
+            allCells.values.toList().forEach { purgeCell(it) }
+            return
+        }
+        if (requestedCodes.size > targetCells * 0.75) {
+            allCells.values.forEach { it.setHidden(true, plotter) }
+            return
+        }
+
+        val codesToHide = allCells.keys.minus(requestedCodes)
+        codesToHide.map { allCells[it] }.forEach { it?.setHidden(true, plotter) }
+        requestedCodes.map { allCells[it] }.forEach { it?.setHidden(false, plotter) }
+
+        for (it in requestedCodes) {
+            val nextRequestAllowedInstant = lastHttpRequest?.plusMillis(20)
+            if (nextRequestAllowedInstant?.isBefore(now()) != false) {
+                if (requestUpdate(it)) {
+                    lastHttpRequest = now()
+                }
+            }
+        }
+    }
+
+    /** Returns true if an HTTP request was made */
+    private fun requestUpdate(cellKey: OpenLocationCode): Boolean {
         Log.d("Update", "Updating cell $cellKey")
         val cell = allCells.getOrDefault(cellKey, null) ?: allocateCell(cellKey)
 
@@ -51,33 +79,48 @@ class PacketCache(private val plotter: PacketPlotter) {
         head?.prev = cell
         head = cell
 
-        cell.getUpdateUrl()?.let {
+        val updateUrl = cell.getUpdateUrl()
+        updateUrl?.let {
             doAsync {
-                getUpdateCommand(it)?.let { cell.update(it, plotter) }
+                getUpdateCommand(it)?.let {
+                    maybeUpdateCell(cell, it)
+                }
             }
         }
 
         if (allCells.count() < maxCells) {
-            return
+            return updateUrl != null
         }
         Log.d("evicting", "evicting cells because we have ${allCells.count()}")
         var cur = head
-        for (i in 0..targetCells) {
+        for (i in 1..targetCells) {
             Log.d("evicting", "not evicting cell ${cur?.cell}")
             cur = cur?.next
         }
         while (cur != null) {
             Log.d("evicting", "evicting cell ${cur.cell}")
-            plotter.removeAll(cur.getAllStations())
-            allCells.remove(cur.cell)
             val tmp = cur.next
-            cur.prev?.next = null
-            cur.next?.prev = null
-            cur.prev = null
-            cur.next = null
+            purgeCell(cur)
             cur = tmp
         }
         Log.d("evicting", "we now have ${allCells.count()}")
+        return updateUrl != null
+    }
+
+    @Synchronized
+    private fun maybeUpdateCell(cell: PacketCacheCell, command: CacheUpdateCommand) {
+        if (allCells.containsKey(cell.cell)) {
+            cell.update(command, plotter)
+        }
+    }
+
+    private fun purgeCell(cell: PacketCacheCell) {
+        plotter.removeAll(cell.getAllStations())
+        allCells.remove(cell.cell)
+        cell.prev?.next = null
+        cell.next?.prev = null
+        cell.prev = null
+        cell.next = null
     }
 
     private fun getUpdateCommand(url: String): CacheUpdateCommand? {

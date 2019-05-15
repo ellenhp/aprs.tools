@@ -119,18 +119,18 @@ class MapViewFragment : Fragment(),
     }
 
     private fun loadRegion() {
-        if (map!!.cameraPosition.zoom < 8) {
+        // Don't even try to figure out all the plus codes we're covering if the zoom is huge.
+        if (map!!.cameraPosition.zoom < 6) {
             return
         }
+
         val bounds = map!!.projection.visibleRegion
         val sw = bounds.latLngBounds.southwest
         val ne = bounds.latLngBounds.northeast
         val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
                 OpenLocationCode(ne.latitude, ne.longitude).decode())
 
-        zones.forEach {
-            packetCache?.requestUpdate(it)
-        }
+        packetCache?.updateVisibleCells(zones)
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

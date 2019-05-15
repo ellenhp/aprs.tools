@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools.history
 
+import com.google.android.gms.maps.model.LatLng
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.CacheUpdateCommand
@@ -35,8 +36,9 @@ class PacketCacheCell(val cell: OpenLocationCode) {
 
     private var freshness: Instant? = null
     private var updateToken: Long? = null
+    private var hidden: Boolean = false
 
-    private var packetsByStation = HashMap<Ax25Address, TimestampedPacket>()
+    private var packetsByStation = HashMap<Ax25Address, LatLng>()
 
     private val parser = AprsParser()
 
@@ -54,6 +56,19 @@ class PacketCacheCell(val cell: OpenLocationCode) {
             return "https://api.aprs.tools/within/$cell"
         }
         return "https://api.aprs.tools/withinSince/$cell/${updateToken ?: 0}"
+    }
+
+    @Synchronized
+    fun setHidden(newHidden: Boolean, plotter: PacketPlotter) {
+        if (hidden == newHidden) {
+            return
+        }
+        hidden = newHidden
+        if (hidden) {
+            plotter.hideAll(packetsByStation.keys.toList())
+        } else {
+            plotter.showAll(packetsByStation.keys.toList())
+        }
     }
 
     @Synchronized
@@ -76,9 +91,12 @@ class PacketCacheCell(val cell: OpenLocationCode) {
         }.filterNotNull()
 
         newPackets.forEach {
-            packetsByStation[it.packet.source] = it
+            val aprsLatLng = it.packet.location() ?: return@forEach
+            packetsByStation[it.packet.source] = LatLng(aprsLatLng.latitude, aprsLatLng.longitude)
         }
-        plotter.plotOrUpdate(newPackets.map { it.packet })
+        if (!hidden) {
+            plotter.plotOrUpdate(newPackets.map { it.packet })
+        }
 
         updateToken = command.secondsSinceEpoch
     }

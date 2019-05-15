@@ -19,7 +19,6 @@
 
 package me.ellenhp.aprstools.map
 
-import android.util.Log
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
@@ -29,6 +28,7 @@ import me.ellenhp.aprslib.packet.AprsLatLng
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.AprsSymbol
 import me.ellenhp.aprslib.packet.Ax25Address
+import java.lang.Math.abs
 
 class PacketPlotter(private val activity: FragmentActivity, private val map: GoogleMap) {
 
@@ -46,10 +46,27 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
     }
 
     @Synchronized
+    fun hideAll(stationsToHide: List<Ax25Address>) {
+        activity.runOnUiThread {
+            for (station in stationsToHide) {
+                markers[station]?.isVisible = false
+            }
+        }
+    }
+
+    @Synchronized
+    fun showAll(stationsToHide: List<Ax25Address>) {
+        activity.runOnUiThread {
+            for (station in stationsToHide) {
+                markers[station]?.isVisible = true
+            }
+        }
+    }
+
+    @Synchronized
     fun plotOrUpdate(packets: List<AprsPacket>) {
         activity.runOnUiThread {
             packets.forEach {
-                Log.d("Plotter", "Plotting packet $it")
                 createOrUpdateMarker(it)
             }
         }
@@ -64,7 +81,8 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
         }
         else {
             val newPos = LatLng(location.latitude, location.longitude)
-            if (currentMarker.position != newPos) {
+            if (abs(currentMarker.position.latitude - newPos.latitude) > 0.0000001 ||
+                    abs(currentMarker.position.longitude - newPos.longitude) > 0.0000001) {
                 currentMarker.position = newPos
             }
         }

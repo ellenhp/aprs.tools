@@ -38,8 +38,7 @@ class AprsSymbolTable @Inject constructor(val context: Context) {
 
     fun getSymbol(table: Char, index: Char): BitmapDescriptor? {
         val key = SymbolTableKey(table, index)
-        val existingBitmap = bitmapCache[key]
-        existingBitmap?.let { return existingBitmap }
+        bitmapCache[key]?.let { return it }
 
         val symbol = createSymbol(getSymbolPage(key), getSymbolIndex(key))
 
