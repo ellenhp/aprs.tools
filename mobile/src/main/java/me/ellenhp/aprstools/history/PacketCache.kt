@@ -32,8 +32,8 @@ class PacketCache(private val plotter: PacketPlotter) {
 
     private var head: PacketCacheCell? = null
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 20
-    private val targetCells = 15
+    private val maxCells = 8
+    private val targetCells = 6
 
     @Synchronized
     fun requestUpdate(cellKey: OpenLocationCode) {
@@ -60,6 +60,7 @@ class PacketCache(private val plotter: PacketPlotter) {
         if (allCells.count() < maxCells) {
             return
         }
+        Log.d("evicting", "evicting cells because we have ${allCells.count()}")
         var cur = head
         for (i in 0..targetCells) {
             Log.d("evicting", "not evicting cell ${cur?.cell}")
@@ -89,6 +90,7 @@ class PacketCache(private val plotter: PacketPlotter) {
         }
         val body = response.body()
         val command = body?.string()?.let { Gson().fromJson<CacheUpdateCommand>(it, CacheUpdateCommand::class.java) }
+        Log.d("Update", "Cache update command has ${command?.newOrUpdated} new stations")
         body?.close()
         return command
     }

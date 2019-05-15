@@ -3,6 +3,7 @@
 
 buildscript {
     ext.google_maps_key = hasProperty("google_maps_key") ? google_maps_key : ""
+    ext.google_maps_key_debug = hasProperty("google_maps_key_debug") ? google_maps_key_debug : ""
     ext.kotlin_version = '1.3.20'
 
     repositories {
