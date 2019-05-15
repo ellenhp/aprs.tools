@@ -27,9 +27,12 @@ import me.ellenhp.aprstools.map.PacketPlotter
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jetbrains.anko.doAsync
+import org.threeten.bp.Instant
+import org.threeten.bp.Instant.*
 
 class PacketCache(private val plotter: PacketPlotter) {
 
+    private var lastHttpRequest: Instant? = null
     private var head: PacketCacheCell? = null
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
     private val maxCells = 35
@@ -51,10 +54,18 @@ class PacketCache(private val plotter: PacketPlotter) {
         codesToHide.map { allCells[it] }.forEach { it?.setHidden(true, plotter) }
         requestedCodes.map { allCells[it] }.forEach { it?.setHidden(false, plotter) }
 
-        requestedCodes.forEach { requestUpdate(it) }
+        for (it in requestedCodes) {
+            val nextRequestAllowedInstant = lastHttpRequest?.plusMillis(20)
+            if (nextRequestAllowedInstant?.isBefore(now()) != false) {
+                if (requestUpdate(it)) {
+                    lastHttpRequest = now()
+                }
+            }
+        }
     }
 
-    private fun requestUpdate(cellKey: OpenLocationCode) {
+    /** Returns true if an HTTP request was made */
+    private fun requestUpdate(cellKey: OpenLocationCode): Boolean {
         Log.d("Update", "Updating cell $cellKey")
         val cell = allCells.getOrDefault(cellKey, null) ?: allocateCell(cellKey)
 
@@ -69,7 +80,8 @@ class PacketCache(private val plotter: PacketPlotter) {
         head?.prev = cell
         head = cell
 
-        cell.getUpdateUrl()?.let {
+        val updateUrl = cell.getUpdateUrl()
+        updateUrl?.let {
             doAsync {
                 getUpdateCommand(it)?.let {
                     maybeUpdateCell(cell, it)
@@ -78,11 +90,11 @@ class PacketCache(private val plotter: PacketPlotter) {
         }
 
         if (allCells.count() < maxCells) {
-            return
+            return updateUrl != null
         }
         Log.d("evicting", "evicting cells because we have ${allCells.count()}")
         var cur = head
-        for (i in 0..targetCells) {
+        for (i in 1..targetCells) {
             Log.d("evicting", "not evicting cell ${cur?.cell}")
             cur = cur?.next
         }
@@ -93,6 +105,7 @@ class PacketCache(private val plotter: PacketPlotter) {
             cur = tmp
         }
         Log.d("evicting", "we now have ${allCells.count()}")
+        return updateUrl != null
     }
 
     @Synchronized
