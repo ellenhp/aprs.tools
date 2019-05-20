@@ -25,7 +25,7 @@ import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.JsonObjectRequest
 import com.google.gson.Gson
 import com.google.openlocationcode.OpenLocationCode
-import me.ellenhp.aprslib.packet.CacheUpdateCommand
+import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
 import me.ellenhp.aprstools.map.PacketPlotter
 import java.util.*
 import kotlin.collections.HashMap
@@ -79,7 +79,7 @@ class PacketCache(private val  context: Context, private val plotter: PacketPlot
     }
 
     @Synchronized
-    private fun updateCell(cell: OpenLocationCode, command: CacheUpdateCommand) {
+    private fun updateCell(cell: OpenLocationCode, command: CacheUpdateCommandPosits) {
         getCell(cell).update(command, plotter)
     }
 
@@ -92,8 +92,8 @@ class PacketCache(private val  context: Context, private val plotter: PacketPlot
     private fun runUpdate(cell: OpenLocationCode, url: String) {
         Log.d("Update", "Issuing HTTP request $url")
         val request = JsonObjectRequest(url, null, {
-            val command = Gson().fromJson<CacheUpdateCommand>(it.toString(),
-                    CacheUpdateCommand::class.java)
+            val command = Gson().fromJson<CacheUpdateCommandPosits>(it.toString(),
+                    CacheUpdateCommandPosits::class.java)
             command?.let { updateCell(cell, command) }
         }, {
             getCell(cell).resetFreshness()

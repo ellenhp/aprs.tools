@@ -22,13 +22,24 @@ package me.ellenhp.aprstools.history
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterItem
+import org.threeten.bp.Instant
+import org.threeten.bp.ZoneId
+import org.threeten.bp.format.DateTimeFormatter
+import org.threeten.bp.format.FormatStyle
+import java.util.*
+
+
 
 class Posit(private var station: String,
-            private var summary: String,
             var posit: LatLng,
-            var symbol: BitmapDescriptor): ClusterItem {
+            var symbol: BitmapDescriptor,
+            var lastHeard: Instant,
+            val locale: Locale): ClusterItem {
     override fun getSnippet(): String {
-        return summary
+        val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
+                .withLocale(locale)
+                .withZone(ZoneId.systemDefault())
+        return formatter.format(lastHeard)
     }
 
     override fun getTitle(): String {

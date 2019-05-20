@@ -22,14 +22,11 @@ package me.ellenhp.aprstools.map
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.ClusterManager
-import me.ellenhp.aprslib.packet.AprsLatLng
-import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprslib.packet.AprsSymbol
-import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprslib.packet.*
 import me.ellenhp.aprstools.history.Posit
+import org.threeten.bp.Instant
 import java.lang.Math.abs
 
 class PacketPlotter(private val activity: FragmentActivity, private val map: GoogleMap) {
@@ -55,7 +52,7 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
     }
 
     @Synchronized
-    fun plotOrUpdate(packets: List<AprsPacket>) {
+    fun plotOrUpdate(packets: List<TimestampedPosit>) {
         activity.runOnUiThread {
             packets.forEach {
                 createOrUpdateMarker(it)
@@ -64,14 +61,16 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
         }
     }
 
-    private fun createOrUpdateMarker(packet: AprsPacket) {
-        val currentMarker = markers[packet.source]
-        val location = packet.location() ?: return
-        val symbol = packet.symbol() ?: return
+    private fun createOrUpdateMarker(posit: TimestampedPosit) {
+        val currentMarker = markers[posit.station]
+        val location = LatLng(posit.location.decode().centerLatitude,
+                posit.location.decode().centerLongitude)
+        val symbol = posit.symbol
         if (currentMarker == null) {
-            val posit = createMarker(location, packet.source, symbol)
-            posit?.let { markers[packet.source] = it }
-            clusterManager.addItem(posit)
+            val marker = createMarker(location, posit.station, symbol,
+                    Instant.ofEpochMilli(posit.millisSinceEpoch))
+            marker?.let { markers[posit.station] = it }
+            clusterManager.addItem(marker)
         }
         else {
             val newPos = LatLng(location.latitude, location.longitude)
@@ -82,20 +81,17 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
         }
     }
 
-    private fun createMarker(point: AprsLatLng, station: Ax25Address, symbol: AprsSymbol): Posit? {
-        val markerOptions = MarkerOptions()
+    private fun createMarker(point: LatLng,
+                             station: Ax25Address,
+                             symbol: AprsSymbol,
+                             lastHeard: Instant): Posit? {
         val symbolDescriptor = symbolTable.getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
-        markerOptions.icon(symbolDescriptor)
-        markerOptions.position(LatLng(point.latitude, point.longitude))
-        markerOptions.anchor(0.5f, 0.5f)
-        markerOptions.title(station.toString())
 
-        val posit = Posit(station.toString(),
-                station.toString(),
-                LatLng(point.latitude, point.longitude),
-                symbolDescriptor)
-
-        return posit
+        return Posit(station.toString(),
+                point,
+                symbolDescriptor,
+                lastHeard,
+                activity.resources.configuration.locale)
     }
 
 }

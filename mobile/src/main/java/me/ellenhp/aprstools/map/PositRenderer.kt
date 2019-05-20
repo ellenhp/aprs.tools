@@ -30,18 +30,8 @@ import me.ellenhp.aprstools.history.Posit
 class PositRenderer(context: Context, val map: GoogleMap, clusterManager: ClusterManager<Posit>):
         DefaultClusterRenderer<Posit>(context, map, clusterManager) {
 
-    override fun getMarker(clusterItem: Posit): Marker {
-        val markerOptions = MarkerOptions()
-        val symbolDescriptor = clusterItem.symbol
-        markerOptions.icon(symbolDescriptor)
-        markerOptions.position(clusterItem.posit)
-        markerOptions.anchor(0.5f, 0.5f)
-        markerOptions.title(clusterItem.title)
-        markerOptions.snippet(clusterItem.snippet)
-        return map.addMarker(markerOptions)
-    }
-
     override fun onBeforeClusterItemRendered(item: Posit, markerOptions: MarkerOptions) {
         markerOptions.icon(item.symbol)
+        markerOptions.anchor(0.5f, 0.5f)
     }
 }

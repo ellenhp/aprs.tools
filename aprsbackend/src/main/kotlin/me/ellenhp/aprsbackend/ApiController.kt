@@ -24,6 +24,7 @@ import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.CacheUpdateCommand
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
+import me.ellenhp.aprslib.packet.TimestampedPosit
 import me.ellenhp.aprslib.parser.AprsParser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.CacheControl
@@ -65,13 +66,23 @@ class ApiController @Autowired constructor(private val databaseLayer: DatabaseLa
     fun within(@PathVariable(value="plusCode") plusCode: String,
                @RequestParam(defaultValue = "") type: String): ResponseEntity<String> {
         val zone = OpenLocationCode.decode(plusCode)
+        val packets = databaseLayer.getPacketsIn(zone)?.second ?: listOf()
         val json = if (type == "" || type == "packets") {
             val cacheUpdate = CacheUpdateCommand(true, 0,
-                    databaseLayer.getPacketsIn(zone)?.second ?: listOf(), listOf())
+                    packets, listOf())
             Gson().toJson(cacheUpdate)
         } else {
+            val parser = AprsParser()
+            val timestampedPosits = packets.mapNotNull { timestampedPacket ->
+                val packet = parser.parse(timestampedPacket.packet) ?: return@mapNotNull null
+                val location = packet.location() ?: return@mapNotNull null
+                val symbol = packet.symbol() ?: return@mapNotNull null
+                val locationCode = OpenLocationCode(location.latitude, location.longitude)
+                TimestampedPosit(timestampedPacket.millisSinceEpoch,
+                        packet.source, locationCode.code, symbol)
+            }
             val cacheUpdate = CacheUpdateCommandPosits(true, 0,
-                    databaseLayer.getStationsIn(zone)?.second ?: listOf(), listOf())
+                    timestampedPosits ?: listOf(), listOf())
             Gson().toJson(cacheUpdate)
         }
         return ResponseEntity.ok()

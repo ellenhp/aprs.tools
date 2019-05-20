@@ -24,6 +24,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.CacheUpdateCommand
+import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
 import me.ellenhp.aprslib.packet.TimestampedPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import me.ellenhp.aprstools.map.PacketPlotter
@@ -44,17 +45,17 @@ class PacketCacheCell(val cell: OpenLocationCode) {
         val freshnessSnapshot = freshness
         this.freshness = Instant.now()
         if (freshnessSnapshot == null) {
-            return "https://api.aprs.tools/within/$cell"
+            return "https://api.aprs.tools/within/$cell?type=posit"
         }
         if (freshnessSnapshot.isAfter(Instant.now().minus(Duration.ofMinutes(2)))) {
             return null
         }
         Log.d("update", "Updating cell")
-        return "https://api.aprs.tools/within/$cell"
+        return "https://api.aprs.tools/within/$cell?type=posit"
     }
 
     @Synchronized
-    fun update(command: CacheUpdateCommand, plotter: PacketPlotter) {
+    fun update(command: CacheUpdateCommandPosits, plotter: PacketPlotter) {
         if (command.evictAllOldStations) {
             plotter.removeAll(packetsByStation.keys.toList())
             packetsByStation.clear()
@@ -67,17 +68,12 @@ class PacketCacheCell(val cell: OpenLocationCode) {
             packetsByStation.remove(it)
         }
 
-        val newPackets = command.newOrUpdated.map { timestampedSerializedPacket ->
-            parser.parse(timestampedSerializedPacket.packet)?.let { TimestampedPacket(
-                    timestampedSerializedPacket.millisSinceEpoch, it) }
-        }.filterNotNull()
-
-        newPackets.forEach {
-            val aprsLatLng = it.packet.location() ?: return@forEach
-            packetsByStation[it.packet.source] = LatLng(aprsLatLng.latitude, aprsLatLng.longitude)
+        command.newOrUpdated.forEach {
+            val location = it.location.decode()
+            packetsByStation[it.station] = LatLng(location.centerLatitude, location.centerLongitude)
         }
         if (!hidden) {
-            plotter.plotOrUpdate(newPackets.map { it.packet })
+            plotter.plotOrUpdate(command.newOrUpdated)
         }
     }
 

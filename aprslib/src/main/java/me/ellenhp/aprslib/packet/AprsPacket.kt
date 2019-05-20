@@ -61,4 +61,8 @@ data class TimestampedSerializedPacket(val millisSinceEpoch: Long,
 
 data class TimestampedPosit(val millisSinceEpoch: Long,
                             val station: Ax25Address,
-                            val location: OpenLocationCode)
+                            val plusCode: String,
+                            val symbol: AprsSymbol) {
+    val location: OpenLocationCode
+    get() = OpenLocationCode(plusCode)
+}

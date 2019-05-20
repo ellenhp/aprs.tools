@@ -173,36 +173,6 @@ class DatabaseLayer {
         }
     }
 
-    fun getStationsIn(codeArea: OpenLocationCode.CodeArea): Pair<Long, List<TimestampedPosit>>? {
-        pool!!.connection.use { conn ->
-            val select = conn.prepareStatement("""
-                SELECT packets.source_call, packets.source_ssid, packets.latlng, packets.received_timestamp, NOW()
-                FROM latestPackets
-                JOIN packets ON latestPackets.packet=packets.id
-                WHERE packets.latlng && ST_MakeEnvelope(?, ?, ?, ?)
-                AND packets.received_timestamp >= NOW() - INTERVAL '1 hour';
-             """.trimIndent())
-            select.fetchSize = 500
-            select.setDouble(1, codeArea.westLongitude)
-            select.setDouble(2, codeArea.southLatitude)
-            select.setDouble(3, codeArea.eastLongitude)
-            select.setDouble(4, codeArea.northLatitude)
-            val results = select.executeQuery()
-            val posits = ArrayList<TimestampedPosit>()
-            var now: Long? = null
-            while (results.next()) {
-                val station = Ax25Address(results.getString(1), results.getString(2))
-                val location = (results.getObject(3) as PGgeometry).geometry.firstPoint
-                val timestamp = results.getTimestamp(4).time
-                posits.add(TimestampedPosit(timestamp, station,
-                        OpenLocationCode(location.y, location.x)))
-
-                now = now ?: results.getTimestamp(5).time/1000
-            }
-            return now?.let { it to posits.toList() }
-        }
-    }
-
     fun cleanupPackets() {
         val conn = pool!!.connection
         val delete = conn.prepareStatement("""
