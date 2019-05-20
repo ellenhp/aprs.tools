@@ -19,43 +19,71 @@
 
 package me.ellenhp.aprsbackend
 
+import com.google.cloud.kms.v1.CryptoKeyName
+import com.google.cloud.kms.v1.KeyManagementServiceClient
 import com.google.openlocationcode.OpenLocationCode
+import com.google.protobuf.ByteString
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
+import me.ellenhp.aprslib.packet.*
 import me.ellenhp.aprslib.parser.AprsParser
 import org.postgis.PGgeometry
 import org.postgis.Point
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.stereotype.Component
 import java.sql.Connection
+import java.util.*
 import javax.sql.DataSource
+import kotlin.collections.ArrayList
 
-class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName: String, user: String, password: String) {
+@Component
+class DatabaseLayer {
 
-    val pool: DataSource
+    @Value("\${databaseProperties.connectionString}")
+    var dbConnectionString: String? = null
+    @Value("\${databaseProperties.socketFactory}")
+    var socketFactory: String? = null
+    @Value("\${databaseProperties.name}")
+    var dbName: String? = null
+    @Value("\${databaseProperties.user}")
+    var user: String? = null
+    @Value("\${databaseProperties.password}")
+    var encryptedPasswordBase64: String? = null
 
-    init {
+    private var pool: DataSource? = null
+    get() {
+        if (field == null) {
+            val dbPasswordEncrypted = Base64.getDecoder()
+                    .decode(encryptedPasswordBase64)
+            val client = KeyManagementServiceClient.create()
+            val passwordResponse = client.decrypt(CryptoKeyName.of(
+                "aprstools",
+                "global",
+                "api-keys",
+                "aprstools-symmetric-key"), ByteString.copyFrom(dbPasswordEncrypted))
 
-        val config = HikariConfig()
 
-        config.jdbcUrl = String.format("jdbc:postgresql:///%s", dbName)
-        config.username = user
-        config.password = password
-        socketFactory?.let { config.addDataSourceProperty("socketFactory", it) }
-        dbConnectionString?.let { config.addDataSourceProperty("cloudSqlInstance", it) }
-        config.addDataSourceProperty("useSSL", false)
-        config.maximumPoolSize = 20
-        config.minimumIdle = 10
-        config.connectionTimeout = 10000
-        config.idleTimeout = 600000
-        config.maxLifetime = 1800000
+            val config = HikariConfig()
 
-        pool = HikariDataSource(config)
+            config.jdbcUrl = String.format("jdbc:postgresql:///%s", dbName)
+            config.username = user
+            config.password = passwordResponse.plaintext.toString(Charsets.UTF_8)
+            socketFactory?.let { config.addDataSourceProperty("socketFactory", it) }
+            dbConnectionString?.let { config.addDataSourceProperty("cloudSqlInstance", it) }
+            config.addDataSourceProperty("useSSL", false)
+            config.maximumPoolSize = 20
+            config.minimumIdle = 1
+            config.connectionTimeout = 10000
+            config.idleTimeout = 600000
+            config.maxLifetime = 1800000
+
+            field = HikariDataSource(config)
+        }
+        return field
     }
 
     fun putPackets(packets: List<AprsPacket>) {
-        val conn = pool.connection
+        val conn = pool!!.connection
         conn.autoCommit = false
 
         try {
@@ -71,8 +99,7 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
     }
 
     fun getAllFrom(station: Ax25Address): List<TimestampedSerializedPacket> {
-        val conn = pool.connection
-        try {
+        pool!!.connection.use { conn ->
             val select = conn.prepareStatement("""
                 SELECT packet, received_timestamp, source_call, source_ssid FROM packets WHERE source_call=? AND source_ssid=?;
             """.trimIndent())
@@ -88,15 +115,12 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
                         String(blob, Charsets.ISO_8859_1)))
             }
             return packets.toList()
-        } finally {
-            conn.close()
         }
     }
 
 
     fun getAllTo(station: Ax25Address): List<TimestampedSerializedPacket> {
-        val conn = pool.connection
-        try {
+        pool!!.connection.use { conn ->
             val select = conn.prepareStatement("""
                 SELECT packet, received_timestamp, dest_call, dest_ssid FROM packets WHERE dest_call=? AND dest_ssid=?;
             """.trimIndent())
@@ -112,19 +136,17 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
                         String(blob, Charsets.ISO_8859_1)))
             }
             return packets.toList()
-        } finally {
-            conn.close()
         }
     }
 
-    fun getStationsIn(codeArea: OpenLocationCode.CodeArea): Pair<Long, List<TimestampedSerializedPacket>>? {
-        val conn = pool.connection
-        try {
+    fun getPacketsIn(codeArea: OpenLocationCode.CodeArea): Pair<Long, List<TimestampedSerializedPacket>>? {
+        pool!!.connection.use { conn ->
             val select = conn.prepareStatement("""
                 SELECT packets.packet, packets.received_timestamp, NOW()
                 FROM latestPackets
                 JOIN packets ON latestPackets.packet=packets.id
-                WHERE packets.latlng && ST_MakeEnvelope(?, ?, ?, ?);
+                WHERE packets.latlng && ST_MakeEnvelope(?, ?, ?, ?)
+                AND packets.received_timestamp >= NOW() - INTERVAL '1 hour';
              """.trimIndent())
             select.fetchSize = 500
             select.setDouble(1, codeArea.westLongitude)
@@ -141,67 +163,57 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
                         String(blob, Charsets.ISO_8859_1)))
                 now = now ?: results.getTimestamp(3).time/1000
             }
-            packets.map { AprsParser().parse(it.packet)?.location() }.filterNotNull().forEach {
+            packets.mapNotNull { AprsParser().parse(it.packet)?.location() }.forEach {
                 if (it.latitude < codeArea.southLatitude || it.latitude > codeArea.northLatitude)
                     error("latitude out of bounds")
                 if (it.longitude < codeArea.westLongitude || it.longitude > codeArea.eastLongitude)
                     error("{$it.longitude} out of bounds")
             }
             return now?.let { it to packets.toList() }
-        } finally {
-            conn.close()
         }
     }
 
-    fun getStationsAtTime(codeArea: OpenLocationCode.CodeArea, rewindTo: Long): List<TimestampedSerializedPacket> {
-        val conn = pool.connection
-        try {
+    fun getStationsIn(codeArea: OpenLocationCode.CodeArea): Pair<Long, List<TimestampedPosit>>? {
+        pool!!.connection.use { conn ->
             val select = conn.prepareStatement("""
-                SELECT first_old.packet, first_old.received_timestamp FROM (
-                    SELECT old.packet, old.received_timestamp, old.latlng, old.source_call, old.source_ssid,
-                        ROW_NUMBER() OVER (PARTITION BY old.source_call, old.source_ssid ORDER BY old.received_timestamp DESC) row_num
-                    FROM (
-                        SELECT * FROM packets
-                        WHERE packets.received_timestamp >= TO_TIMESTAMP(?) - INTERVAL '6 hours' AND
-                            packets.received_timestamp <= TO_TIMESTAMP(?) AND latlng IS NOT NULL
-                    ) AS old
-                ) AS first_old
-                WHERE row_num = 1 AND first_old.latlng && ST_MakeEnvelope(?, ?, ?, ?)
-                ;
+                SELECT packets.source_call, packets.source_ssid, packets.latlng, packets.received_timestamp, NOW()
+                FROM latestPackets
+                JOIN packets ON latestPackets.packet=packets.id
+                WHERE packets.latlng && ST_MakeEnvelope(?, ?, ?, ?)
+                AND packets.received_timestamp >= NOW() - INTERVAL '1 hour';
              """.trimIndent())
             select.fetchSize = 500
-            select.setLong(1, rewindTo)
-            select.setLong(2, rewindTo)
-            select.setDouble(3, codeArea.westLongitude)
-            select.setDouble(4, codeArea.southLatitude)
-            select.setDouble(5, codeArea.eastLongitude)
-            select.setDouble(6, codeArea.northLatitude)
+            select.setDouble(1, codeArea.westLongitude)
+            select.setDouble(2, codeArea.southLatitude)
+            select.setDouble(3, codeArea.eastLongitude)
+            select.setDouble(4, codeArea.northLatitude)
             val results = select.executeQuery()
-            val packets = ArrayList<TimestampedSerializedPacket>()
+            val posits = ArrayList<TimestampedPosit>()
+            var now: Long? = null
             while (results.next()) {
-                val blob = results.getBytes(1)
-                packets.add(TimestampedSerializedPacket(
-                        results.getTimestamp(2).time,
-                        String(blob, Charsets.ISO_8859_1)))
+                val station = Ax25Address(results.getString(1), results.getString(2))
+                val location = (results.getObject(3) as PGgeometry).geometry.firstPoint
+                val timestamp = results.getTimestamp(4).time
+                posits.add(TimestampedPosit(timestamp, station,
+                        OpenLocationCode(location.y, location.x)))
+
+                now = now ?: results.getTimestamp(5).time/1000
             }
-            return packets.toList()
-        } finally {
-            conn.close()
+            return now?.let { it to posits.toList() }
         }
     }
 
     fun cleanupPackets() {
-        val conn = pool.connection
+        val conn = pool!!.connection
         val delete = conn.prepareStatement("""
-            DELETE FROM packets WHERE packets.received_timestamp < NOW() - '24 hours';
+            DELETE FROM packets WHERE packets.received_timestamp < NOW() - INTERVAL '24 hours';
         """.trimIndent())
         delete.executeUpdate()
         conn.close()
     }
 
     fun setupSchema() {
-        val conn = pool.connection
-        try {
+        pool!!.connection.use { conn ->
             val setupSchemaStatement = conn.prepareStatement("""
                 CREATE EXTENSION IF NOT EXISTS postgis;
                 CREATE EXTENSION IF NOT EXISTS btree_gist;
@@ -252,8 +264,6 @@ class DatabaseLayer(dbConnectionString: String?, socketFactory: String?, dbName:
 
             """.trimIndent())
             setupSchemaStatement.executeUpdate()
-        } finally {
-            conn.close()
         }
     }
 

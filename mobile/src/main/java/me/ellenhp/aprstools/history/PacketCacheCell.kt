@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools.history
 
+import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
@@ -31,11 +32,7 @@ import org.threeten.bp.Instant
 
 class PacketCacheCell(val cell: OpenLocationCode) {
 
-    var next: PacketCacheCell? = null
-    var prev: PacketCacheCell? = null
-
     private var freshness: Instant? = null
-    private var updateToken: Long? = null
     private var hidden: Boolean = false
 
     private var packetsByStation = HashMap<Ax25Address, LatLng>()
@@ -52,23 +49,8 @@ class PacketCacheCell(val cell: OpenLocationCode) {
         if (freshnessSnapshot.isAfter(Instant.now().minus(Duration.ofMinutes(2)))) {
             return null
         }
-        if (freshnessSnapshot.isBefore(Instant.now().minus(Duration.ofHours(6)))) {
-            return "https://api.aprs.tools/within/$cell"
-        }
-        return "https://api.aprs.tools/withinSince/$cell/${updateToken ?: 0}"
-    }
-
-    @Synchronized
-    fun setHidden(newHidden: Boolean, plotter: PacketPlotter) {
-        if (hidden == newHidden) {
-            return
-        }
-        hidden = newHidden
-        if (hidden) {
-            plotter.hideAll(packetsByStation.keys.toList())
-        } else {
-            plotter.showAll(packetsByStation.keys.toList())
-        }
+        Log.d("update", "Updating cell")
+        return "https://api.aprs.tools/within/$cell"
     }
 
     @Synchronized
@@ -97,12 +79,15 @@ class PacketCacheCell(val cell: OpenLocationCode) {
         if (!hidden) {
             plotter.plotOrUpdate(newPackets.map { it.packet })
         }
-
-        updateToken = command.secondsSinceEpoch
     }
 
     @Synchronized
     fun getAllStations(): List<Ax25Address> {
         return packetsByStation.keys.toList()
+    }
+
+    @Synchronized
+    fun resetFreshness() {
+        freshness = null
     }
 }

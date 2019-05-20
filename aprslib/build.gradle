@@ -3,6 +3,7 @@ apply plugin: 'kotlin'
 dependencies {
     testImplementation 'junit:junit:4.12'
     testImplementation "com.google.truth:truth:0.42"
+    implementation "com.google.openlocationcode:openlocationcode:1.0.2"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
     implementation project(path: ':autumn')
 }

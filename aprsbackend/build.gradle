@@ -9,12 +9,16 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'com.google.cloud.tools:appengine-gradle-plugin:1.3.4'
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.1.4.RELEASE")
     }
 }
 
 apply plugin: 'kotlin'
 apply plugin: 'war'
+apply plugin: 'idea'
 apply plugin: 'com.google.cloud.tools.appengine'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
 repositories {
     jcenter()
@@ -25,10 +29,11 @@ appengine.deploy.version = "prod"
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    compile "io.ktor:ktor-server-servlet:$ktor_version"
-    compile "io.ktor:ktor-websockets:$ktor_version"
-    compile("io.ktor:ktor-gson:$ktor_version")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    compile("org.springframework.boot:spring-boot-starter-cache")
+    compile("org.springframework.boot:spring-boot-starter-web")
     compile "net.postgis:postgis-jdbc:2.2.0"
+    compile "com.google.code.gson:gson:2.8.5"
     compile "com.google.cloud:google-cloud-datastore:1.70.0"
     compile "com.google.cloud:google-cloud-kms:1.6.0"
     compile "com.google.cloud:google-cloud-logging-logback:0.60.0-alpha"
@@ -39,7 +44,7 @@ dependencies {
     compile group: 'com.zaxxer', name: 'HikariCP', version: '3.2.0'
     compile group: 'com.google.api-client', name: 'google-api-client', version: '1.28.0'
     compile group: 'com.google.api-client', name: 'google-api-client-appengine', version: '1.28.0'
-    compile group: 'com.google.api-client', name: 'google-api-client-servlet', version: '1.28.0'
+//    compile group: 'com.google.api-client', name: 'google-api-client-servlet', version: '1.28.0'
     providedCompile "com.google.appengine:appengine:1.9.60"
     testCompile "io.ktor:ktor-server-test-host:$ktor_version"
     compile project(path: ':aprslib')

@@ -17,15 +17,26 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprsbackend
+package me.ellenhp.aprstools.history
 
-import org.springframework.boot.SpringApplication
-import org.springframework.boot.autoconfigure.SpringBootApplication
-import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
+import com.google.android.gms.maps.model.BitmapDescriptor
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.clustering.ClusterItem
 
-@SpringBootApplication
-open class AprsBackendApplication : SpringBootServletInitializer()
+class Posit(private var station: String,
+            private var summary: String,
+            var posit: LatLng,
+            var symbol: BitmapDescriptor): ClusterItem {
+    override fun getSnippet(): String {
+        return summary
+    }
 
-fun main(args: Array<String>) {
-    SpringApplication.run(AprsBackendApplication::class.java, *args)
+    override fun getTitle(): String {
+        return station
+    }
+
+    override fun getPosition(): LatLng {
+        return posit
+    }
+
 }

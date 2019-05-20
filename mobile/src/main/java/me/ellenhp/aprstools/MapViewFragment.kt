@@ -43,6 +43,9 @@ import kotlinx.coroutines.MainScope
 import me.ellenhp.aprstools.history.PacketCache
 import me.ellenhp.aprstools.map.PacketPlotter
 import org.jetbrains.anko.doAsync
+import org.threeten.bp.Duration
+import org.threeten.bp.Instant
+import org.threeten.bp.Instant.now
 
 
 /**
@@ -61,6 +64,8 @@ class MapViewFragment : Fragment(),
     private var map: GoogleMap? = null
 
     private lateinit var plotter: PacketPlotter
+
+    private var lastUpdateInstant: Instant? = null
 
     @Inject
     lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
@@ -110,27 +115,36 @@ class MapViewFragment : Fragment(),
         settings.isTiltGesturesEnabled = false
         settings.isRotateGesturesEnabled = true
 
-        loadRegion()
         animateToLastLocation()
 
-        packetCache = PacketCache(PacketPlotter(activity!!, map!!))
+        packetCache = PacketCache(activity!!, PacketPlotter(activity!!, map!!))
 
-        map?.setOnCameraMoveListener { loadRegion() }
+        map?.setOnCameraMoveListener { loadRegion(true) }
+//        map?.setOnCameraIdleListener { loadRegion(false) }
     }
 
-    private fun loadRegion() {
+    private fun loadRegion(cameraMoving: Boolean) {
         // Don't even try to figure out all the plus codes we're covering if the zoom is huge.
-        if (map!!.cameraPosition.zoom < 6) {
+        if (map!!.cameraPosition.zoom < 4) {
             return
         }
 
         val bounds = map!!.projection.visibleRegion
         val sw = bounds.latLngBounds.southwest
         val ne = bounds.latLngBounds.northeast
-        val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
-                OpenLocationCode(ne.latitude, ne.longitude).decode())
 
-        packetCache?.updateVisibleCells(zones)
+        val lastUpdateSnapshot = lastUpdateInstant
+        if (cameraMoving && (lastUpdateSnapshot == null || now().isAfter(
+                        lastUpdateSnapshot.plus(Duration.ofMillis(500))))) {
+            lastUpdateInstant = now()
+            doAsync {
+                val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
+                        OpenLocationCode(ne.latitude, ne.longitude).decode())
+                packetCache?.updateVisibleCells(zones, 5)
+
+            }
+        }
+
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {

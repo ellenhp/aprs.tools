@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/APRSTools.iml" filepath="$PROJECT_DIR$/.idea/APRSTools.iml" />
+      <module fileurl="file://$PROJECT_DIR$/aprs.tools.iml" filepath="$PROJECT_DIR$/aprs.tools.iml" />
       <module fileurl="file://$PROJECT_DIR$/aprsbackend/aprsbackend.iml" filepath="$PROJECT_DIR$/aprsbackend/aprsbackend.iml" />
       <module fileurl="file://$PROJECT_DIR$/aprslib/aprslib.iml" filepath="$PROJECT_DIR$/aprslib/aprslib.iml" />
       <module fileurl="file://$PROJECT_DIR$/aprsmonitor/aprsmonitor.iml" filepath="$PROJECT_DIR$/aprsmonitor/aprsmonitor.iml" />
