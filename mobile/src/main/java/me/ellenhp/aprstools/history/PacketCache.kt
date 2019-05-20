@@ -19,128 +19,94 @@
 
 package me.ellenhp.aprstools.history
 
+import android.content.Context
 import android.util.Log
+import com.android.volley.DefaultRetryPolicy
+import com.android.volley.toolbox.JsonObjectRequest
 import com.google.gson.Gson
 import com.google.openlocationcode.OpenLocationCode
-import me.ellenhp.aprslib.packet.CacheUpdateCommand
+import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
 import me.ellenhp.aprstools.map.PacketPlotter
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import org.jetbrains.anko.doAsync
-import org.threeten.bp.Instant
-import org.threeten.bp.Instant.*
+import java.util.*
+import kotlin.collections.HashMap
 
-class PacketCache(private val plotter: PacketPlotter) {
+class PacketCache(private val  context: Context, private val plotter: PacketPlotter) {
 
-    private var lastHttpRequest: Instant? = null
-    private var head: PacketCacheCell? = null
+    private val cellsInOrder = ArrayDeque<PacketCacheCell>()
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 35
-    private val targetCells = 30
-
+    private val maxCells = 150
+    private val targetCells = 100
 
     @Synchronized
-    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>) {
-        if (requestedCodes.size > targetCells * 2) {
-            allCells.values.toList().forEach { purgeCell(it) }
-            return
-        }
-        if (requestedCodes.size > targetCells * 0.75) {
-            allCells.values.forEach { it.setHidden(true, plotter) }
+    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>, maxRequests: Int) {
+        if (requestedCodes.size > targetCells) {
+            Log.d("cache", "view too big, giving up")
             return
         }
 
-        val codesToHide = allCells.keys.minus(requestedCodes)
-        codesToHide.map { allCells[it] }.forEach { it?.setHidden(true, plotter) }
-        requestedCodes.map { allCells[it] }.forEach { it?.setHidden(false, plotter) }
-
-        for (it in requestedCodes) {
-            val nextRequestAllowedInstant = lastHttpRequest?.plusMillis(20)
-            if (nextRequestAllowedInstant?.isBefore(now()) != false) {
-                if (requestUpdate(it)) {
-                    lastHttpRequest = now()
+        var updates = 0
+        // This code is convoluted, but what we're trying to do is bump the position in the cache
+        // for all cells, but only update some/one of them.
+        requestedCodes.forEach { code ->
+            val cell = getCell(code)
+            if (updates < maxRequests) {
+                cell.getUpdateUrl()?.let {
+                    runUpdate(code, it)
+                    updates += 1
                 }
             }
         }
+        maybeEvictCells()
     }
 
-    /** Returns true if an HTTP request was made */
-    private fun requestUpdate(cellKey: OpenLocationCode): Boolean {
-        Log.d("Update", "Updating cell $cellKey")
-        val cell = allCells.getOrDefault(cellKey, null) ?: allocateCell(cellKey)
-
-        // Remove cell from linked list.
-        cell.prev?.next = cell.next
-        cell.next?.prev = cell.prev
-
-        // Insert cell at head.
-        if (cell != head)
-            cell.next = head
-        cell.prev = null
-        head?.prev = cell
-        head = cell
-
-        val updateUrl = cell.getUpdateUrl()
-        updateUrl?.let {
-            doAsync {
-                getUpdateCommand(it)?.let {
-                    maybeUpdateCell(cell, it)
-                }
-            }
-        }
-
+    private fun maybeEvictCells() {
         if (allCells.count() < maxCells) {
-            return updateUrl != null
+            return
         }
-        Log.d("evicting", "evicting cells because we have ${allCells.count()}")
-        var cur = head
-        for (i in 1..targetCells) {
-            Log.d("evicting", "not evicting cell ${cur?.cell}")
-            cur = cur?.next
+        val cellsToRemove = cellsInOrder.drop(targetCells)
+        cellsToRemove.forEach {
+            purgeCell(it)
         }
-        while (cur != null) {
-            Log.d("evicting", "evicting cell ${cur.cell}")
-            val tmp = cur.next
-            purgeCell(cur)
-            cur = tmp
-        }
-        Log.d("evicting", "we now have ${allCells.count()}")
-        return updateUrl != null
+    }
+
+    private fun getCell(cellKey: OpenLocationCode): PacketCacheCell {
+        val cell = allCells[cellKey] ?: allocateCell(cellKey)
+
+        cellsInOrder.remove(cell)
+        cellsInOrder.push(cell)
+
+        return cell
     }
 
     @Synchronized
-    private fun maybeUpdateCell(cell: PacketCacheCell, command: CacheUpdateCommand) {
-        if (allCells.containsKey(cell.cell)) {
-            cell.update(command, plotter)
-        }
+    private fun updateCell(cell: OpenLocationCode, command: CacheUpdateCommandPosits) {
+        getCell(cell).update(command, plotter)
     }
 
     private fun purgeCell(cell: PacketCacheCell) {
         plotter.removeAll(cell.getAllStations())
         allCells.remove(cell.cell)
-        cell.prev?.next = null
-        cell.next?.prev = null
-        cell.prev = null
-        cell.next = null
+        cellsInOrder.remove(cell)
     }
 
-    private fun getUpdateCommand(url: String): CacheUpdateCommand? {
-        val client = OkHttpClient()
+    private fun runUpdate(cell: OpenLocationCode, url: String) {
         Log.d("Update", "Issuing HTTP request $url")
-        val response = client.newCall(Request.Builder().url(url).get().build()).execute()
-        Log.d("Update", "HTTP request $url came back with status ${response.code()}")
-        if (!response.isSuccessful || response.code() != 200) {
-            return null
-        }
-        val body = response.body()
-        val command = body?.string()?.let { Gson().fromJson<CacheUpdateCommand>(it, CacheUpdateCommand::class.java) }
-        body?.close()
-        return command
+        val request = JsonObjectRequest(url, null, {
+            val command = Gson().fromJson<CacheUpdateCommandPosits>(it.toString(),
+                    CacheUpdateCommandPosits::class.java)
+            command?.let { updateCell(cell, command) }
+        }, {
+            getCell(cell).resetFreshness()
+        })
+        request.retryPolicy = DefaultRetryPolicy(2500, 2, 1.5f)
+
+        PacketRequestQueue.getInstance(context).addToRequestQueue(request)
     }
 
     private fun allocateCell(cellKey: OpenLocationCode): PacketCacheCell {
         val cell = PacketCacheCell(cellKey)
         allCells[cellKey] = cell
+        cellsInOrder.push(cell)
         return cell
     }
 

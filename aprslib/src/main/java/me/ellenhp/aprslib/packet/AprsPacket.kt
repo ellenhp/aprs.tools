@@ -19,6 +19,8 @@
 
 package me.ellenhp.aprslib.packet
 
+import com.google.openlocationcode.OpenLocationCode
+
 data class AprsPacket(val source: Ax25Address, val dest: Ax25Address, val path: AprsPath, val informationField: AprsInformationField) {
     fun isWeather(): Boolean {
         val standaloneWx = informationField.dataType in listOf('!', '#', '$', '*', '_')
@@ -46,6 +48,21 @@ data class CacheUpdateCommand(val evictAllOldStations: Boolean,
                               val secondsSinceEpoch: Long,
                               val newOrUpdated: List<TimestampedSerializedPacket>,
                               val stationsToEvict: List<Ax25Address>)
+data class CacheUpdateCommandPosits(val evictAllOldStations: Boolean,
+                                    val secondsSinceEpoch: Long,
+                                    val newOrUpdated: List<TimestampedPosit>,
+                                    val stationsToEvict: List<Ax25Address>)
 
-data class TimestampedPacket(val millisSinceEpoch: Long, val packet: AprsPacket)
-data class TimestampedSerializedPacket(val millisSinceEpoch: Long, val packet: String)
+data class TimestampedPacket(val millisSinceEpoch: Long,
+                             val packet: AprsPacket)
+
+data class TimestampedSerializedPacket(val millisSinceEpoch: Long,
+                                       val packet: String)
+
+data class TimestampedPosit(val millisSinceEpoch: Long,
+                            val station: Ax25Address,
+                            val plusCode: String,
+                            val symbol: AprsSymbol) {
+    val location: OpenLocationCode
+    get() = OpenLocationCode(plusCode)
+}

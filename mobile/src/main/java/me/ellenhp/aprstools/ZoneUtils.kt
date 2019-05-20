@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools
 
+import android.util.Log
 import com.google.openlocationcode.OpenLocationCode
 
 class ZoneUtils {
@@ -48,6 +49,7 @@ class ZoneUtils {
             }
             lat += southWest.latitudeHeight
         }
+        Log.d("zones", "returing ${zones.size}")
         return zones.toList()
     }
 }

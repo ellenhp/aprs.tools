@@ -84,6 +84,8 @@ dependencies {
     implementation "com.google.code.gson:gson:2.8.5"
     implementation "org.jetbrains.anko:anko-commons:0.10.4"
     implementation "com.google.openlocationcode:openlocationcode:1.0.2"
+    implementation "com.android.volley:volley:1.1.1"
+    implementation 'com.google.maps.android:android-maps-utils:0.5'
 
     testImplementation 'junit:junit:4.12'
     testImplementation "com.google.truth:truth:0.42"

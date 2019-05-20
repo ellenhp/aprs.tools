@@ -22,80 +22,76 @@ package me.ellenhp.aprstools.map
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
-import me.ellenhp.aprslib.packet.AprsLatLng
-import me.ellenhp.aprslib.packet.AprsPacket
-import me.ellenhp.aprslib.packet.AprsSymbol
-import me.ellenhp.aprslib.packet.Ax25Address
+import com.google.maps.android.clustering.ClusterManager
+import me.ellenhp.aprslib.packet.*
+import me.ellenhp.aprstools.history.Posit
+import org.threeten.bp.Instant
 import java.lang.Math.abs
 
 class PacketPlotter(private val activity: FragmentActivity, private val map: GoogleMap) {
 
-    val markers = HashMap<Ax25Address, Marker>()
+    val markers = HashMap<Ax25Address, Posit>()
     val symbolTable = AprsSymbolTable(activity)
+    val clusterManager = ClusterManager<Posit>(activity, map)
+
+    init {
+        clusterManager.renderer = PositRenderer(activity, map, clusterManager)
+        map.setOnCameraIdleListener(clusterManager);
+        map.setOnMarkerClickListener(clusterManager);
+    }
 
     @Synchronized
     fun removeAll(stationsToEvict: List<Ax25Address>) {
         activity.runOnUiThread {
             for (station in stationsToEvict) {
-                markers[station]?.remove()
+                markers[station]?.let { clusterManager.removeItem(it) }
                 markers.remove(station)
             }
         }
     }
 
     @Synchronized
-    fun hideAll(stationsToHide: List<Ax25Address>) {
-        activity.runOnUiThread {
-            for (station in stationsToHide) {
-                markers[station]?.isVisible = false
-            }
-        }
-    }
-
-    @Synchronized
-    fun showAll(stationsToHide: List<Ax25Address>) {
-        activity.runOnUiThread {
-            for (station in stationsToHide) {
-                markers[station]?.isVisible = true
-            }
-        }
-    }
-
-    @Synchronized
-    fun plotOrUpdate(packets: List<AprsPacket>) {
+    fun plotOrUpdate(packets: List<TimestampedPosit>) {
         activity.runOnUiThread {
             packets.forEach {
                 createOrUpdateMarker(it)
             }
+            clusterManager.cluster()
         }
     }
 
-    private fun createOrUpdateMarker(packet: AprsPacket) {
-        val currentMarker = markers[packet.source]
-        val location = packet.location() ?: return
-        val symbol = packet.symbol() ?: return
+    private fun createOrUpdateMarker(posit: TimestampedPosit) {
+        val currentMarker = markers[posit.station]
+        val location = LatLng(posit.location.decode().centerLatitude,
+                posit.location.decode().centerLongitude)
+        val symbol = posit.symbol
         if (currentMarker == null) {
-            createMarker(location, packet.source, symbol)?.let { markers[packet.source] = it }
+            val marker = createMarker(location, posit.station, symbol,
+                    Instant.ofEpochMilli(posit.millisSinceEpoch))
+            marker?.let { markers[posit.station] = it }
+            clusterManager.addItem(marker)
         }
         else {
             val newPos = LatLng(location.latitude, location.longitude)
             if (abs(currentMarker.position.latitude - newPos.latitude) > 0.0000001 ||
                     abs(currentMarker.position.longitude - newPos.longitude) > 0.0000001) {
-                currentMarker.position = newPos
+                currentMarker.posit = newPos
             }
         }
     }
 
-    private fun createMarker(point: AprsLatLng, station: Ax25Address, symbol: AprsSymbol): Marker? {
-        val markerOptions = MarkerOptions()
+    private fun createMarker(point: LatLng,
+                             station: Ax25Address,
+                             symbol: AprsSymbol,
+                             lastHeard: Instant): Posit? {
         val symbolDescriptor = symbolTable.getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
-        markerOptions.icon(symbolDescriptor)
-        markerOptions.position(LatLng(point.latitude, point.longitude))
-        markerOptions.anchor(0.5f, 0.5f)
-        markerOptions.title(station.toString())
-        return map.addMarker(markerOptions)
+
+        return Posit(station.toString(),
+                point,
+                symbolDescriptor,
+                lastHeard,
+                activity.resources.configuration.locale)
     }
 
 }
