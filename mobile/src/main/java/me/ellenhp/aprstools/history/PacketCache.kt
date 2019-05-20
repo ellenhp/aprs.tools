@@ -34,8 +34,8 @@ class PacketCache(private val  context: Context, private val plotter: PacketPlot
 
     private val cellsInOrder = ArrayDeque<PacketCacheCell>()
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
-    private val maxCells = 240
-    private val targetCells = 200
+    private val maxCells = 150
+    private val targetCells = 100
 
     @Synchronized
     fun updateVisibleCells(requestedCodes: List<OpenLocationCode>, maxRequests: Int) {
@@ -98,7 +98,7 @@ class PacketCache(private val  context: Context, private val plotter: PacketPlot
         }, {
             getCell(cell).resetFreshness()
         })
-        request.retryPolicy = DefaultRetryPolicy(5000, 5, 1.5f)
+        request.retryPolicy = DefaultRetryPolicy(2500, 2, 1.5f)
 
         PacketRequestQueue.getInstance(context).addToRequestQueue(request)
     }

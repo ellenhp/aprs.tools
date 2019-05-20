@@ -117,10 +117,14 @@ class MapViewFragment : Fragment(),
 
         animateToLastLocation()
 
-        packetCache = PacketCache(activity!!, PacketPlotter(activity!!, map!!))
+        plotter = PacketPlotter(activity!!, map!!)
+        packetCache = PacketCache(activity!!, plotter)
 
         map?.setOnCameraMoveListener { loadRegion(true) }
-//        map?.setOnCameraIdleListener { loadRegion(false) }
+        map?.setOnCameraIdleListener {
+            loadRegion(false)
+            plotter.clusterManager.onCameraIdle()
+        }
     }
 
     private fun loadRegion(cameraMoving: Boolean) {
@@ -134,13 +138,13 @@ class MapViewFragment : Fragment(),
         val ne = bounds.latLngBounds.northeast
 
         val lastUpdateSnapshot = lastUpdateInstant
-        if (cameraMoving && (lastUpdateSnapshot == null || now().isAfter(
+        if (!!cameraMoving || (lastUpdateSnapshot == null || now().isAfter(
                         lastUpdateSnapshot.plus(Duration.ofMillis(500))))) {
             lastUpdateInstant = now()
             doAsync {
                 val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
                         OpenLocationCode(ne.latitude, ne.longitude).decode())
-                packetCache?.updateVisibleCells(zones, 5)
+                packetCache?.updateVisibleCells(zones, if (cameraMoving) 5 else 25)
 
             }
         }
