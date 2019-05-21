@@ -1,8 +1,9 @@
 ---
 layout: default
+title: Home
 ---
 
-# The goal
+# The Vision
 
 aprs.tools is an Android app written in Kotlin that aims to change how amateur radio operators interact with the APRS network.
 Specifically, the 1.0 release of aprs.tools will include the features of an online APRS packet viewer like APRSDirect and aprs.fi, combined with the ability to interface with Bluetooth TNCs. You'll be able to seamlessly switch between picking up stations from APRS-IS and RF to picking up stations on RF only if your internet connection fails. While the internet connection is working, you'll have the ability to operate an IGate station from your phone to meaninfully contribute to the APRS-IS network.
