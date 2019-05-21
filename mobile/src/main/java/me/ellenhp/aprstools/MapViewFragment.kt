@@ -144,7 +144,7 @@ class MapViewFragment : Fragment(),
             doAsync {
                 val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
                         OpenLocationCode(ne.latitude, ne.longitude).decode())
-                packetCache?.updateVisibleCells(zones, if (cameraMoving) 5 else 25)
+                packetCache?.updateVisibleCells(zones, if (cameraMoving) 1 else 25)
 
             }
         }
