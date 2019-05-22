@@ -33,20 +33,20 @@ open class AprsToolsDialogFragment : androidx.fragment.app.DialogFragment() {
 
     private var continuation: Continuation<DialogResult>? = null
 
-    suspend fun showBlocking(manager: androidx.fragment.app.FragmentManager?, tag: String?, runOnUiThread: (Runnable) -> Unit): DialogResult {
+    suspend fun showBlocking(manager: androidx.fragment.app.FragmentManager, tag: String?, runOnUiThread: (Runnable) -> Unit): DialogResult {
         runOnUiThread(Runnable { show(manager, tag) })
         return suspendCoroutine(fun(it: Continuation<DialogResult>) {
             continuation = it
         })
     }
 
-    override fun onDismiss(dialog: DialogInterface?) {
+    override fun onDismiss(dialog: DialogInterface) {
         super.onDismiss(dialog)
         continuation?.resume(DialogResult.DISMISSED)
         continuation = null
     }
 
-    override fun onCancel(dialog: DialogInterface?) {
+    override fun onCancel(dialog: DialogInterface) {
         super.onCancel(dialog)
         continuation?.resume(DialogResult.CANCELLED)
         continuation = null

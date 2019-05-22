@@ -31,12 +31,12 @@ data class Dependency(
 ) {
 
     constructor(attributes: LinkedHashMap<String, String>) : this(
-            attributes.getOrDefault("artifact", null),
-            attributes.getOrDefault("name", null),
-            attributes.getOrDefault("copyrightHolder", null),
-            attributes.getOrDefault("license", null),
-            attributes.getOrDefault("licenseUrl", null),
-            attributes.getOrDefault("url", null))
+            attributes["artifact"],
+            attributes["name"],
+            attributes["copyrightHolder"],
+            attributes["license"],
+            attributes["licenseUrl"],
+            attributes["url"])
 
     companion object {
         fun parseFile(file: String): List<Dependency>? {

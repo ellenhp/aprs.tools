@@ -17,12 +17,11 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.map
 
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -36,17 +35,20 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import dagger.Lazy
 import javax.inject.Inject
 import com.google.openlocationcode.OpenLocationCode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import me.ellenhp.aprstools.AprsToolsFragment
+import me.ellenhp.aprstools.R
+import me.ellenhp.aprstools.ZoneUtils
 import me.ellenhp.aprstools.history.PacketCache
-import me.ellenhp.aprstools.map.PacketPlotter
+import me.ellenhp.aprstools.history.PacketCacheFactory
 import org.jetbrains.anko.doAsync
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
 import org.threeten.bp.Instant.now
+import javax.inject.Provider
 
 /**
  * A simple [Fragment] subclass.
@@ -57,20 +59,17 @@ import org.threeten.bp.Instant.now
  * create an instance of this fragment.
  *
  */
-class MapViewFragment : Fragment(),
+class MapViewFragment : AprsToolsFragment(),
         OnMapReadyCallback,
         CoroutineScope by MainScope() {
-    private var listener: OnFragmentInteractionListener? = null
     private var map: GoogleMap? = null
-
-    private lateinit var plotter: PacketPlotter
-
     private var lastUpdateInstant: Instant? = null
+    private var packetCache: PacketCache? = null
 
+    val plotterFactory = PacketPlotterFactory(Provider<Context> { activity!! })
+    val packetCacheFactory = PacketCacheFactory(Provider<Context> { activity!! })
     @Inject
-    lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
-
-    var packetCache: PacketCache? = null
+    lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -80,20 +79,8 @@ class MapViewFragment : Fragment(),
         return inflater.inflate(R.layout.fragment_map_view, container, false)
     }
 
-    // TODO: Rename method, update argument and hook method into UI event
-    fun onButtonPressed(uri: Uri) {
-        listener?.onFragmentInteraction(uri)
-    }
-
     override fun onAttach(context: Context) {
         super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException(context.toString() + " must implement OnFragmentInteractionListener")
-        }
-
-        (activity?.application as AprsToolsApplication).activityComponent!!.inject(this)
 
         val mapFragment = SupportMapFragment()
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
@@ -102,13 +89,7 @@ class MapViewFragment : Fragment(),
         requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
     override fun onMapReady(googleMap: GoogleMap) {
-        map = googleMap
         val settings = googleMap.uiSettings
 
         settings.isCompassEnabled = true
@@ -120,14 +101,15 @@ class MapViewFragment : Fragment(),
 
         animateToLastLocation()
 
-        plotter = PacketPlotter(activity!!, map!!)
-        packetCache = PacketCache(activity!!, plotter)
+        val plotter = plotterFactory.create(googleMap)
+        packetCache = packetCacheFactory.create(plotter)
 
-        map?.setOnCameraMoveListener { loadRegion(true) }
-        map?.setOnCameraIdleListener {
+        googleMap.setOnCameraMoveListener { loadRegion(true) }
+        googleMap.setOnCameraIdleListener {
             loadRegion(false)
-            plotter.clusterManager.onCameraIdle()
+            plotter.onCameraIdle()
         }
+        map = googleMap
     }
 
     private fun loadRegion(cameraMoving: Boolean) {
@@ -141,7 +123,7 @@ class MapViewFragment : Fragment(),
         val ne = bounds.latLngBounds.northeast
 
         val lastUpdateSnapshot = lastUpdateInstant
-        if (!!cameraMoving || (lastUpdateSnapshot == null || now().isAfter(
+        if (!cameraMoving || (lastUpdateSnapshot == null || now().isAfter(
                         lastUpdateSnapshot.plus(Duration.ofMillis(500))))) {
             lastUpdateInstant = now()
             doAsync {
@@ -164,25 +146,10 @@ class MapViewFragment : Fragment(),
     private fun animateToLastLocation() {
         if (checkSelfPermission(activity!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
-            fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(activity!!) {
+            fusedLocationClient.lastLocation?.addOnSuccessListener(activity!!) {
                 it?.let { map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f)) }
             }
         }
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
-    interface OnFragmentInteractionListener {
-        fun onFragmentInteraction(uri: Uri)
     }
 
     companion object {

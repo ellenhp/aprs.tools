@@ -20,14 +20,14 @@
 package me.ellenhp.aprstools
 
 import dagger.Subcomponent
-import me.ellenhp.aprstools.modules.ActivityModule
+import me.ellenhp.aprstools.map.MapViewFragment
 import me.ellenhp.aprstools.modules.TimeModule
 import me.ellenhp.aprstools.settings.BluetoothPromptFragment
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.tracker.TrackerService
 
 @ActivityScope
-@Subcomponent(modules = [ActivityModule::class, TimeModule::class])
+@Subcomponent(modules = [TimeModule::class])
 interface ActivityComponent {
 
     fun inject(mainActivity: MainActivity)

@@ -17,15 +17,15 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.map
 
-import dagger.Component
-import dagger.android.AndroidInjectionModule
+import dagger.Subcomponent
 import dagger.android.AndroidInjector
-import dagger.android.support.AndroidSupportInjectionModule
+import me.ellenhp.aprstools.MapFragmentScope
 
-@Component(modules = [AndroidInjectionModule::class, AndroidSupportInjectionModule::class, MainActivityModule::class])
-interface ApplicationComponent : AndroidInjector<AprsToolsApplication> {
-    @Component.Factory
-    interface Factory : AndroidInjector.Factory<AprsToolsApplication>
+@Subcomponent
+@MapFragmentScope
+interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
+    @Subcomponent.Factory
+    interface Factory : AndroidInjector.Factory<MapViewFragment>
 }

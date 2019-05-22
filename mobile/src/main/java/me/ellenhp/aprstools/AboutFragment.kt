@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprstools
 
-import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -38,9 +36,7 @@ import androidx.navigation.fragment.NavHostFragment.findNavController
  * create an instance of this fragment.
  *
  */
-class AboutFragment : Fragment() {
-    private var listener: OnFragmentInteractionListener? = null
-
+class AboutFragment : AprsToolsFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let { }
@@ -64,35 +60,6 @@ class AboutFragment : Fragment() {
         return view
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnFragmentInteractionListener) {
-            listener = context
-        } else {
-            throw RuntimeException("$context must implement OnFragmentInteractionListener")
-        }
-    }
-
-    override fun onDetach() {
-        super.onDetach()
-        listener = null
-    }
-
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     *
-     *
-     * See the Android Training lesson [Communicating with Other Fragments]
-     * (http://developer.android.com/training/basics/fragments/communicating.html)
-     * for more information.
-     */
-    interface OnFragmentInteractionListener {
-        fun onFragmentInteraction(uri: Uri)
-    }
-
     companion object {
         /**
          * Use this factory method to create a new instance of
@@ -100,7 +67,6 @@ class AboutFragment : Fragment() {
          *
          * @return A new instance of fragment AboutFragment.
          */
-        // TODO: Rename and change types and number of parameters
         @JvmStatic
         fun newInstance() =
                 AboutFragment().apply {

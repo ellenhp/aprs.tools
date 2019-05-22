@@ -19,26 +19,24 @@
 
 package me.ellenhp.aprstools
 
+import android.app.Activity
 import android.app.Application
-import me.ellenhp.aprstools.modules.ApplicationModule
+import dagger.android.AndroidInjector
+import dagger.android.DispatchingAndroidInjector
+import dagger.android.HasActivityInjector
+import javax.inject.Inject
 
-class AprsToolsApplication : Application() {
-    lateinit var component: ApplicationComponent
-        private set
+class AprsToolsApplication : Application(), HasActivityInjector {
 
-    var activityComponent: ActivityComponent? = null
+    @Inject
+    lateinit var activityInjector: DispatchingAndroidInjector<Activity>
 
     override fun onCreate() {
         super.onCreate()
-        INSTANCE = this
-        component = DaggerApplicationComponent.builder()
-                .applicationModule(ApplicationModule(this))
-                .build()
+        DaggerApplicationComponent.factory().create(this).inject(this)
     }
 
-    companion object {
-        private var INSTANCE: AprsToolsApplication? = null
-        @JvmStatic
-        fun get(): AprsToolsApplication = INSTANCE!!
+    override fun activityInjector(): AndroidInjector<Activity> {
+        return activityInjector
     }
 }

@@ -19,10 +19,14 @@
 
 package me.ellenhp.aprstools
 
-import javax.inject.Inject
+import dagger.Subcomponent
+import dagger.android.AndroidInjectionModule
+import dagger.android.AndroidInjector
+import me.ellenhp.aprstools.map.MapViewFragmentModule
 
-open class Sleeper @Inject constructor() {
-    open fun sleep(millis: Long) {
-        Thread.sleep(millis)
-    }
+@Subcomponent(modules = [AndroidInjectionModule::class, MainActivityConcreteModule::class, MapViewFragmentModule::class])
+@ActivityScope
+interface MainActivitySubcomponent : AndroidInjector<MainActivity> {
+    @Subcomponent.Factory
+    interface Factory : AndroidInjector.Factory<MainActivity>
 }

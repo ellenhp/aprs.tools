@@ -17,19 +17,21 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.modules
+package me.ellenhp.aprstools
 
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import dagger.Module
-import dagger.Provides
-import me.ellenhp.aprstools.AprsToolsApplication
+import androidx.test.core.app.ActivityScenario
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-@Module
-class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) {
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest = Config.NONE, sdk = [21, 23, 24, 26, 28])
+class MainActivityTest {
 
-    @Provides
-    fun provideLocationProviderClient(): FusedLocationProviderClient {
-        return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
+    @Test
+    fun launchApp_noCrash() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        scenario.onActivity {}
     }
 }

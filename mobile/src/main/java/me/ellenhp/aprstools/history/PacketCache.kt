@@ -23,6 +23,8 @@ import android.content.Context
 import android.util.Log
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.toolbox.JsonObjectRequest
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import com.google.gson.Gson
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
@@ -30,7 +32,8 @@ import me.ellenhp.aprstools.map.PacketPlotter
 import java.util.ArrayDeque
 import kotlin.collections.HashMap
 
-class PacketCache(private val context: Context, private val plotter: PacketPlotter) {
+@AutoFactory(allowSubclasses = true)
+class PacketCache(@Provided private val context: Context, private val plotter: PacketPlotter) {
 
     private val cellsInOrder = ArrayDeque<PacketCacheCell>()
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
