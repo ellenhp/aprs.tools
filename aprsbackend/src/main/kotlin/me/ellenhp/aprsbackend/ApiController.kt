@@ -29,7 +29,12 @@ import me.ellenhp.aprslib.parser.AprsParser
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.CacheControl
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.TimeUnit
 
 @RestController
@@ -43,28 +48,34 @@ class ApiController @Autowired constructor(private val databaseLayer: DatabaseLa
     }
 
     @GetMapping("/from/{callsign}")
-    fun from(@PathVariable(value="callsign") callsign: String,
-             @RequestParam(defaultValue = "") ssid: String): ResponseEntity<String> {
+    fun from(
+        @PathVariable(value = "callsign") callsign: String,
+        @RequestParam(defaultValue = "") ssid: String
+    ): ResponseEntity<String> {
         val packets = databaseLayer.getAllFrom(Ax25Address(callsign, ssid))
         val json = Gson().toJson(packets)
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
-                .body(json);
+                .body(json)
     }
 
     @GetMapping("/to/{callsign}")
-    fun to(@PathVariable(value="callsign") callsign: String,
-           @RequestParam(defaultValue = "") ssid: String): ResponseEntity<String> {
+    fun to(
+        @PathVariable(value = "callsign") callsign: String,
+        @RequestParam(defaultValue = "") ssid: String
+    ): ResponseEntity<String> {
         val packets = databaseLayer.getAllTo(Ax25Address(callsign, ssid))
         val json = Gson().toJson(packets)
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(60, TimeUnit.SECONDS))
-                .body(json);
+                .body(json)
     }
 
     @GetMapping("/within/{plusCode}")
-    fun within(@PathVariable(value="plusCode") plusCode: String,
-               @RequestParam(defaultValue = "") type: String): ResponseEntity<String> {
+    fun within(
+        @PathVariable(value = "plusCode") plusCode: String,
+        @RequestParam(defaultValue = "") type: String
+    ): ResponseEntity<String> {
         val zone = OpenLocationCode.decode(plusCode)
         val packets = databaseLayer.getPacketsIn(zone)?.second ?: listOf()
         val json = if (type == "" || type == "packets") {
@@ -87,7 +98,7 @@ class ApiController @Autowired constructor(private val databaseLayer: DatabaseLa
         }
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.maxAge(120, TimeUnit.SECONDS))
-                .body(json);
+                .body(json)
     }
 
     @GetMapping("/cleanup")
@@ -109,5 +120,4 @@ class ApiController @Autowired constructor(private val databaseLayer: DatabaseLa
         val packets = packetStrings.map { parser.parse(it) }.filterNotNull()
         databaseLayer.putPackets(packets)
     }
-
 }

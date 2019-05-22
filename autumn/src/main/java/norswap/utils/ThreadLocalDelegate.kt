@@ -21,7 +21,7 @@ operator fun <T> ThreadLocal<T>.provideDelegate(self: Any, prop: KProperty<*>) =
 class ThreadLocalDelegate<T>(val local: ThreadLocal<T>) : ReadWriteProperty<Any, T> {
     companion object {
         fun <T> late_init() = ThreadLocalDelegate<T>(ThreadLocal())
-        private fun <T>threadLocalWithInitial(initial: T): ThreadLocal<T> {
+        private fun <T> threadLocalWithInitial(initial: T): ThreadLocal<T> {
             val tl = ThreadLocal<T>()
             tl.set(initial)
             return tl

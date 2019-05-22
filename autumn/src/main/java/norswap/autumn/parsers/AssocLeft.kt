@@ -2,7 +2,7 @@ package norswap.autumn.parsers
 
 import norswap.autumn.Grammar
 import norswap.autumn.Parser
-import java.util.*
+import java.util.ArrayDeque
 
 /**
  * A parser that matches applications of a set of left-associative binary operators and
@@ -62,7 +62,7 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
             if (left != right) throw IllegalStateException("Left and right operands are different.")
             return left
         }
-        set (p) {
+        set(p) {
             left = p
             right = p
         }
@@ -87,8 +87,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * the operator is matched with its operands.
      */
     inline fun op_stackless(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.() -> Unit) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.() -> Unit
+    ) {
         operators += { g.seq { syntax() && right!!() && g.perform { effect() } } }
     }
 
@@ -101,8 +102,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * The [effect] function is passed the stack frame of the operator and its operands.
      */
     inline fun op_affect(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.(Array<Any?>) -> Unit) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.(Array<Any?>) -> Unit
+    ) {
         op_stackless(syntax) { effect(frame_end(frame)) }
     }
 
@@ -116,8 +118,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * and its result is pushed on the value stack.
      */
     inline fun op(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.(Array<Any?>) -> Any?) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.(Array<Any?>) -> Any?
+    ) {
         op_affect(syntax) { stack.push(effect(it)) }
     }
 
@@ -128,8 +131,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * given [effect] when the operator is matched with its operand.
      */
     inline fun postfix_stackless(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.() -> Unit) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.() -> Unit
+    ) {
         operators += { g.seq { syntax() && g.perform { effect() } } }
     }
 
@@ -142,8 +146,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * The [effect] function is passed the stack frame of the operator and its operand.
      */
     inline fun postfix_affect(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.(Array<Any?>) -> Unit) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.(Array<Any?>) -> Unit
+    ) {
         postfix_stackless(syntax) { effect(frame_end(frame)) }
     }
 
@@ -157,8 +162,9 @@ class AssocLeft internal constructor(val g: Grammar) : Parser {
      * and its result is pushed on the value stack.
      */
     inline fun postfix(
-            crossinline syntax: Parser,
-            crossinline effect: Grammar.(Array<Any?>) -> Any?) {
+        crossinline syntax: Parser,
+        crossinline effect: Grammar.(Array<Any?>) -> Any?
+    ) {
         postfix_affect(syntax) { stack.push(effect(it)) }
     }
 

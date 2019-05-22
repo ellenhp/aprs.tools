@@ -20,7 +20,11 @@
 package me.ellenhp.aprstools.map
 
 import android.content.Context
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.Rect
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import me.ellenhp.aprstools.R
@@ -64,8 +68,8 @@ class AprsSymbolTable @Inject constructor(val context: Context) {
                         (pageOffset + indexInPage / symbolsPerRow) * symbolSize,
                         symbolSize,
                         symbolSize),
-                symbolSize/2,
-                symbolSize/2,
+                symbolSize / 2,
+                symbolSize / 2,
                 true)
     }
 
@@ -86,5 +90,4 @@ class AprsSymbolTable @Inject constructor(val context: Context) {
             return key.table != '/' && key.table != '\\'
         }
     }
-
 }

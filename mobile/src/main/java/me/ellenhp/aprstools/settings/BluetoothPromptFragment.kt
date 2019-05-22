@@ -36,7 +36,6 @@ import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.R
 import javax.inject.Inject
 
-
 class BluetoothPromptFragment : AprsToolsDialogFragment() {
 
     @Inject

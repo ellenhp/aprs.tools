@@ -34,10 +34,8 @@ import com.google.android.material.navigation.NavigationView
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import me.ellenhp.aprstools.licenses.AprsToolsLicenseFragment
 import me.ellenhp.aprstools.licenses.DependencyLicenseFragment
-import me.ellenhp.aprstools.map.PacketPlotter
 import me.ellenhp.aprstools.modules.ActivityModule
 import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.Preferences

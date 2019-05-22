@@ -27,10 +27,10 @@ import com.google.gson.Gson
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
 import me.ellenhp.aprstools.map.PacketPlotter
-import java.util.*
+import java.util.ArrayDeque
 import kotlin.collections.HashMap
 
-class PacketCache(private val  context: Context, private val plotter: PacketPlotter) {
+class PacketCache(private val context: Context, private val plotter: PacketPlotter) {
 
     private val cellsInOrder = ArrayDeque<PacketCacheCell>()
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
@@ -109,5 +109,4 @@ class PacketCache(private val  context: Context, private val plotter: PacketPlot
         cellsInOrder.push(cell)
         return cell
     }
-
 }

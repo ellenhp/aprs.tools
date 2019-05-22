@@ -20,12 +20,12 @@
 package me.ellenhp.aprstools
 
 import com.google.android.gms.maps.model.LatLng
-import java.util.stream.Collector
-import com.google.common.collect.ImmutableList
 import java.lang.Math.toRadians
-import kotlin.math.*
-
-fun Any?.discard() = Unit
+import kotlin.math.asin
+import kotlin.math.cos
+import kotlin.math.pow
+import kotlin.math.sin
+import kotlin.math.sqrt
 
 class Utils {
     companion object {

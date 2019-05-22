@@ -24,16 +24,17 @@ import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.app.ActivityCompat.*
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.maps.*
-import com.google.android.gms.maps.CameraUpdateFactory.*
+import com.google.android.gms.maps.CameraUpdateFactory.newLatLngZoom
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import dagger.Lazy
 import javax.inject.Inject
@@ -46,7 +47,6 @@ import org.jetbrains.anko.doAsync
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
 import org.threeten.bp.Instant.now
-
 
 /**
  * A simple [Fragment] subclass.
@@ -72,8 +72,11 @@ class MapViewFragment : Fragment(),
 
     var packetCache: PacketCache? = null
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         return inflater.inflate(R.layout.fragment_map_view, container, false)
     }
 
@@ -145,10 +148,8 @@ class MapViewFragment : Fragment(),
                 val zones = ZoneUtils().getZonesWithin(OpenLocationCode(sw.latitude, sw.longitude).decode(),
                         OpenLocationCode(ne.latitude, ne.longitude).decode())
                 packetCache?.updateVisibleCells(zones, if (cameraMoving) 1 else 25)
-
             }
         }
-
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
@@ -196,7 +197,6 @@ class MapViewFragment : Fragment(),
                 MapViewFragment().apply {
                     arguments = Bundle().apply { }
                 }
-
 
         private const val LOCATION_PERMISSION_REQUEST = 10001
     }

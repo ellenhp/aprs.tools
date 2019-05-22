@@ -26,7 +26,8 @@ import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
 import dagger.Module
 import dagger.Provides
-import me.ellenhp.aprstools.*
+import me.ellenhp.aprstools.ActivityScope
+import me.ellenhp.aprstools.MainActivity
 
 @Module
 class ActivityModule(private val activity: MainActivity) {

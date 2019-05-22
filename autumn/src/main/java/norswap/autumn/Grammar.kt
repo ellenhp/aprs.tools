@@ -1,6 +1,12 @@
 package norswap.autumn
 
-import norswap.autumn.parsers.*
+import norswap.autumn.parsers.char_set
+import norswap.autumn.parsers.ignore_errors
+import norswap.autumn.parsers.opt
+import norswap.autumn.parsers.repeat0
+import norswap.autumn.parsers.space_char
+import norswap.autumn.parsers.string
+import norswap.autumn.parsers.word
 import norswap.autumn.undoable.UndoList
 import norswap.utils.arrayOfSize
 import java.util.ArrayList

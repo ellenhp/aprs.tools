@@ -54,8 +54,8 @@ abstract class UndoRef<T> {
  * Creates an [UndoRef] from the given getter and setter.
  */
 inline fun <T> Grammar.undo_ref(
-        crossinline getter: () -> T,
-        crossinline setter: (T) -> Unit
+    crossinline getter: () -> T,
+    crossinline setter: (T) -> Unit
 ): UndoRef<T> {
     return object : UndoRef<T>() {
         override val grammar = this@undo_ref

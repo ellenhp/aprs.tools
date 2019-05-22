@@ -37,7 +37,6 @@ import me.ellenhp.aprslib.packet.AprsPath
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.AprsToolsApplication
 import javax.inject.Inject
-import javax.inject.Provider
 import dagger.Lazy
 import me.ellenhp.aprstools.settings.Preferences
 

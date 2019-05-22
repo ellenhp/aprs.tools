@@ -48,8 +48,11 @@ class AprsToolsLicenseFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.fragment_aprs_tools_license, container, false)
         view.findViewById<TextView>(R.id.aprstools_gpl_textview).text =
                 activity!!.assets.open("APRSToolsLicense.txt").reader().readText()
