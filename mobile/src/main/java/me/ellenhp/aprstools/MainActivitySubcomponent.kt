@@ -19,14 +19,10 @@
 
 package me.ellenhp.aprstools
 
-import dagger.BindsInstance
-import dagger.Component
 import dagger.Subcomponent
 import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.map.MapViewFragment
 import me.ellenhp.aprstools.map.MapViewFragmentModule
-import me.ellenhp.aprstools.map.MapViewSubcomponent
 
 @Subcomponent(modules = [AndroidInjectionModule::class, MainActivityConcreteModule::class, MapViewFragmentModule::class])
 @ActivityScope

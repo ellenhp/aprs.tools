@@ -25,7 +25,6 @@ import dagger.multibindings.IntoMap
 import dagger.Binds
 import dagger.multibindings.ClassKey
 
-
 @Module(subcomponents = [MapViewSubcomponent::class])
 abstract class MapViewFragmentModule {
     @Binds

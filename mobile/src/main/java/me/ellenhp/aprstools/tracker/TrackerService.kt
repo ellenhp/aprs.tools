@@ -38,7 +38,6 @@ import me.ellenhp.aprslib.packet.Ax25Address
 import javax.inject.Inject
 import dagger.Lazy
 import dagger.android.AndroidInjection
-import dagger.android.support.AndroidSupportInjection
 import me.ellenhp.aprstools.settings.Preferences
 
 class TrackerService : Service() {

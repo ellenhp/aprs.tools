@@ -25,7 +25,7 @@ import me.ellenhp.aprstools.MapFragmentScope
 
 @Subcomponent
 @MapFragmentScope
-interface MapViewSubcomponent: AndroidInjector<MapViewFragment> {
+interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
     @Subcomponent.Factory
     interface Factory : AndroidInjector.Factory<MapViewFragment>
 }

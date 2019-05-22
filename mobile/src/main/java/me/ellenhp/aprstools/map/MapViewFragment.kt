@@ -35,13 +35,11 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
-import dagger.Lazy
 import javax.inject.Inject
 import com.google.openlocationcode.OpenLocationCode
-import dagger.android.support.AndroidSupportInjection
-import dagger.android.support.DaggerFragment
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
+import me.ellenhp.aprstools.AprsToolsFragment
 import me.ellenhp.aprstools.R
 import me.ellenhp.aprstools.ZoneUtils
 import me.ellenhp.aprstools.history.PacketCache
@@ -61,7 +59,7 @@ import javax.inject.Provider
  * create an instance of this fragment.
  *
  */
-class MapViewFragment : DaggerFragment(),
+class MapViewFragment : AprsToolsFragment(),
         OnMapReadyCallback,
         CoroutineScope by MainScope() {
     private var map: GoogleMap? = null
@@ -71,8 +69,7 @@ class MapViewFragment : DaggerFragment(),
     val plotterFactory = PacketPlotterFactory(Provider<Context> { activity!! })
     val packetCacheFactory = PacketCacheFactory(Provider<Context> { activity!! })
     @Inject
-    lateinit var fusedLocationClient: Lazy<FusedLocationProviderClient>
-
+    lateinit var fusedLocationClient: FusedLocationProviderClient
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -84,8 +81,6 @@ class MapViewFragment : DaggerFragment(),
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
-
-        AndroidSupportInjection.inject(this)
 
         val mapFragment = SupportMapFragment()
         childFragmentManager.beginTransaction().add(R.id.map_holder, mapFragment).commitNow()
@@ -151,7 +146,7 @@ class MapViewFragment : DaggerFragment(),
     private fun animateToLastLocation() {
         if (checkSelfPermission(activity!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
-            fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(activity!!) {
+            fusedLocationClient.lastLocation?.addOnSuccessListener(activity!!) {
                 it?.let { map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f)) }
             }
         }

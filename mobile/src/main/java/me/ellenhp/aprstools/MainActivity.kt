@@ -35,7 +35,6 @@ import com.google.android.material.navigation.NavigationView
 import dagger.Lazy
 import dagger.android.AndroidInjection
 import dagger.android.AndroidInjector
-import dagger.android.HasFragmentInjector
 import dagger.android.support.HasSupportFragmentInjector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
@@ -43,8 +42,6 @@ import me.ellenhp.aprstools.settings.CallsignDialogFragment
 import me.ellenhp.aprstools.settings.Preferences
 import javax.inject.Inject
 import dagger.android.DispatchingAndroidInjector
-
-
 
 class MainActivity : AppCompatActivity(),
         CoroutineScope by MainScope(), NavController.OnDestinationChangedListener, HasSupportFragmentInjector {

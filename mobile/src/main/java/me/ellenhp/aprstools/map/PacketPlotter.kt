@@ -33,7 +33,6 @@ import me.ellenhp.aprstools.history.Posit
 import org.jetbrains.anko.runOnUiThread
 import org.threeten.bp.Instant
 import java.lang.Math.abs
-import javax.inject.Inject
 
 @MapFragmentScope
 @AutoFactory(allowSubclasses = true)

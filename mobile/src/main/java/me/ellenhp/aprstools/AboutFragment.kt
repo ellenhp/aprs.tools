@@ -19,8 +19,6 @@
 
 package me.ellenhp.aprstools
 
-import android.content.Context
-import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -38,7 +36,7 @@ import androidx.navigation.fragment.NavHostFragment.findNavController
  * create an instance of this fragment.
  *
  */
-class AboutFragment : Fragment() {
+class AboutFragment : AprsToolsFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let { }

@@ -19,18 +19,13 @@
 
 package me.ellenhp.aprstools
 
-import dagger.BindsInstance
 import dagger.Component
-import dagger.Subcomponent
 import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
-import me.ellenhp.aprstools.map.MapViewFragment
 
 @Component(modules = [AndroidInjectionModule::class, AndroidSupportInjectionModule::class, MainActivityModule::class])
 interface ApplicationComponent : AndroidInjector<AprsToolsApplication> {
     @Component.Factory
     interface Factory : AndroidInjector.Factory<AprsToolsApplication>
-
-
 }

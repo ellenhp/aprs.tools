@@ -32,9 +32,6 @@ import dagger.android.AndroidInjector
 import dagger.multibindings.IntoMap
 import dagger.Binds
 import dagger.multibindings.ClassKey
-import me.ellenhp.aprstools.map.MapViewFragmentModule
-import me.ellenhp.aprstools.map.MapViewSubcomponent
-
 
 @Module(subcomponents = [MainActivitySubcomponent::class])
 abstract class MainActivityModule {

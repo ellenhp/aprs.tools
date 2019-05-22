@@ -26,7 +26,7 @@ import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
-@Config(manifest=Config.NONE, sdk = [21, 23, 24, 26, 28])
+@Config(manifest = Config.NONE, sdk = [21, 23, 24, 26, 28])
 class MainActivityTest {
 
     @Test
