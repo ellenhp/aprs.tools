@@ -162,10 +162,11 @@ class MapViewFragment : Fragment(),
 
     private fun animateToLastLocation() {
         if (checkSelfPermission(activity!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
-                checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED)
+                checkSelfPermission(activity!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
             fusedLocationClient.get()?.lastLocation?.addOnSuccessListener(activity!!) {
-                map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f))
+                it?.let { map?.animateCamera(newLatLngZoom(LatLng(it.latitude, it.longitude), 10f)) }
             }
+        }
     }
 
     /**
