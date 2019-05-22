@@ -23,10 +23,7 @@ import android.util.Log
 import com.google.android.gms.maps.model.LatLng
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprslib.packet.CacheUpdateCommand
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
-import me.ellenhp.aprslib.packet.TimestampedPacket
-import me.ellenhp.aprslib.parser.AprsParser
 import me.ellenhp.aprstools.map.PacketPlotter
 import org.threeten.bp.Duration
 import org.threeten.bp.Instant
@@ -37,8 +34,6 @@ class PacketCacheCell(val cell: OpenLocationCode) {
     private var hidden: Boolean = false
 
     private var packetsByStation = HashMap<Ax25Address, LatLng>()
-
-    private val parser = AprsParser()
 
     @Synchronized
     fun getUpdateUrl(): String? {

@@ -23,7 +23,7 @@ import org.junit.Test
 
 class AprsBackendApplicationTests {
 
-	@Test
-	fun contextLoads() {
-	}
+    @Test
+    fun contextLoads() {
+    }
 }

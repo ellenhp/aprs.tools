@@ -26,7 +26,7 @@ import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 
-class EditTextPreferenceWithPreview(context: Context, attributeSet: AttributeSet):
+class EditTextPreferenceWithPreview(context: Context, attributeSet: AttributeSet) :
         EditTextPreference(context, attributeSet) {
 
     private var interceptedListener: OnPreferenceChangeListener? = null

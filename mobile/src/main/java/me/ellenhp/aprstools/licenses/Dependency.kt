@@ -21,12 +21,14 @@ package me.ellenhp.aprstools.licenses
 
 import org.yaml.snakeyaml.Yaml
 
-data class Dependency(val artifact: String? = null,
-                      val name: String? = null,
-                      val copyrightHolder: String? = null,
-                      val license: String? = null,
-                      val licenseUrl: String? = null,
-                      val url: String? = null) {
+data class Dependency(
+    val artifact: String? = null,
+    val name: String? = null,
+    val copyrightHolder: String? = null,
+    val license: String? = null,
+    val licenseUrl: String? = null,
+    val url: String? = null
+) {
 
     constructor(attributes: LinkedHashMap<String, String>) : this(
             attributes.getOrDefault("artifact", null),
@@ -35,7 +37,6 @@ data class Dependency(val artifact: String? = null,
             attributes.getOrDefault("license", null),
             attributes.getOrDefault("licenseUrl", null),
             attributes.getOrDefault("url", null))
-
 
     companion object {
         fun parseFile(file: String): List<Dependency>? {

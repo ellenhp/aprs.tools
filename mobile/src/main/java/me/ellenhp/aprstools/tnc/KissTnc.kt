@@ -23,7 +23,6 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 
-
 class KissTnc(private val inputStream: InputStream, private val outputStream: OutputStream) : Tnc {
 
     private val parser = KissFrameParser()

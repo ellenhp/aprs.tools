@@ -32,5 +32,4 @@ class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) 
     fun provideLocationProviderClient(): FusedLocationProviderClient {
         return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
     }
-
 }

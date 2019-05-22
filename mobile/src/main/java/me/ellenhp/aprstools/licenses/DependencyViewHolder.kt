@@ -24,7 +24,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import me.ellenhp.aprstools.R
 
-class DependencyViewHolder(val view: View): RecyclerView.ViewHolder(view) {
+class DependencyViewHolder(val view: View) : RecyclerView.ViewHolder(view) {
 
     fun bindData(dependency: Dependency) {
         // These should always be present

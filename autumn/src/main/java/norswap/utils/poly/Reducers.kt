@@ -9,9 +9,8 @@ import norswap.utils.ReducerAdvice
  * A polymorphic [Reducer].
  * The polymorphism is predicated on the parameter.
  */
-open class PolyReducer<Arg : Any, Out>(inheriting: Boolean = true)
-    : Poly2<Arg, Array<Out>, Out>(inheriting)
-        , Reducer<Arg, Out>
+open class PolyReducer<Arg : Any, Out>(inheriting: Boolean = true) :
+    Poly2<Arg, Array<Out>, Out>(inheriting), Reducer<Arg, Out>
 
 // -------------------------------------------------------------------------------------------------
 
@@ -19,8 +18,7 @@ open class PolyReducer<Arg : Any, Out>(inheriting: Boolean = true)
  * A polymorphic [ReducerAdvice].
  * The polymorphism is predicated on the parameter.
  */
-open class PolyReducerAdvice<Arg : Any, Out>(inheriting: Boolean = true)
-    : Poly2<Arg, Array<Out>?, Out>(inheriting)
-        , ReducerAdvice<Arg, Out>
+open class PolyReducerAdvice<Arg : Any, Out>(inheriting: Boolean = true) :
+    Poly2<Arg, Array<Out>?, Out>(inheriting), ReducerAdvice<Arg, Out>
 
 // -------------------------------------------------------------------------------------------------

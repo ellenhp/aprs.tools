@@ -27,8 +27,7 @@ import org.threeten.bp.Instant
 class TimeModule {
 
     @Provides
-    fun provideInstant() : Instant {
+    fun provideInstant(): Instant {
         return Instant.now()
     }
-
 }

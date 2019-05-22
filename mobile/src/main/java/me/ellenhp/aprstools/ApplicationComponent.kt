@@ -29,5 +29,4 @@ import javax.inject.Singleton
 interface ApplicationComponent {
 
     fun newActivityComponent(activityComponent: ActivityModule): ActivityComponent
-
 }

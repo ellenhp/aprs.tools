@@ -24,7 +24,6 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.Volley
 
-
 class PacketRequestQueue constructor(context: Context) {
     companion object {
         @Volatile

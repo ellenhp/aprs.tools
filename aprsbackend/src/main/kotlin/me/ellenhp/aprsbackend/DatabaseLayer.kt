@@ -25,14 +25,16 @@ import com.google.openlocationcode.OpenLocationCode
 import com.google.protobuf.ByteString
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import me.ellenhp.aprslib.packet.*
+import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprslib.packet.TimestampedSerializedPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.postgis.PGgeometry
 import org.postgis.Point
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import java.sql.Connection
-import java.util.*
+import java.util.Base64
 import javax.sql.DataSource
 import kotlin.collections.ArrayList
 
@@ -61,7 +63,6 @@ class DatabaseLayer {
                 "global",
                 "api-keys",
                 "aprstools-symmetric-key"), ByteString.copyFrom(dbPasswordEncrypted))
-
 
             val config = HikariConfig()
 
@@ -118,7 +119,6 @@ class DatabaseLayer {
         }
     }
 
-
     fun getAllTo(station: Ax25Address): List<TimestampedSerializedPacket> {
         pool!!.connection.use { conn ->
             val select = conn.prepareStatement("""
@@ -161,7 +161,7 @@ class DatabaseLayer {
                 packets.add(TimestampedSerializedPacket(
                         results.getTimestamp(2).time,
                         String(blob, Charsets.ISO_8859_1)))
-                now = now ?: results.getTimestamp(3).time/1000
+                now = now ?: results.getTimestamp(3).time / 1000
             }
             packets.mapNotNull { AprsParser().parse(it.packet)?.location() }.forEach {
                 if (it.latitude < codeArea.southLatitude || it.latitude > codeArea.northLatitude)

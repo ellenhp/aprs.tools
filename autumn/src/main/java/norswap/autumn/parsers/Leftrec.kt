@@ -9,9 +9,10 @@ import norswap.autumn.undoable.UndoList
 
 @PublishedApi
 internal data class Invocation(
-        val invocation_pos: Int,
-        var max_pos: Int,
-        var max_delta: List<SideEffect>) {
+    val invocation_pos: Int,
+    var max_pos: Int,
+    var max_delta: List<SideEffect>
+) {
     fun is_at(pos: Int): Boolean = invocation_pos == pos
 
     fun has_delta(): Boolean = invocation_pos != max_pos

@@ -31,8 +31,8 @@ Another pitfall: all calls must go through a hash table lookup.
  * A polymorphic operation with no parameters.
  * The polymorphism is predicated on the return type.yes
  */
-open class Poly0<Out : Any>(inheriting: Boolean = true)
-    : Specialized<Out, () -> Out>(inheriting) {
+open class Poly0<Out : Any>(inheriting: Boolean = true) :
+    Specialized<Out, () -> Out>(inheriting) {
     inline fun <reified T : Out> invoke() = for_class(T::class.java)()
 }
 
@@ -42,9 +42,8 @@ open class Poly0<Out : Any>(inheriting: Boolean = true)
  * A polymorphic operation with a single parameter.
  * The polymorphism is predicated on the parameter.
  */
-open class Poly1<Arg : Any, Out>(inheriting: Boolean = true)
-    : Specialized<Arg, (Arg) -> Out>(inheriting)
-        , (Arg) -> Out {
+open class Poly1<Arg : Any, Out>(inheriting: Boolean = true) :
+    Specialized<Arg, (Arg) -> Out>(inheriting), (Arg) -> Out {
     // ---------------------------------------------------------------------------------------------
 
     override fun invoke(arg: Arg) = for_instance(arg)(arg)
@@ -76,9 +75,8 @@ open class Poly1<Arg : Any, Out>(inheriting: Boolean = true)
  * A polymorphic operation with two parameters.
  * The polymorphism is predicated on the first parameter.
  */
-open class Poly2<Arg1 : Any, Arg2, Out>(inheriting: Boolean = true)
-    : Specialized<Arg1, (Arg1, Arg2) -> Out>(inheriting)
-        , (Arg1, Arg2) -> Out {
+open class Poly2<Arg1 : Any, Arg2, Out>(inheriting: Boolean = true) :
+    Specialized<Arg1, (Arg1, Arg2) -> Out>(inheriting), (Arg1, Arg2) -> Out {
     // ---------------------------------------------------------------------------------------------
 
     override fun invoke(arg1: Arg1, arg2: Arg2) = for_instance(arg1)(arg1, arg2)
@@ -104,9 +102,8 @@ open class Poly2<Arg1 : Any, Arg2, Out>(inheriting: Boolean = true)
  * A polymorphic operation with three parameters.
  * The polymorphism is predicated on the first parameter.
  */
-open class Poly3<Arg1 : Any, Arg2, Arg3, Out>(inheriting: Boolean = true)
-    : Specialized<Arg1, (Arg1, Arg2, Arg3) -> Out>(inheriting)
-        , (Arg1, Arg2, Arg3) -> Out {
+open class Poly3<Arg1 : Any, Arg2, Arg3, Out>(inheriting: Boolean = true) :
+    Specialized<Arg1, (Arg1, Arg2, Arg3) -> Out>(inheriting), (Arg1, Arg2, Arg3) -> Out {
     // ---------------------------------------------------------------------------------------------
 
     override fun invoke(arg1: Arg1, arg2: Arg2, arg3: Arg3) = for_instance(arg1)(arg1, arg2, arg3)
