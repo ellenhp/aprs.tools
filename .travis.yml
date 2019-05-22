@@ -10,7 +10,7 @@ android:
     - android-28
     - extra-android-m2repository
 
-script: ./runAllTasks.sh
+script: ./runAllChecks.sh
 
 before_install:
     - yes | sdkmanager "platforms;android-28"
