@@ -483,3 +483,63 @@
   license: The Apache Software License, Version 2.0
   licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
   url: https://github.com/googlemaps/android-maps-utils
+- artifact: com.android.support:support-annotations:+
+  name: Android Support Library Annotations
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.fragment:fragment-testing:+
+  name: Fragment Test Extensions
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.test:core:+
+  name: AndroidX Test Library
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://developer.android.com/testing
+- artifact: androidx.lifecycle:lifecycle-viewmodel-ktx:+
+  name: Android Lifecycle ViewModel Kotlin Extensions
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.concurrent:concurrent-futures:+
+  name: AndroidX Futures
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://developer.android.com/topic/libraries/architecture/index.html
+- artifact: androidx.savedstate:savedstate:+
+  name: Activity
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.activity:activity:+
+  name: Activity
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.test:monitor:+
+  name: AndroidX Test Library
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: https://developer.android.com/testing
+- artifact: androidx.activity:activity-ktx:+
+  name: Activity Kotlin Extensions
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
+- artifact: androidx.fragment:fragment-ktx:+
+  name: Fragment Kotlin Extensions
+  copyrightHolder: Copyright (c) 2005-2013, The Android Open Source Project
+  license: The Apache Software License, Version 2.0
+  licenseUrl: http://www.apache.org/licenses/LICENSE-2.0.txt
+  url: http://developer.android.com/tools/extras/support-library.html
