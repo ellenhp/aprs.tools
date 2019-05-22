@@ -27,16 +27,16 @@ import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
 
 class BackendService : CliktCommand() {
-    private val aprsIsHost: String by option(help="The APRS-IS server to connect to")
+    private val aprsIsHost: String by option(help = "The APRS-IS server to connect to")
             .default("rotate.aprs.net")
-    private val aprsIsPort: Int by option(help="The APRS-IS port to connect to").int()
+    private val aprsIsPort: Int by option(help = "The APRS-IS port to connect to").int()
             .default(10152)
-    private val callsign: String by option(help="The callsign to use when connecting to APRS-IS")
+    private val callsign: String by option(help = "The callsign to use when connecting to APRS-IS")
             .required()
-    private val backendHost: String by option(help="The callsign to use when connecting to APRS-IS")
+    private val backendHost: String by option(help = "The callsign to use when connecting to APRS-IS")
             .required()
-    private val useSSL: Boolean by option("--use-ssl", help="Whether or not to use SSL")
-            .flag("--disable-ssl", default=true)
+    private val useSSL: Boolean by option("--use-ssl", help = "Whether or not to use SSL")
+            .flag("--disable-ssl", default = true)
     override fun run() {
         println("Creating APRS-IS backend service.")
         val thread = AprsIsThread(aprsIsHost, aprsIsPort, callsign, backendHost, useSSL)

@@ -20,10 +20,11 @@ This file contains parser combinators that act on [Grammar.stack].
  * an execption.
  */
 inline fun Grammar.affect(
-        backlog: Int,
-        crossinline syntax: Parser,
-        crossinline effect: Grammar.(Array<Any?>) -> Unit)
-        : Boolean {
+    backlog: Int,
+    crossinline syntax: Parser,
+    crossinline effect: Grammar.(Array<Any?>) -> Unit
+):
+        Boolean {
     val frame = frame_start(backlog)
     val result = syntax()
     if (result) {
@@ -38,9 +39,10 @@ inline fun Grammar.affect(
  * Like [affect], with no backlog.
  */
 inline fun Grammar.affect(
-        crossinline syntax: Parser,
-        crossinline effect: Grammar.(Array<Any?>) -> Unit)
-        : Boolean {
+    crossinline syntax: Parser,
+    crossinline effect: Grammar.(Array<Any?>) -> Unit
+):
+        Boolean {
     return affect(0, syntax, effect)
 }
 
@@ -50,9 +52,10 @@ inline fun Grammar.affect(
  * Matches [syntax], then calls [effect], passing it a string containing the matched text.
  */
 inline fun Grammar.affect_str(
-        crossinline syntax: Parser,
-        crossinline effect: Grammar.(String) -> Unit)
-        : Boolean {
+    crossinline syntax: Parser,
+    crossinline effect: Grammar.(String) -> Unit
+):
+        Boolean {
     val pos0 = pos
     val result = syntax()
     if (result) effect(text.substring(pos0, pos))
@@ -71,10 +74,11 @@ inline fun Grammar.affect_str(
  * an execption.
  */
 inline fun Grammar.build(
-        backlog: Int,
-        crossinline syntax: Parser,
-        crossinline effect: Grammar.(Array<Any?>) -> Any)
-        : Boolean {
+    backlog: Int,
+    crossinline syntax: Parser,
+    crossinline effect: Grammar.(Array<Any?>) -> Any
+):
+        Boolean {
     return affect(backlog, syntax) { stack.push(effect(it)) }
 }
 
@@ -84,8 +88,9 @@ inline fun Grammar.build(
  * Like [build], with no backlog.
  */
 inline fun Grammar.build(
-        crossinline syntax: Parser,
-        crossinline effect: Grammar.(Array<Any?>) -> Any): Boolean {
+    crossinline syntax: Parser,
+    crossinline effect: Grammar.(Array<Any?>) -> Any
+): Boolean {
     return build(0, syntax, effect)
 }
 
@@ -96,9 +101,10 @@ inline fun Grammar.build(
  * The return value of [value] is pushed on the stack.
  */
 inline fun Grammar.build_str(
-        crossinline syntax: Parser,
-        crossinline value: Grammar.(String) -> Any)
-        : Boolean {
+    crossinline syntax: Parser,
+    crossinline value: Grammar.(String) -> Any
+):
+        Boolean {
     return affect_str(syntax) { stack.push(value(it)) }
 }
 

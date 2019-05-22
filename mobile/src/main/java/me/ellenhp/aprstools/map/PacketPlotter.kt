@@ -22,9 +22,10 @@ package me.ellenhp.aprstools.map
 import androidx.fragment.app.FragmentActivity
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.ClusterManager
-import me.ellenhp.aprslib.packet.*
+import me.ellenhp.aprslib.packet.AprsSymbol
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprslib.packet.TimestampedPosit
 import me.ellenhp.aprstools.history.Posit
 import org.threeten.bp.Instant
 import java.lang.Math.abs
@@ -37,8 +38,8 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
 
     init {
         clusterManager.renderer = PositRenderer(activity, map, clusterManager)
-        map.setOnCameraIdleListener(clusterManager);
-        map.setOnMarkerClickListener(clusterManager);
+        map.setOnCameraIdleListener(clusterManager)
+        map.setOnMarkerClickListener(clusterManager)
     }
 
     @Synchronized
@@ -71,8 +72,7 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
                     Instant.ofEpochMilli(posit.millisSinceEpoch))
             marker?.let { markers[posit.station] = it }
             clusterManager.addItem(marker)
-        }
-        else {
+        } else {
             val newPos = LatLng(location.latitude, location.longitude)
             if (abs(currentMarker.position.latitude - newPos.latitude) > 0.0000001 ||
                     abs(currentMarker.position.longitude - newPos.longitude) > 0.0000001) {
@@ -81,10 +81,12 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
         }
     }
 
-    private fun createMarker(point: LatLng,
-                             station: Ax25Address,
-                             symbol: AprsSymbol,
-                             lastHeard: Instant): Posit? {
+    private fun createMarker(
+        point: LatLng,
+        station: Ax25Address,
+        symbol: AprsSymbol,
+        lastHeard: Instant
+    ): Posit? {
         val symbolDescriptor = symbolTable.getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
 
         return Posit(station.toString(),
@@ -93,5 +95,4 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
                 lastHeard,
                 activity.resources.configuration.locale)
     }
-
 }

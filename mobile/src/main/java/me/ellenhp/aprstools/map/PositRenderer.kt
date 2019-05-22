@@ -21,13 +21,12 @@ package me.ellenhp.aprstools.map
 
 import android.content.Context
 import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.Marker
 import com.google.android.gms.maps.model.MarkerOptions
 import com.google.maps.android.clustering.ClusterManager
 import com.google.maps.android.clustering.view.DefaultClusterRenderer
 import me.ellenhp.aprstools.history.Posit
 
-class PositRenderer(context: Context, val map: GoogleMap, clusterManager: ClusterManager<Posit>):
+class PositRenderer(context: Context, val map: GoogleMap, clusterManager: ClusterManager<Posit>) :
         DefaultClusterRenderer<Posit>(context, map, clusterManager) {
 
     override fun onBeforeClusterItemRendered(item: Posit, markerOptions: MarkerOptions) {

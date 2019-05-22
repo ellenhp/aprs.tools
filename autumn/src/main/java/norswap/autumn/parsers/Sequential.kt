@@ -32,7 +32,7 @@ inline fun Grammar.opt(crossinline p: Parser): Boolean {
  * Matches 0 or more (sequential) repetition of [p].
  */
 inline fun Grammar.repeat0(crossinline p: Parser): Boolean {
-    while (p());
+    while (p()) {}
     return true
 }
 
@@ -43,7 +43,7 @@ inline fun Grammar.repeat0(crossinline p: Parser): Boolean {
  */
 inline fun Grammar.repeat1(crossinline p: Parser): Boolean {
     if (!p()) return false
-    while (p());
+    while (p()) {}
     return true
 }
 
@@ -116,7 +116,6 @@ inline fun Grammar.list_term1(crossinline around: Parser, crossinline inside: Pa
 
 // -------------------------------------------------------------------------------------------------
 
-
 /**
  * Matches 0 or more repetition of [repeat], followed by [terminator].
  *
@@ -136,7 +135,6 @@ inline fun Grammar.until0(crossinline repeat: Parser, crossinline terminator: Pa
 }
 
 // -------------------------------------------------------------------------------------------------
-
 
 /**
  * Matches 1 or more repetition of [repeat], followed by [terminator].

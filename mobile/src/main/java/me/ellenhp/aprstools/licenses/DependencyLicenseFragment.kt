@@ -49,8 +49,11 @@ class DependencyLicenseFragment : Fragment() {
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
-                              savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         val view = inflater.inflate(R.layout.fragment_dependency_license, container, false)
         val packagedDeps = Dependency.parseFile(activity!!.assets.open("packaged_deps.yml").reader().readText())
         val deps = Dependency.parseFile(activity!!.assets.open("licenses.yml").reader().readText())

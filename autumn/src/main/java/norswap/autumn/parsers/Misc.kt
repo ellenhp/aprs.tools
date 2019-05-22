@@ -1,6 +1,10 @@
 package norswap.autumn.parsers
 
-import norswap.autumn.*
+import norswap.autumn.AutumnLogicException
+import norswap.autumn.CaughtException
+import norswap.autumn.Grammar
+import norswap.autumn.ParseInput
+import norswap.autumn.Parser
 
 // ---------------------------------------------------------------------------------------------
 
@@ -179,10 +183,11 @@ inline fun Grammar.until_inner(crossinline terminator: Parser, crossinline refin
  * sub-grammar on top on the value stack of the current grammar.
  */
 class SubGrammar(
-        val grammar: Grammar,
-        val sub_grammar: Grammar,
-        val completion: Grammar.(Grammar) -> Unit)
-    : Parser {
+    val grammar: Grammar,
+    val sub_grammar: Grammar,
+    val completion: Grammar.(Grammar) -> Unit
+) :
+    Parser {
     override fun invoke(): Boolean {
         val pos0 = grammar.pos
         val text = grammar.text
@@ -218,9 +223,10 @@ class SubGrammar(
  * sub-grammar on top on the value stack of the current grammar.
  */
 fun Grammar.sub_grammar(
-        sub_grammar: Grammar,
-        completion: Grammar.(Grammar) -> Unit = { stack.push(it.stack[0]) })
-        : Parser {
+    sub_grammar: Grammar,
+    completion: Grammar.(Grammar) -> Unit = { stack.push(it.stack[0]) }
+):
+        Parser {
     return SubGrammar(this, sub_grammar, completion)
 }
 
@@ -231,9 +237,10 @@ fun Grammar.sub_grammar(
  * it runs the sub-grammar on the matched text.
  */
 fun Grammar.sub_grammar_inner(
-        sub_grammar: Grammar,
-        completion: Grammar.(Grammar) -> Unit = { stack.push(it.stack[0]) })
-        : (String) -> Boolean {
+    sub_grammar: Grammar,
+    completion: Grammar.(Grammar) -> Unit = { stack.push(it.stack[0]) }
+):
+        (String) -> Boolean {
     return {
         val result = sub_grammar.parse(it)
         if (result) {

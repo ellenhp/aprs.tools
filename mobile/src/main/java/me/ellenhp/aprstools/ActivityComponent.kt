@@ -35,5 +35,4 @@ interface ActivityComponent {
     fun inject(dialogFragment: CallsignDialogFragment)
     fun inject(trackerService: TrackerService)
     fun inject(mapViewFragment: MapViewFragment)
-
 }

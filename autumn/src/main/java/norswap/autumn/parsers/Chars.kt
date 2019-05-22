@@ -2,7 +2,11 @@
 
 package norswap.autumn.parsers
 
-import norswap.autumn.*
+import norswap.autumn.ExpectedIdentifier
+import norswap.autumn.Grammar
+import norswap.autumn.NoString
+import norswap.autumn.Parser
+import norswap.autumn.UnexpectedChar
 
 // -------------------------------------------------------------------------------------------------
 /*
@@ -155,20 +159,20 @@ fun Grammar.ascii_java_iden(): Boolean = transact_contain(ExpectedIdentifier) b@
 
     var c = text[pos]
 
-    if (!(c in 'a'..'z'
-                    || c in 'A'..'Z'
-                    || c == '_'
-                    || c == '$')) {
+    if (!(c in 'a'..'z' ||
+                    c in 'A'..'Z' ||
+                    c == '_' ||
+                    c == '$')) {
         return@b false
     }
 
     do {
         c = text[++pos]
-    } while (c in 'a'..'z'
-            || c in 'A'..'Z'
-            || c == '_'
-            || c == '$'
-            || c in '0'..'9')
+    } while (c in 'a'..'z' ||
+            c in 'A'..'Z' ||
+            c == '_' ||
+            c == '$' ||
+            c in '0'..'9')
 
     true
 }

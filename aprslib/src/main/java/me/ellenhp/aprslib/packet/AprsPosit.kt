@@ -31,7 +31,7 @@ enum class AprsPositAmbiguity(val boundingCircleRadiusMeters: Int, val omittedSp
     NEAREST_185220_METERS(92610, 4);
 
     companion object {
-        private val map = AprsPositAmbiguity.values().associateBy(AprsPositAmbiguity::omittedSpaces);
+        private val map = AprsPositAmbiguity.values().associateBy(AprsPositAmbiguity::omittedSpaces)
         fun fromOmmittedSpaces(spaces: Int) = map[spaces]
     }
 }

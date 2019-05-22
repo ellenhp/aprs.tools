@@ -26,15 +26,15 @@ import org.threeten.bp.Instant
 import org.threeten.bp.ZoneId
 import org.threeten.bp.format.DateTimeFormatter
 import org.threeten.bp.format.FormatStyle
-import java.util.*
+import java.util.Locale
 
-
-
-class Posit(private var station: String,
-            var posit: LatLng,
-            var symbol: BitmapDescriptor,
-            var lastHeard: Instant,
-            val locale: Locale): ClusterItem {
+class Posit(
+    private var station: String,
+    var posit: LatLng,
+    var symbol: BitmapDescriptor,
+    var lastHeard: Instant,
+    val locale: Locale
+) : ClusterItem {
     override fun getSnippet(): String {
         val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)
                 .withLocale(locale)
@@ -49,5 +49,4 @@ class Posit(private var station: String,
     override fun getPosition(): LatLng {
         return posit
     }
-
 }

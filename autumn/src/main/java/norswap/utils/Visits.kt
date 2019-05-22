@@ -10,8 +10,8 @@ package norswap.utils
  *
  * @see visit_around
  */
-typealias Advice1 <In, Out>
-        = (In, Boolean) -> Out
+typealias Advice1 <In, Out> =
+        (In, Boolean) -> Out
 
 // -------------------------------------------------------------------------------------------------
 
@@ -23,8 +23,8 @@ typealias Advice1 <In, Out>
  *
  * @see visit_reduce
  */
-typealias Reducer <Node, Out>
-        = (Node, Array<Out>) -> Out
+typealias Reducer <Node, Out> =
+        (Node, Array<Out>) -> Out
 
 // -------------------------------------------------------------------------------------------------
 
@@ -37,8 +37,8 @@ typealias Reducer <Node, Out>
  *
  * @see visit_reduce_around
  */
-typealias ReducerAdvice <Node, Out>
-        = (Node, Array<Out>?) -> Out
+typealias ReducerAdvice <Node, Out> =
+        (Node, Array<Out>?) -> Out
 
 // =================================================================================================
 

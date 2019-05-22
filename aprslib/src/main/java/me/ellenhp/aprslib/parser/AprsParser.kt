@@ -19,9 +19,39 @@
 
 package me.ellenhp.aprslib.parser
 
-import me.ellenhp.aprslib.packet.*
+import me.ellenhp.aprslib.packet.AprsData
+import me.ellenhp.aprslib.packet.AprsDataExtension
+import me.ellenhp.aprslib.packet.AprsDatum
+import me.ellenhp.aprslib.packet.AprsInformationField
+import me.ellenhp.aprslib.packet.AprsLatLng
+import me.ellenhp.aprslib.packet.AprsPacket
+import me.ellenhp.aprslib.packet.AprsPath
+import me.ellenhp.aprslib.packet.AprsPositAmbiguity
+import me.ellenhp.aprslib.packet.AprsPosition
+import me.ellenhp.aprslib.packet.AprsPowerHeightGain
+import me.ellenhp.aprslib.packet.AprsSymbol
+import me.ellenhp.aprslib.packet.AprsTimestampDhm
+import me.ellenhp.aprslib.packet.AprsTimestampHms
+import me.ellenhp.aprslib.packet.AprsTimestampMdhm
+import me.ellenhp.aprslib.packet.AprsTimezone
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprslib.packet.CourseSpeed
+import me.ellenhp.aprslib.packet.PathSegment
 import norswap.autumn.Grammar
-import norswap.autumn.parsers.*
+import norswap.autumn.parsers.as_bool
+import norswap.autumn.parsers.build
+import norswap.autumn.parsers.build_str
+import norswap.autumn.parsers.char_any
+import norswap.autumn.parsers.char_range
+import norswap.autumn.parsers.char_set
+import norswap.autumn.parsers.choice
+import norswap.autumn.parsers.digit
+import norswap.autumn.parsers.maybe
+import norswap.autumn.parsers.opt
+import norswap.autumn.parsers.repeat0
+import norswap.autumn.parsers.seq
+import norswap.autumn.parsers.repeat
+import norswap.autumn.parsers.repeat1
 
 class AprsParser {
 
@@ -120,7 +150,6 @@ private class AprsGrammar : Grammar() {
                 AprsAngle(it(0), it(1), it(2), if (cardinalDir == "N") 1 else -1)
             }
     )
-
 
     private fun longitude() = build(
             syntax = {
@@ -292,5 +321,4 @@ private data class AprsAngle(val degrees: String, val wholeMinutes: String, val 
         val numSpaces = (degrees + wholeMinutes + hundredthsMinutes).filter { it == ' ' }.count()
         ambiguity = AprsPositAmbiguity.fromOmmittedSpaces(numSpaces)!!
     }
-
 }

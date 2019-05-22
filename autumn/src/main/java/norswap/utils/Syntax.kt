@@ -55,7 +55,6 @@ inline fun proclaim(cast: Any) = Unit
 
 // -------------------------------------------------------------------------------------------------
 
-
 /**
  * If the receiver can be cast to [T], run [f] over it and return the result. Else return null.
  *

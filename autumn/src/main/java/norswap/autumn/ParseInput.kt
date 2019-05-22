@@ -18,40 +18,41 @@ import norswap.utils.plusAssign
  */
 class ParseInput(
 
-        str: CharSequence,
+    str: CharSequence,
 
-        /**
-         * Identifies the input in text output. Defaults to the empty string.
-         */
-        val name: String = "",
+    /**
+     * Identifies the input in text output. Defaults to the empty string.
+     */
+    val name: String = "",
 
-        /**
-         * Timestamp for the file in milliseconds, usually the time of last modification.
-         * Some system use this to select which input to prefer.
-         * Defaults to the current time.
-         */
-        val timestamp: Long = System.currentTimeMillis(),
+    /**
+     * Timestamp for the file in milliseconds, usually the time of last modification.
+     * Some system use this to select which input to prefer.
+     * Defaults to the current time.
+     */
+    val timestamp: Long = System.currentTimeMillis(),
 
-        /**
-         * The size of tab for tab expansion.
-         *
-         * If 0, specifies that tab should not be expanded.
-         * Otherwise, all tab characters will be replaced by space characters so that the tab brings
-         * the line position to the next multiple of `tab_size`.
-         */
-        val tab_size: Int = TAB_SIZE,
+    /**
+     * The size of tab for tab expansion.
+     *
+     * If 0, specifies that tab should not be expanded.
+     * Otherwise, all tab characters will be replaced by space characters so that the tab brings
+     * the line position to the next multiple of `tab_size`.
+     */
+    val tab_size: Int = TAB_SIZE,
 
-        /**
-         * Index of the first line (only impacts string representations).
-         * Usually 1, which is the default.
-         */
-        val line_start: Int = LINE_START,
+    /**
+     * Index of the first line (only impacts string representations).
+     * Usually 1, which is the default.
+     */
+    val line_start: Int = LINE_START,
 
-        /**
-         * Index of the first character in a line (only impacts string representations).
-         * Usually 0 (e.g. Emacs) or 1 (e.g. IntelliJ IDEA). The default is 1.
-         */
-        val column_start: Int = COLUMN_START) {
+    /**
+     * Index of the first character in a line (only impacts string representations).
+     * Usually 0 (e.g. Emacs) or 1 (e.g. IntelliJ IDEA). The default is 1.
+     */
+    val column_start: Int = COLUMN_START
+) {
     // ---------------------------------------------------------------------------------------------
 
     companion object {
@@ -115,8 +116,8 @@ class ParseInput(
         assert(offset >= 0 && offset < text.length)
         assert(line < line_position.size)
         assert(line_position[line] <= offset)
-        assert(line == line_position.size - 1 && offset < text.length
-                || offset < line_position[line + 1])
+        assert(line == line_position.size - 1 && offset < text.length ||
+                offset < line_position[line + 1])
 
         return offset - line_position[line]
     }

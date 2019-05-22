@@ -20,7 +20,6 @@
 package me.ellenhp.aprsismonitor
 
 import khttp.post
-import khttp.structures.authorization.Authorization
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.parser.AprsParser
 import org.json.JSONArray
@@ -29,11 +28,13 @@ import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Socket
 
-class AprsIsThread(private val host: String,
-                   private val port: Int,
-                   private val callsign: String,
-                   private val backendHost: String,
-                   private val useSSL: Boolean): Thread() {
+class AprsIsThread(
+    private val host: String,
+    private val port: Int,
+    private val callsign: String,
+    private val backendHost: String,
+    private val useSSL: Boolean
+) : Thread() {
 
     private val parser = AprsParser()
     private val packetBuffer = ArrayList<AprsPacket>()

@@ -13,7 +13,6 @@ import kotlin.collections.mapTo
 inline val <T> Array<T>.str: String
     get() = Arrays.toString(this)
 
-
 // -------------------------------------------------------------------------------------------------
 
 /**
