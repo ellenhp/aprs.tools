@@ -17,29 +17,19 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.map
 
-import android.app.Activity
-import android.app.Application
+import dagger.Module
 import dagger.android.AndroidInjector
-import dagger.android.DaggerApplication
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasActivityInjector
-import javax.inject.Inject
+import dagger.multibindings.IntoMap
+import dagger.Binds
+import dagger.multibindings.ClassKey
 
 
-
-class AprsToolsApplication : Application(), HasActivityInjector {
-
-    @Inject
-    lateinit var activityInjector: DispatchingAndroidInjector<Activity>
-
-    override fun onCreate() {
-        super.onCreate()
-        DaggerApplicationComponent.factory().create(this).inject(this)
-    }
-
-    override fun activityInjector(): AndroidInjector<Activity> {
-        return activityInjector
-    }
+@Module(subcomponents = [MapViewSubcomponent::class])
+abstract class MapViewFragmentModule {
+    @Binds
+    @IntoMap
+    @ClassKey(MapViewFragment::class)
+    internal abstract fun bindYourActivityInjectorFactory(factory: MapViewSubcomponent.Factory): AndroidInjector.Factory<*>
 }

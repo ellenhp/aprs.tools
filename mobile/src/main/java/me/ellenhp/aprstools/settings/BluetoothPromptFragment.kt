@@ -32,7 +32,6 @@ import android.widget.BaseAdapter
 import android.widget.ListView
 import android.widget.RadioButton
 import dagger.Lazy
-import me.ellenhp.aprstools.AprsToolsApplication
 import me.ellenhp.aprstools.R
 import javax.inject.Inject
 
@@ -51,7 +50,7 @@ class BluetoothPromptFragment : AprsToolsDialogFragment() {
         }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        (activity?.application as AprsToolsApplication).activityComponent?.inject(this)
+//        (activity?.application as AprsToolsApplication).activityComponent?.inject(this)
 
         val inflater = activity!!.layoutInflater
 

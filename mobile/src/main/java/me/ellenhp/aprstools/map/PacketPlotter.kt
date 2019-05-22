@@ -19,32 +19,39 @@
 
 package me.ellenhp.aprstools.map
 
-import androidx.fragment.app.FragmentActivity
+import android.content.Context
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.model.LatLng
+import com.google.auto.factory.AutoFactory
+import com.google.auto.factory.Provided
 import com.google.maps.android.clustering.ClusterManager
 import me.ellenhp.aprslib.packet.AprsSymbol
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.TimestampedPosit
+import me.ellenhp.aprstools.MapFragmentScope
 import me.ellenhp.aprstools.history.Posit
+import org.jetbrains.anko.runOnUiThread
 import org.threeten.bp.Instant
 import java.lang.Math.abs
+import javax.inject.Inject
 
-class PacketPlotter(private val activity: FragmentActivity, private val map: GoogleMap) {
+@MapFragmentScope
+@AutoFactory(allowSubclasses = true)
+class PacketPlotter(@Provided private val context: Context, map: GoogleMap) : GoogleMap.OnCameraIdleListener {
 
-    val markers = HashMap<Ax25Address, Posit>()
-    val symbolTable = AprsSymbolTable(activity)
-    val clusterManager = ClusterManager<Posit>(activity, map)
+    private val markers = HashMap<Ax25Address, Posit>()
+    private val symbolTable = AprsSymbolTable(context)
+    private val clusterManager = ClusterManager<Posit>(context, map)
 
     init {
-        clusterManager.renderer = PositRenderer(activity, map, clusterManager)
+        clusterManager.renderer = PositRenderer(context, map, clusterManager)
         map.setOnCameraIdleListener(clusterManager)
         map.setOnMarkerClickListener(clusterManager)
     }
 
     @Synchronized
     fun removeAll(stationsToEvict: List<Ax25Address>) {
-        activity.runOnUiThread {
+        context.runOnUiThread {
             for (station in stationsToEvict) {
                 markers[station]?.let { clusterManager.removeItem(it) }
                 markers.remove(station)
@@ -54,12 +61,16 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
 
     @Synchronized
     fun plotOrUpdate(packets: List<TimestampedPosit>) {
-        activity.runOnUiThread {
+        context.runOnUiThread {
             packets.forEach {
                 createOrUpdateMarker(it)
             }
             clusterManager.cluster()
         }
+    }
+
+    override fun onCameraIdle() {
+        clusterManager.onCameraIdle()
     }
 
     private fun createOrUpdateMarker(posit: TimestampedPosit) {
@@ -89,10 +100,12 @@ class PacketPlotter(private val activity: FragmentActivity, private val map: Goo
     ): Posit? {
         val symbolDescriptor = symbolTable.getSymbol(symbol.symbolTable, symbol.symbol) ?: return null
 
+        // Locale is deprecated but the recommended replacement doesn't work back to API 21.
+        @Suppress("DEPRECATION")
         return Posit(station.toString(),
                 point,
                 symbolDescriptor,
                 lastHeard,
-                activity.resources.configuration.locale)
+                context.resources.configuration.locale)
     }
 }

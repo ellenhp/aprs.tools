@@ -17,36 +17,57 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.modules
+package me.ellenhp.aprstools
 
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.preference.PreferenceManager
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import dagger.Module
 import dagger.Provides
-import me.ellenhp.aprstools.ActivityScope
-import me.ellenhp.aprstools.MainActivity
+import dagger.android.AndroidInjector
+import dagger.multibindings.IntoMap
+import dagger.Binds
+import dagger.multibindings.ClassKey
+import me.ellenhp.aprstools.map.MapViewFragmentModule
+import me.ellenhp.aprstools.map.MapViewSubcomponent
+
+
+@Module(subcomponents = [MainActivitySubcomponent::class])
+abstract class MainActivityModule {
+    @Binds
+    @IntoMap
+    @ClassKey(MainActivity::class)
+    abstract fun bindYourActivityInjectorFactory(factory: MainActivitySubcomponent.Factory): AndroidInjector.Factory<*>
+}
 
 @Module
-class ActivityModule(private val activity: MainActivity) {
-
+class MainActivityConcreteModule {
     @Provides
     @ActivityScope
-    fun providesContext(): Context {
+    fun providesContext(activity: MainActivity): Context {
         return activity
     }
 
     @Provides
     @ActivityScope
-    fun providesSharedPreferences(): SharedPreferences {
+    fun providesSharedPreferences(activity: MainActivity): SharedPreferences {
         return PreferenceManager.getDefaultSharedPreferences(activity)
     }
 
     @Provides
-    fun providesBluetoothAdapter(): BluetoothAdapter? {
+    @ActivityScope
+    fun providesBluetoothAdapter(activity: MainActivity): BluetoothAdapter? {
         val bluetoothManager = activity.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         return bluetoothManager.adapter
+    }
+
+    @Provides
+    @ActivityScope
+    fun provideLocationProviderClient(activity: MainActivity): FusedLocationProviderClient {
+        return LocationServices.getFusedLocationProviderClient(activity)
     }
 }

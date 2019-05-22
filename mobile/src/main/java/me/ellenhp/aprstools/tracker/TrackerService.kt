@@ -35,9 +35,10 @@ import me.ellenhp.aprslib.packet.AprsInformationField
 import me.ellenhp.aprslib.packet.AprsPacket
 import me.ellenhp.aprslib.packet.AprsPath
 import me.ellenhp.aprslib.packet.Ax25Address
-import me.ellenhp.aprstools.AprsToolsApplication
 import javax.inject.Inject
 import dagger.Lazy
+import dagger.android.AndroidInjection
+import dagger.android.support.AndroidSupportInjection
 import me.ellenhp.aprstools.settings.Preferences
 
 class TrackerService : Service() {
@@ -52,7 +53,7 @@ class TrackerService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        (application as AprsToolsApplication).activityComponent?.inject(this)
+        AndroidInjection.inject(this)
 
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {

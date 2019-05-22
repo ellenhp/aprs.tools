@@ -19,10 +19,20 @@
 
 package me.ellenhp.aprstools
 
-import javax.inject.Inject
+import androidx.fragment.app.testing.launchFragmentInContainer
+import me.ellenhp.aprstools.map.MapViewFragment
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
-open class Sleeper @Inject constructor() {
-    open fun sleep(millis: Long) {
-        Thread.sleep(millis)
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest=Config.NONE, sdk = [21, 23, 24, 26, 28])
+class MapViewFragmentTest {
+
+    @Test
+    fun startFragment_noCrash() {
+        val scenario = launchFragmentInContainer<MapViewFragment>()
+        scenario.onFragment {}
     }
 }

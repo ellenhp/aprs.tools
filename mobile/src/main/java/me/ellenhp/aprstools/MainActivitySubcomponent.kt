@@ -19,27 +19,18 @@
 
 package me.ellenhp.aprstools
 
-import android.app.Activity
-import android.app.Application
+import dagger.BindsInstance
+import dagger.Component
+import dagger.Subcomponent
+import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
-import dagger.android.DaggerApplication
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasActivityInjector
-import javax.inject.Inject
+import me.ellenhp.aprstools.map.MapViewFragment
+import me.ellenhp.aprstools.map.MapViewFragmentModule
+import me.ellenhp.aprstools.map.MapViewSubcomponent
 
-
-
-class AprsToolsApplication : Application(), HasActivityInjector {
-
-    @Inject
-    lateinit var activityInjector: DispatchingAndroidInjector<Activity>
-
-    override fun onCreate() {
-        super.onCreate()
-        DaggerApplicationComponent.factory().create(this).inject(this)
-    }
-
-    override fun activityInjector(): AndroidInjector<Activity> {
-        return activityInjector
-    }
+@Subcomponent(modules = [AndroidInjectionModule::class, MainActivityConcreteModule::class, MapViewFragmentModule::class])
+@ActivityScope
+interface MainActivitySubcomponent : AndroidInjector<MainActivity> {
+    @Subcomponent.Factory
+    interface Factory : AndroidInjector.Factory<MainActivity>
 }

@@ -19,27 +19,19 @@
 
 package me.ellenhp.aprstools
 
-import android.app.Activity
-import android.app.Application
-import dagger.android.AndroidInjector
-import dagger.android.DaggerApplication
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasActivityInjector
-import javax.inject.Inject
+import androidx.test.core.app.ActivityScenario
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
+@RunWith(RobolectricTestRunner::class)
+@Config(manifest=Config.NONE, sdk = [21, 23, 24, 26, 28])
+class MainActivityTest {
 
-
-class AprsToolsApplication : Application(), HasActivityInjector {
-
-    @Inject
-    lateinit var activityInjector: DispatchingAndroidInjector<Activity>
-
-    override fun onCreate() {
-        super.onCreate()
-        DaggerApplicationComponent.factory().create(this).inject(this)
-    }
-
-    override fun activityInjector(): AndroidInjector<Activity> {
-        return activityInjector
+    @Test
+    fun launchApp_noCrash() {
+        val scenario = ActivityScenario.launch(MainActivity::class.java)
+        scenario.onActivity {}
     }
 }

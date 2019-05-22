@@ -17,19 +17,15 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.modules
+package me.ellenhp.aprstools.map
 
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationServices
-import dagger.Module
-import dagger.Provides
-import me.ellenhp.aprstools.AprsToolsApplication
+import dagger.Subcomponent
+import dagger.android.AndroidInjector
+import me.ellenhp.aprstools.MapFragmentScope
 
-@Module
-class ApplicationModule(private val aprsToolsApplication: AprsToolsApplication) {
-
-    @Provides
-    fun provideLocationProviderClient(): FusedLocationProviderClient {
-        return LocationServices.getFusedLocationProviderClient(aprsToolsApplication)
-    }
+@Subcomponent
+@MapFragmentScope
+interface MapViewSubcomponent: AndroidInjector<MapViewFragment> {
+    @Subcomponent.Factory
+    interface Factory : AndroidInjector.Factory<MapViewFragment>
 }
