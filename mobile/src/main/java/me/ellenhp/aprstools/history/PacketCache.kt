@@ -19,56 +19,45 @@
 
 package me.ellenhp.aprstools.history
 
-import android.content.Context
-import android.util.Log
-import com.android.volley.DefaultRetryPolicy
-import com.android.volley.toolbox.JsonObjectRequest
-import com.google.auto.factory.AutoFactory
-import com.google.auto.factory.Provided
-import com.google.gson.Gson
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
-import me.ellenhp.aprstools.map.PacketPlotter
 import java.util.ArrayDeque
+import javax.inject.Inject
 import kotlin.collections.HashMap
 
-@AutoFactory(allowSubclasses = true)
-class PacketCache(@Provided private val context: Context, private val plotter: PacketPlotter) {
+class PacketCache @Inject constructor() {
 
     private val cellsInOrder = ArrayDeque<PacketCacheCell>()
     private val allCells = HashMap<OpenLocationCode, PacketCacheCell>()
     private val maxCells = 150
     private val targetCells = 100
 
+    /* Bumps the position in the LRU cache for all visible cells and returns a list of cells that need to be updated */
     @Synchronized
-    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>, maxRequests: Int) {
+    fun updateVisibleCells(requestedCodes: List<OpenLocationCode>, listener: CacheUpdateListener): List<OpenLocationCode> {
+        // Don't even bother if the view is too big, for latency reasons.
         if (requestedCodes.size > targetCells) {
-            Log.d("cache", "view too big, giving up")
-            return
+            return listOf()
         }
 
-        var updates = 0
-        // This code is convoluted, but what we're trying to do is bump the position in the cache
-        // for all cells, but only update some/one of them.
-        requestedCodes.forEach { code ->
-            val cell = getCell(code)
-            if (updates < maxRequests) {
-                cell.getUpdateUrl()?.let {
-                    runUpdate(code, it)
-                    updates += 1
-                }
-            }
-        }
-        maybeEvictCells()
+        val cellsNeedingUpdate = requestedCodes.map { getCell(it) }.filter { it.wantsUpdate() }.map { it.code }
+        maybeEvictCells(listener)
+
+        return cellsNeedingUpdate
     }
 
-    private fun maybeEvictCells() {
+    @Synchronized
+    fun updateCell(cell: OpenLocationCode, command: CacheUpdateCommandPosits, listener: CacheUpdateListener) {
+        getCell(cell).update(command, listener)
+    }
+
+    private fun maybeEvictCells(listener: CacheUpdateListener) {
         if (allCells.count() < maxCells) {
             return
         }
         val cellsToRemove = cellsInOrder.drop(targetCells)
         cellsToRemove.forEach {
-            purgeCell(it)
+            purgeCell(it, listener)
         }
     }
 
@@ -81,29 +70,10 @@ class PacketCache(@Provided private val context: Context, private val plotter: P
         return cell
     }
 
-    @Synchronized
-    private fun updateCell(cell: OpenLocationCode, command: CacheUpdateCommandPosits) {
-        getCell(cell).update(command, plotter)
-    }
-
-    private fun purgeCell(cell: PacketCacheCell) {
-        plotter.removeAll(cell.getAllStations())
-        allCells.remove(cell.cell)
+    private fun purgeCell(cell: PacketCacheCell, listener: CacheUpdateListener) {
+        listener.evictStations(cell.getAllStations())
+        allCells.remove(cell.code)
         cellsInOrder.remove(cell)
-    }
-
-    private fun runUpdate(cell: OpenLocationCode, url: String) {
-        Log.d("Update", "Issuing HTTP request $url")
-        val request = JsonObjectRequest(url, null, {
-            val command = Gson().fromJson<CacheUpdateCommandPosits>(it.toString(),
-                    CacheUpdateCommandPosits::class.java)
-            command?.let { updateCell(cell, command) }
-        }, {
-            getCell(cell).resetFreshness()
-        })
-        request.retryPolicy = DefaultRetryPolicy(2500, 2, 1.5f)
-
-        PacketRequestQueue.getInstance(context).addToRequestQueue(request)
     }
 
     private fun allocateCell(cellKey: OpenLocationCode): PacketCacheCell {
@@ -112,4 +82,6 @@ class PacketCache(@Provided private val context: Context, private val plotter: P
         cellsInOrder.push(cell)
         return cell
     }
+
+    interface CellUpdateListener
 }

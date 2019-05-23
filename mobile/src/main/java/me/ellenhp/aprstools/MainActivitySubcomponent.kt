@@ -22,9 +22,8 @@ package me.ellenhp.aprstools
 import dagger.Subcomponent
 import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.map.MapViewFragmentModule
 
-@Subcomponent(modules = [AndroidInjectionModule::class, MainActivityConcreteModule::class, MapViewFragmentModule::class])
+@Subcomponent(modules = [AndroidInjectionModule::class, MainActivityModule::class])
 @ActivityScope
 interface MainActivitySubcomponent : AndroidInjector<MainActivity> {
     @Subcomponent.Factory

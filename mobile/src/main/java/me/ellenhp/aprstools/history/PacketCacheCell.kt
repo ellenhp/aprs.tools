@@ -19,66 +19,55 @@
 
 package me.ellenhp.aprstools.history
 
-import android.util.Log
-import com.google.android.gms.maps.model.LatLng
 import com.google.openlocationcode.OpenLocationCode
 import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprslib.packet.CacheUpdateCommandPosits
-import me.ellenhp.aprstools.map.PacketPlotter
-import org.threeten.bp.Duration
+import me.ellenhp.aprstools.map.wrapper.MarkerDescriptor
+import org.threeten.bp.Duration.ofMinutes
 import org.threeten.bp.Instant
 
-class PacketCacheCell(val cell: OpenLocationCode) {
+class PacketCacheCell(val code: OpenLocationCode) {
 
     private var freshness: Instant? = null
-    private var hidden: Boolean = false
-
-    private var packetsByStation = HashMap<Ax25Address, LatLng>()
+    private var plottedStations = HashSet<Ax25Address>()
 
     @Synchronized
-    fun getUpdateUrl(): String? {
-        val freshnessSnapshot = freshness
+    fun update(command: CacheUpdateCommandPosits, listener: CacheUpdateListener) {
         this.freshness = Instant.now()
-        if (freshnessSnapshot == null) {
-            return "https://api.aprs.tools/within/$cell?type=posit"
-        }
-        if (freshnessSnapshot.isAfter(Instant.now().minus(Duration.ofMinutes(2)))) {
-            return null
-        }
-        Log.d("update", "Updating cell")
-        return "https://api.aprs.tools/within/$cell?type=posit"
-    }
-
-    @Synchronized
-    fun update(command: CacheUpdateCommandPosits, plotter: PacketPlotter) {
-        if (command.evictAllOldStations) {
-            plotter.removeAll(packetsByStation.keys.toList())
-            packetsByStation.clear()
-        }
 
         if (command.stationsToEvict.isNotEmpty()) {
-            plotter.removeAll(command.stationsToEvict)
+            listener.evictStations(command.stationsToEvict)
+            command.stationsToEvict.forEach {
+                plottedStations.remove(it)
+            }
         }
-        command.stationsToEvict.forEach {
-            packetsByStation.remove(it)
+
+        if (command.evictAllOldStations) {
+            val oldStations = plottedStations.minus(command.newOrUpdated.map { it.station })
+            listener.evictStations(oldStations)
+            plottedStations.clear()
         }
 
         command.newOrUpdated.forEach {
+            plottedStations.add(it.station)
+        }
+
+        val markerDescriptors = command.newOrUpdated.map {
             val location = it.location.decode()
-            packetsByStation[it.station] = LatLng(location.centerLatitude, location.centerLongitude)
+            MarkerDescriptor(it.station, location.centerLatitude, location.centerLongitude, it.symbol, Instant.ofEpochMilli(it.millisSinceEpoch))
         }
-        if (!hidden) {
-            plotter.plotOrUpdate(command.newOrUpdated)
-        }
+        listener.updateMarkers(markerDescriptors)
     }
 
     @Synchronized
     fun getAllStations(): List<Ax25Address> {
-        return packetsByStation.keys.toList()
+        return plottedStations.toList()
     }
 
     @Synchronized
-    fun resetFreshness() {
-        freshness = null
+    fun wantsUpdate(): Boolean {
+        val freshnessSnapshot = freshness ?: return true
+        // We want an update if our last update was before two minutes ago.
+        return freshnessSnapshot.isBefore(Instant.now().minus(ofMinutes(2)))
     }
 }

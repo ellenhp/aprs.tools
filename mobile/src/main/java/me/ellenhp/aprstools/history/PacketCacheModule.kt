@@ -17,16 +17,9 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.map
+package me.ellenhp.aprstools.history
 
-import dagger.Subcomponent
-import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.MapFragmentScope
-import me.ellenhp.aprstools.map.google.GoogleMapWrapperModule
+import dagger.Module
 
-@Subcomponent(modules = [MapViewFragmentModule::class, GoogleMapWrapperModule::class])
-@MapFragmentScope
-interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
-    @Subcomponent.Factory
-    interface Factory : AndroidInjector.Factory<MapViewFragment>
-}
+@Module
+class PacketCacheModule

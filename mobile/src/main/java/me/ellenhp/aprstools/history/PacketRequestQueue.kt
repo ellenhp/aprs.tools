@@ -23,8 +23,9 @@ import android.content.Context
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.Volley
+import javax.inject.Inject
 
-class PacketRequestQueue constructor(context: Context) {
+class PacketRequestQueue @Inject constructor(context: Context) {
     companion object {
         @Volatile
         private var INSTANCE: PacketRequestQueue? = null

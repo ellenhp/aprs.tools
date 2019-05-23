@@ -20,15 +20,6 @@
 package me.ellenhp.aprstools.map
 
 import dagger.Module
-import dagger.android.AndroidInjector
-import dagger.multibindings.IntoMap
-import dagger.Binds
-import dagger.multibindings.ClassKey
 
-@Module(subcomponents = [MapViewSubcomponent::class])
-abstract class MapViewFragmentModule {
-    @Binds
-    @IntoMap
-    @ClassKey(MapViewFragment::class)
-    internal abstract fun bindYourActivityInjectorFactory(factory: MapViewSubcomponent.Factory): AndroidInjector.Factory<*>
-}
+@Module
+class MapViewFragmentModule

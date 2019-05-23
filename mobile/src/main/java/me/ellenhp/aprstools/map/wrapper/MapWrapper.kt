@@ -17,16 +17,19 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.map
+package me.ellenhp.aprstools.map.wrapper
 
-import dagger.Subcomponent
-import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.MapFragmentScope
-import me.ellenhp.aprstools.map.google.GoogleMapWrapperModule
+import androidx.fragment.app.Fragment
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprstools.history.CacheUpdateListener
 
-@Subcomponent(modules = [MapViewFragmentModule::class, GoogleMapWrapperModule::class])
-@MapFragmentScope
-interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
-    @Subcomponent.Factory
-    interface Factory : AndroidInjector.Factory<MapViewFragment>
+interface MapWrapper : CacheUpdateListener {
+    /** Perform any initialization required by the map. */
+    fun init(transitionToMapFragment: (Fragment) -> Unit)
+    /** Draw the marker described by the provided descriptor. */
+    fun drawOrUpdateMarker(markerDescriptor: MarkerDescriptor)
+    /** Remove the marker for the specified station */
+    fun removeMarker(ax25Address: Ax25Address)
+    /** Returns whether or not the map is ready to have markers added to it */
+    fun isReady(): Boolean
 }
