@@ -21,9 +21,11 @@ package me.ellenhp.aprstools.map.google
 
 import android.app.Activity
 import androidx.fragment.app.Fragment
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.clustering.ClusterManager
 import com.google.openlocationcode.OpenLocationCode
@@ -84,13 +86,6 @@ class GoogleMapWrapper @Inject constructor(
         return map != null
     }
 
-    override fun drawOrUpdateMarker(markerDescriptor: MarkerDescriptor) {
-    }
-
-    override fun removeMarker(ax25Address: Ax25Address) {
-        TODO("not implemented") // To change body of created functions use File | Settings | File Templates.
-    }
-
     override fun updateMarkers(descriptors: Collection<MarkerDescriptor>) {
         activity.runOnUiThread {
             descriptors.forEach {
@@ -104,6 +99,12 @@ class GoogleMapWrapper @Inject constructor(
         stations.mapNotNull { posits[it] }.forEach {
             clusterManager?.removeItem(it)
         }
+    }
+
+    override fun animateToLocation(latitude: Double, longitude: Double) {
+        map?.animateCamera(CameraUpdateFactory.newCameraPosition(CameraPosition.Builder()
+                .target(LatLng(latitude, longitude)).zoom(8f).build()
+        ))
     }
 
     @Synchronized

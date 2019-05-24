@@ -33,7 +33,7 @@ class Posit(
     var posit: LatLng,
     var symbol: BitmapDescriptor,
     var lastHeard: Instant,
-    val locale: Locale
+    private val locale: Locale
 ) : ClusterItem {
     override fun getSnippet(): String {
         val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)

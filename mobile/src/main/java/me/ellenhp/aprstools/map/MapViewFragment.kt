@@ -27,15 +27,15 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.PermissionChecker.PERMISSION_GRANTED
+import androidx.core.content.PermissionChecker.checkSelfPermission
 import com.google.android.gms.location.FusedLocationProviderClient
 import javax.inject.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import me.ellenhp.aprstools.AprsToolsFragment
 import me.ellenhp.aprstools.R
-import me.ellenhp.aprstools.history.PacketCache
 import me.ellenhp.aprstools.map.wrapper.MapWrapper
-import org.threeten.bp.Instant
 
 /**
  * A simple [Fragment] subclass.
@@ -48,9 +48,6 @@ import org.threeten.bp.Instant
  */
 class MapViewFragment : AprsToolsFragment(),
         CoroutineScope by MainScope() {
-    private var lastUpdateInstant: Instant? = null
-    private var packetCache: PacketCache? = null
-
     @Inject
     lateinit var fusedLocationClient: FusedLocationProviderClient
     @Inject
@@ -74,6 +71,15 @@ class MapViewFragment : AprsToolsFragment(),
         mapWrapper.init(applyMapTransition)
 
         requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), LOCATION_PERMISSION_REQUEST)
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (checkSelfPermission(context!!, ACCESS_FINE_LOCATION) == PERMISSION_GRANTED || checkSelfPermission(context!!, ACCESS_COARSE_LOCATION) == PERMISSION_GRANTED) {
+            fusedLocationClient.lastLocation.addOnSuccessListener {
+                it?.let { mapWrapper.animateToLocation(it.latitude, it.longitude) }
+            }
+        }
     }
 
     companion object {

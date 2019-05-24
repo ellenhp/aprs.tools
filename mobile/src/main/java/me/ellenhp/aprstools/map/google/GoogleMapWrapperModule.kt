@@ -22,10 +22,9 @@ package me.ellenhp.aprstools.map.google
 import dagger.Binds
 import dagger.Module
 import me.ellenhp.aprstools.MapFragmentScope
-import me.ellenhp.aprstools.history.PacketCacheModule
 import me.ellenhp.aprstools.map.wrapper.MapWrapper
 
-@Module(includes = [PacketCacheModule::class])
+@Module
 abstract class GoogleMapWrapperModule {
     @Binds
     @MapFragmentScope

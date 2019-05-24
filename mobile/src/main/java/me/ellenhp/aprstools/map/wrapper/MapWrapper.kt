@@ -20,16 +20,13 @@
 package me.ellenhp.aprstools.map.wrapper
 
 import androidx.fragment.app.Fragment
-import me.ellenhp.aprslib.packet.Ax25Address
 import me.ellenhp.aprstools.history.CacheUpdateListener
 
 interface MapWrapper : CacheUpdateListener {
     /** Perform any initialization required by the map. */
     fun init(transitionToMapFragment: (Fragment) -> Unit)
-    /** Draw the marker described by the provided descriptor. */
-    fun drawOrUpdateMarker(markerDescriptor: MarkerDescriptor)
-    /** Remove the marker for the specified station */
-    fun removeMarker(ax25Address: Ax25Address)
-    /** Returns whether or not the map is ready to have markers added to it */
+    /** Returns whether or not the map is ready to have markers added to it. */
     fun isReady(): Boolean
+    /** Animates to the specified location. */
+    fun animateToLocation(latitude: Double, longitude: Double)
 }
