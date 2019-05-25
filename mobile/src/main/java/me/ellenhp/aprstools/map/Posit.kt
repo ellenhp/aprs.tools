@@ -17,7 +17,7 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.history
+package me.ellenhp.aprstools.map
 
 import com.google.android.gms.maps.model.BitmapDescriptor
 import com.google.android.gms.maps.model.LatLng
@@ -33,7 +33,7 @@ class Posit(
     var posit: LatLng,
     var symbol: BitmapDescriptor,
     var lastHeard: Instant,
-    val locale: Locale
+    private val locale: Locale
 ) : ClusterItem {
     override fun getSnippet(): String {
         val formatter = DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT)

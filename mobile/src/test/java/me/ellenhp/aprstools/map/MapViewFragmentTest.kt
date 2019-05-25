@@ -21,6 +21,7 @@ package me.ellenhp.aprstools.map
 
 import androidx.fragment.app.testing.launchFragmentInContainer
 import com.google.android.gms.location.FusedLocationProviderClient
+import me.ellenhp.aprstools.map.wrapper.MapWrapper
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -35,6 +36,8 @@ class MapViewFragmentTest {
 
     @Mock
     lateinit var fusedLocationProvider: FusedLocationProviderClient
+    @Mock
+    lateinit var mapWrapper: MapWrapper
 
     @Before
     fun setUp() {
@@ -47,6 +50,7 @@ class MapViewFragmentTest {
             val fragment = MapViewFragment()
             fragment.setupMocksForTesting {
                 fragment.fusedLocationClient = fusedLocationProvider
+                fragment.mapWrapper = mapWrapper
             }
             fragment
         })

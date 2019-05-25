@@ -17,16 +17,18 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.map
+package me.ellenhp.aprstools
 
-import dagger.Subcomponent
+import dagger.Binds
+import dagger.Module
 import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.MapFragmentScope
-import me.ellenhp.aprstools.map.google.GoogleMapWrapperModule
+import dagger.multibindings.ClassKey
+import dagger.multibindings.IntoMap
 
-@Subcomponent(modules = [MapViewFragmentModule::class, GoogleMapWrapperModule::class])
-@MapFragmentScope
-interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
-    @Subcomponent.Factory
-    interface Factory : AndroidInjector.Factory<MapViewFragment>
+@Module(subcomponents = [MainActivitySubcomponent::class])
+abstract class ApplicationModule {
+    @Binds
+    @IntoMap
+    @ClassKey(MainActivity::class)
+    abstract fun bindMainActivity(factory: MainActivitySubcomponent.Factory): AndroidInjector.Factory<*>
 }

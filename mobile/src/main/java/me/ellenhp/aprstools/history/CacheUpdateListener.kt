@@ -17,20 +17,14 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.map
+package me.ellenhp.aprstools.history
 
-import android.content.Context
-import com.google.android.gms.maps.GoogleMap
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.maps.android.clustering.ClusterManager
-import com.google.maps.android.clustering.view.DefaultClusterRenderer
-import me.ellenhp.aprstools.history.Posit
+import me.ellenhp.aprslib.packet.Ax25Address
+import me.ellenhp.aprstools.map.wrapper.MarkerDescriptor
 
-class PositRenderer(context: Context, val map: GoogleMap, clusterManager: ClusterManager<Posit>) :
-        DefaultClusterRenderer<Posit>(context, map, clusterManager) {
-
-    override fun onBeforeClusterItemRendered(item: Posit, markerOptions: MarkerOptions) {
-        markerOptions.icon(item.symbol)
-        markerOptions.anchor(0.5f, 0.5f)
-    }
+interface CacheUpdateListener {
+    /** Update the specified markers on the map */
+    fun updateMarkers(descriptors: Collection<MarkerDescriptor>)
+    /** Remove any markers from the specified stations. */
+    fun evictStations(stations: Collection<Ax25Address>)
 }

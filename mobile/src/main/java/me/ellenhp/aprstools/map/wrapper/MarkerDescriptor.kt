@@ -17,16 +17,10 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools.map
+package me.ellenhp.aprstools.map.wrapper
 
-import dagger.Subcomponent
-import dagger.android.AndroidInjector
-import me.ellenhp.aprstools.MapFragmentScope
-import me.ellenhp.aprstools.map.google.GoogleMapWrapperModule
+import me.ellenhp.aprslib.packet.AprsSymbol
+import me.ellenhp.aprslib.packet.Ax25Address
+import org.threeten.bp.Instant
 
-@Subcomponent(modules = [MapViewFragmentModule::class, GoogleMapWrapperModule::class])
-@MapFragmentScope
-interface MapViewSubcomponent : AndroidInjector<MapViewFragment> {
-    @Subcomponent.Factory
-    interface Factory : AndroidInjector.Factory<MapViewFragment>
-}
+data class MarkerDescriptor(val station: Ax25Address, val latitude: Double, val longitude: Double, val symbol: AprsSymbol, val timestamp: Instant)

@@ -17,14 +17,20 @@
  * along with APRSTools.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package me.ellenhp.aprstools
+package me.ellenhp.aprstools.map.google
 
-import javax.inject.Scope
+import android.content.Context
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.maps.android.clustering.ClusterManager
+import com.google.maps.android.clustering.view.DefaultClusterRenderer
+import me.ellenhp.aprstools.map.Posit
 
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class ActivityScope
+class PositRenderer(context: Context, map: GoogleMap, clusterManager: ClusterManager<Posit>) :
+        DefaultClusterRenderer<Posit>(context, map, clusterManager) {
 
-@Scope
-@Retention(AnnotationRetention.RUNTIME)
-annotation class MapFragmentScope
+    override fun onBeforeClusterItemRendered(item: Posit, markerOptions: MarkerOptions) {
+        markerOptions.icon(item.symbol)
+        markerOptions.anchor(0.5f, 0.5f)
+    }
+}

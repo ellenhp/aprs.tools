@@ -24,7 +24,7 @@ import dagger.android.AndroidInjectionModule
 import dagger.android.AndroidInjector
 import dagger.android.support.AndroidSupportInjectionModule
 
-@Component(modules = [AndroidInjectionModule::class, AndroidSupportInjectionModule::class, MainActivityModule::class])
+@Component(modules = [AndroidInjectionModule::class, AndroidSupportInjectionModule::class, ApplicationModule::class])
 interface ApplicationComponent : AndroidInjector<AprsToolsApplication> {
     @Component.Factory
     interface Factory : AndroidInjector.Factory<AprsToolsApplication>

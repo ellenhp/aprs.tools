@@ -19,6 +19,7 @@
 
 package me.ellenhp.aprstools
 
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothManager
 import android.content.Context
@@ -32,13 +33,15 @@ import dagger.android.AndroidInjector
 import dagger.multibindings.IntoMap
 import dagger.Binds
 import dagger.multibindings.ClassKey
+import me.ellenhp.aprstools.map.MapViewFragment
+import me.ellenhp.aprstools.map.MapViewSubcomponent
 
-@Module(subcomponents = [MainActivitySubcomponent::class])
+@Module(includes = [MainActivityConcreteModule::class], subcomponents = [MapViewSubcomponent::class])
 abstract class MainActivityModule {
     @Binds
     @IntoMap
-    @ClassKey(MainActivity::class)
-    abstract fun bindYourActivityInjectorFactory(factory: MainActivitySubcomponent.Factory): AndroidInjector.Factory<*>
+    @ClassKey(MapViewFragment::class)
+    internal abstract fun bindMapViewFragment(factory: MapViewSubcomponent.Factory): AndroidInjector.Factory<*>
 }
 
 @Module
@@ -46,6 +49,12 @@ class MainActivityConcreteModule {
     @Provides
     @ActivityScope
     fun providesContext(activity: MainActivity): Context {
+        return activity
+    }
+
+    @Provides
+    @ActivityScope
+    fun providesActivity(activity: MainActivity): Activity {
         return activity
     }
 
