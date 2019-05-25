@@ -25,6 +25,7 @@ import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.int
+import java.time.Duration
 
 class BackendService : CliktCommand() {
     private val aprsIsHost: String by option(help = "The APRS-IS server to connect to")
@@ -37,12 +38,29 @@ class BackendService : CliktCommand() {
             .required()
     private val useSSL: Boolean by option("--use-ssl", help = "Whether or not to use SSL")
             .flag("--disable-ssl", default = true)
+
     override fun run() {
-        println("Creating APRS-IS backend service.")
-        val thread = AprsIsThread(aprsIsHost, aprsIsPort, callsign, backendHost, useSSL)
-        println("Starting APRS-IS backend service.")
-        thread.start()
-        thread.join()
+        while (!Thread.interrupted()) {
+            println("Creating uploader thread")
+            val publisher = PublisherThread(backendHost, useSSL)
+
+            println("Creating watchdog.")
+            val watchdog = Watchdog(Duration.ofSeconds(10))
+
+            println("Creating APRS-IS thread.")
+            val aprsIsThread = AprsIsThread(aprsIsHost, aprsIsPort, callsign, publisher, watchdog)
+
+            println("Starting monitor service.")
+            publisher.start()
+            aprsIsThread.start()
+
+            watchdog.waitUntilDead()
+
+            println("Watchdog activated, cleaning up")
+
+            publisher.interrupt()
+            aprsIsThread.interrupt()
+        }
     }
 }
 
